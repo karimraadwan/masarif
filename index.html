@@ -78,6 +78,24 @@ h2{font:700 18px/1.2 var(--f-display);margin:0;text-wrap:balance}
 .pill{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:9px 11px;min-width:0}
 .pill div:first-child{font-size:12px;opacity:.9}
 .pill div:last-child{font:800 17px var(--f-display)}
+.pills.two{grid-template-columns:repeat(2,1fr)}
+.home-seg{margin-bottom:2px}
+.bal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.bal{border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;gap:5px;min-width:0;color:#fff}
+.bal.acc{background:linear-gradient(135deg,#0F9D74,#14B8A6)}
+.bal.cc{background:linear-gradient(135deg,#1F2937,#374151)}
+.bal-lab{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.9}
+.bal-amt{font:800 21px/1.1 var(--f-display);white-space:nowrap}
+.bal-amt small{font-size:.5em;opacity:.85;margin-right:4px}
+.bal-sub{font-size:12px;opacity:.88}
+.bal-bar{height:5px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;margin-top:2px}
+.bal-bar i{display:block;height:100%;background:#FBBF24;border-radius:999px}
+.bal-due{align-self:flex-start;font-size:11.5px;font-weight:800;background:rgba(255,255,255,.16);border-radius:999px;padding:3px 9px;margin-top:2px}
+.bal-due.soon{background:#F59E0B;color:#1F2937}
+.more-link{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);cursor:pointer;color:inherit;font:inherit}
+.more-link > span:first-child{display:flex;flex-direction:column;gap:2px}
+.more-link > span:first-child span{font-size:13px;color:var(--muted)}
+.more-link > span:last-child{font-size:24px;color:var(--accent)}
 .period-bar{height:6px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden}
 .period-bar i{display:block;height:100%;background:#fff;border-radius:999px}
 
@@ -505,7 +523,7 @@ const GROUP_ORDER = { need: 0, want: 1, debt: 2 };
 const GROUP_COLOR = { need: "var(--need)", want: "var(--want)", debt: "var(--debt)", none: "var(--none)" };
 const PALETTE = ["#10B981", "#0EA5E9", "#F97316", "#EC4899", "#8B5CF6", "#F59E0B", "#14B8A6", "#EF4444", "#84CC16", "#3B82F6", "#D946EF", "#64748B"];
 const NONE_COLOR = "#9AA3B2";
-const DEFAULT_SETTINGS = { salary: 0, fixed: [], card: { balance: 0, rate: 0.035, payment: 0, asOf: "" }, dateOrder: "dmy", startDay: 1, cards: [], defaultCardId: "", loan: { balance: 0, rate: 0, payment: 0 }, fuelWeekly: 2000 };
+const DEFAULT_SETTINGS = { salary: 0, fixed: [], card: { balance: 0, rate: 0.035, payment: 0, asOf: "", asOfTime: "", dueDate: "" }, account: { balance: 0, asOf: "", asOfTime: "" }, dateOrder: "dmy", startDay: 1, cards: [], defaultCardId: "", loan: { balance: 0, rate: 0, payment: 0 }, fuelWeekly: 2000 };
 
 /* ---------- state ---------- */
 const S = {
@@ -518,7 +536,7 @@ const S = {
   goals: [], owed: [], subs: {}, sync: { state: "", msg: "", busy: false, last: null, added: 0 }, planPay: null, calSel: null
 };
 let db = null;
-const settings = () => Object.assign({}, DEFAULT_SETTINGS, S.settings || {}, { card: Object.assign({}, DEFAULT_SETTINGS.card, (S.settings || {}).card || {}), loan: Object.assign({}, DEFAULT_SETTINGS.loan, (S.settings || {}).loan || {}), sync: Object.assign({}, DEFAULT_SETTINGS.sync, (S.settings || {}).sync || {}) });
+const settings = () => Object.assign({}, DEFAULT_SETTINGS, S.settings || {}, { card: Object.assign({}, DEFAULT_SETTINGS.card, (S.settings || {}).card || {}), loan: Object.assign({}, DEFAULT_SETTINGS.loan, (S.settings || {}).loan || {}), account: Object.assign({}, DEFAULT_SETTINGS.account, (S.settings || {}).account || {}), sync: Object.assign({}, DEFAULT_SETTINGS.sync, (S.settings || {}).sync || {}) });
 const kw = c => String(c.keywords || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
 const catById = id => S.cats.find(c => c.id === id);
 const groupOf = t => { const c = catById(t.categoryId); return c ? (c.group || "need") : "none"; };
@@ -697,10 +715,10 @@ function payoff(b, r, p) {
 }
 /* Credit balance now = last statement balance + credit purchases since − refunds since − payments since */
 function cardNow() {
-  const c = settings().card, asOf = c.asOf || "", cc = creditCard();
+  const c = settings().card, cc = creditCard();
   let adds = 0, refunds = 0, paid = 0;
   for (const t of S.txns) {
-    if (t.deleted || !t.date || (asOf && t.date <= asOf)) continue;
+    if (t.deleted || !t.date || !afterSnap(t, c.asOf, c.asOfTime)) continue;
     if (t.kind === "payment") { paid += +t.amount || 0; continue; }
     if (t.kind === "income") continue;
     if (cc && t.cardId === cc.id) { if (t.kind === "refund") refunds += +t.amount || 0; else adds += +t.amount || 0; }
@@ -709,7 +727,87 @@ function cardNow() {
   return { base, adds, refunds, paid, now: Math.max(0, base + adds - refunds - paid) };
 }
 
+/* A purchase counts after a balance snapshot when it is dated later, or the same day at a later time */
+function afterSnap(t, d, tm) {
+  if (!d) return true;
+  if (t.date > d) return true;
+  return t.date === d && !!tm && !!t.time && t.time > tm;
+}
+/* Bank account now = balance you copied from the CIB app − debit purchases and card payments since + refunds and money in since */
+function accountNow() {
+  const a = settings().account, debitIds = new Set(cards().filter(c => c.type !== "credit").map(c => c.id));
+  let out = 0, inn = 0;
+  for (const t of S.txns) {
+    if (t.deleted || !t.date || !afterSnap(t, a.asOf, a.asOfTime)) continue;
+    const v = +t.amount || 0;
+    if (t.kind === "income") inn += v;
+    else if (t.kind === "payment") out += v;
+    else if (debitIds.has(t.cardId)) { if (t.kind === "refund") inn += v; else out += v; }
+  }
+  const base = +a.balance || 0;
+  return { base, out, inn, now: base - out + inn, set: !!a.asOf };
+}
+const nowHM = () => { const d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+function snapLabel(d, tm) {
+  if (!d) return "";
+  const day = d === todayStr() ? "today" : daysDiff(d, todayStr()) === 1 ? "yesterday" : dayLabel(d);
+  if (!tm) return "Updated " + day;
+  const [h, m] = tm.split(":").map(Number);
+  return `Updated ${day}, ${(h % 12) || 12}:${pad(m)} ${h < 12 ? "am" : "pm"}`;
+}
+
 /* ---------- limits, comparison, trend, habits ---------- */
+/* ---------- weeks (Saturday to Friday) ---------- */
+const wkStart = ds => { const d = toDate(ds); d.setDate(d.getDate() - ((d.getDay() + 1) % 7)); return toStr(d); };
+const wkEnd = ws => { const d = toDate(ws); d.setDate(d.getDate() + 6); return toStr(d); };
+function weekData(ws) {
+  const we = wkEnd(ws), byCat = {};
+  let total = 0, n = 0;
+  for (const t of S.txns) {
+    if (t.deleted || !t.date || t.date < ws || t.date > we || isFlow(t) || groupOf(t) === "debt") continue;
+    const v = signed(t); total += v; n++;
+    const k = catById(t.categoryId) ? t.categoryId : "_none";
+    byCat[k] = (byCat[k] || 0) + v;
+  }
+  return { ws, we, total, n, byCat };
+}
+function weekLimitStatus(w) {
+  const over = [], near = [];
+  const tl = +settings().weekLimit || 0;
+  if (tl) { if (w.total > tl) over.push({ c: { name: "All spending", id: "_all" }, s: w.total, lim: tl, week: true }); else if (w.total >= tl * 0.8) near.push({ c: { name: "All spending", id: "_all" }, s: w.total, lim: tl, week: true }); }
+  for (const c of S.cats) {
+    const lim = +c.weekly || 0; if (!lim) continue;
+    const s2 = w.byCat[c.id] || 0;
+    if (s2 > lim) over.push({ c, s: s2, lim, week: true }); else if (s2 >= lim * 0.8) near.push({ c, s: s2, lim, week: true });
+  }
+  return { over, near };
+}
+function suggestedWeekly() {
+  const st = settings(), key = curKey();
+  const free = (+st.salary || 0) - activeFixed(key).reduce((a, f) => a + (+f.amount || 0), 0) - (cardNow().now > 0 ? (+st.card.payment || 0) : 0);
+  const weeks = daysDiff(pStart(key), pNext(key)) / 7;
+  return free > 0 ? Math.floor(free / weeks / 100) * 100 : 0;
+}
+function weekCard() {
+  const today = todayStr(), ws = wkStart(today), w = weekData(ws);
+  const lim = +settings().weekLimit || 0;
+  const daysLeft = daysDiff(today, wkEnd(ws)) + 1;
+  const left = lim - w.total, pct = lim ? Math.min(100, w.total / lim * 100) : 0;
+  const prev = weekData(wkStart(toStr(new Date(toDate(ws).getTime() - 86400000))));
+  const catRows = S.cats.filter(c => +c.weekly > 0).map(c => ({ c, s: w.byCat[c.id] || 0, lim: +c.weekly }));
+  const range = toDate(ws).toLocaleDateString("en-GB", { weekday: "short", day: "numeric" }) + " – " + toDate(wkEnd(ws)).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  return `<div class="card stack">
+    <div class="row"><h2>This week</h2><span class="small muted">${esc(range)} · ${daysLeft} day${daysLeft === 1 ? "" : "s"} left</span></div>
+    ${lim ? `<div class="row"><div><div class="big-out num ${left < 0 ? "badtxt" : ""}">${money(Math.abs(left))}</div><div class="small muted">${left < 0 ? "over your weekly limit" : "left of " + money(lim)}</div></div>
+      <div style="text-align:right"><div class="small muted">Safe per day</div><b class="num" style="font:800 17px var(--f-display)">${fmt(Math.max(0, left) / daysLeft)}</b></div></div>
+      <div class="bar" style="--c:var(--accent);height:11px"><i class="${left < 0 ? "over" : ""}" style="width:${pct.toFixed(1)}%"></i></div>`
+    : `<div class="small muted">Spent ${money(w.total)} so far. Set a weekly limit${suggestedWeekly() ? ` (about ${money(suggestedWeekly())} fits your plan)` : ""} in <a href="#setup">Setup</a> to see what's left each week.</div>`}
+    <div class="small muted num">Spent ${money(w.total)} in ${w.n} purchase${w.n === 1 ? "" : "s"}${prev.total ? ` · last week ${money(prev.total)}` : ""}</div>
+    ${catRows.length ? `<div class="cat-list">${catRows.map(r => `<div class="cat-line" style="--c:${catColor(r.c)}">
+        <div class="row"><b><span class="sw"></span>${esc(r.c.name)}</b><span class="num small">${r.s > r.lim ? `<span class="over-tag">${fmt(r.s)}</span>` : fmt(r.s)} <span class="muted">/ ${fmt(r.lim)} a week</span></span></div>
+        <div class="bar"><i class="${r.s > r.lim ? "over" : ""}" style="width:${Math.min(100, r.s / r.lim * 100).toFixed(1)}%"></i></div></div>`).join("")}</div>` : ""}
+  </div>`;
+}
 function limitStatus(d) {
   const over = [], near = [];
   for (const c of S.cats) {
@@ -720,10 +818,11 @@ function limitStatus(d) {
   return { over, near };
 }
 function alertsCard(d) {
-  const { over, near } = limitStatus(d);
+  const m = limitStatus(d), wk = S.month === curKey() ? weekLimitStatus(weekData(wkStart(todayStr()))) : { over: [], near: [] };
+  const over = m.over.concat(wk.over), near = m.near;
   if (!over.length && !near.length) return "";
-  const line = (x, word) => `<div class="ln" style="--c:${catColor(x.c)}"><span><span class="dot"></span>${esc(x.c.name)}</span><span class="num"><b>${fmt(x.s)}</b> / ${fmt(x.lim)} · ${word}</span></div>`;
-  return `${over.length ? `<div class="alert" role="alert"><h2>Over the limit in ${over.length} categor${over.length === 1 ? "y" : "ies"}</h2>
+  const line = (x, word) => `<div class="ln" style="--c:${x.c.id === "_all" ? "var(--accent)" : catColor(x.c)}"><span><span class="dot"></span>${esc(x.c.name)}${x.week ? " <span class=\"muted\">(this week)</span>" : ""}</span><span class="num"><b>${fmt(x.s)}</b> / ${fmt(x.lim)} · ${word}</span></div>`;
+  return `${over.length ? `<div class="alert" role="alert"><h2>Over ${over.length === 1 ? "a limit" : over.length + " limits"}</h2>
       ${over.map(x => line(x, `${fmt(x.s - x.lim)} over`)).join("")}</div>` : ""}
     ${near.length ? `<div class="alert near"><h2>Close to the limit</h2>${near.map(x => line(x, `${fmt(x.lim - x.s)} left`)).join("")}</div>` : ""}`;
 }
@@ -968,14 +1067,14 @@ function simulate(cb, cr, cp, lb, lr, lp, snowball) {
 }
 const monthAfter = n => toDate(shiftMonth(curKey(), n) + "-01").toLocaleDateString("en-GB", { month: "short", year: "numeric" });
 function plannerCard() {
-  const st = settings(), c = st.card, cn = cardNow(), L = st.loan;
-  if (cn.now <= 0 && !(+L.balance > 0)) return `<div class="card stack"><h2>Debt-free planner</h2><div class="small muted">No debt recorded. Add your card's statement balance or your loan balance in <a href="#setup">Setup</a>.</div></div>`;
+  const st = settings(), c = st.card, cn = cardNow();
+  if (cn.now <= 0) return `<div class="card stack"><h2>Credit card planner</h2><div class="small muted">No card balance recorded. Tap Update under "Your balances" on Home.</div></div>`;
   const pay0 = +c.payment || 0, floorPay = Math.max(1000, cn.now * c.rate * 1.05);
   const minPay = pay0 > floorPay ? pay0 - 500 * Math.floor((pay0 - floorPay) / 500) : Math.ceil(floorPay / 500) * 500;
   const maxPay = minPay + 500 * Math.ceil((Math.max(100000, pay0 * 2) - minPay) / 500);
   const pay = Math.min(maxPay, Math.max(minPay, S.planPay ?? (+c.payment || minPay)));
   return `<div class="card stack">
-    <div class="row"><h2>Debt-free planner</h2><a class="link" href="#setup">Balances</a></div>
+    <div class="row"><h2>Credit card planner</h2></div>
     ${cn.now > 0 ? `<label class="field"><span>Credit card payment per month</span>
       <div class="row"><b class="big-out num" id="ppOut">${money(pay)}</b></div>
       <input type="range" class="slider" id="pp" min="${minPay}" max="${maxPay}" step="500" value="${pay}" aria-label="Monthly credit card payment"></label>` : ""}
@@ -984,8 +1083,8 @@ function plannerCard() {
   </div>`;
 }
 function plannerResult(pay) {
-  const st = settings(), c = st.card, cn = cardNow(), L = st.loan;
-  const lb = +L.balance || 0, lr = +L.rate || 0, lp = +L.payment || 0;
+  const st = settings(), c = st.card, cn = cardNow();
+  const lb = 0, lr = 0, lp = 0;
   const base = simulate(cn.now, c.rate, +c.payment || 0, lb, lr, lp, false);
   const plan = simulate(cn.now, c.rate, pay, lb, lr, lp, false);
   const snow = simulate(cn.now, c.rate, pay, lb, lr, lp, true);
@@ -1007,10 +1106,10 @@ function plannerResult(pay) {
       <div style="--c:#0EA5E9"><b>Loan cleared ${never(plan.loanDone) ? "— add the monthly payment in Setup" : monthAfter(plan.loanDone)}</b>${never(plan.loanDone) ? "" : ` <span class="muted small">paying ${money(lp)} a month</span>`}</div>
       ${cn.now > 0 && !never(snow.loanDone) && !never(plan.loanDone) && snow.loanDone < plan.loanDone ? `<div style="--c:#10B981"><b>Loan cleared ${monthAfter(snow.loanDone)}</b> <span class="muted small">if the card payment moves to the loan once the card is done: ${plan.loanDone - snow.loanDone} months sooner${lr ? `, ${money(plan.lInt - snow.lInt)} less interest` : ""}</span></div>` : ""}
     </div>`;
-  } else html += `<div class="small muted">Add your loan's remaining balance in <a href="#setup">Setup</a> to see when all your debt is gone.</div>`;
+  }
   const best = !never(snow.loanDone) && !never(snow.cardDone) ? snow : plan;
   const allDone = never(best.cardDone) || never(best.loanDone) ? null : Math.max(best.cardDone, best.loanDone);
-  if (allDone !== null && allDone > 0) html += `<div class="note ok"><b>All debt gone by ${monthAfter(allDone)}${best === snow && cn.now > 0 && lb > 0 && snow.loanDone < plan.loanDone ? ", if the card payment moves to the loan" : ""}.</b> After that, ${money((cn.now > 0 ? pay : 0) + (lb > 0 ? lp : 0))} a month is free for savings goals.</div>`;
+  if (allDone !== null && allDone > 0) html += `<div class="note ok"><b>Card paid off by ${monthAfter(allDone)}${best === snow && cn.now > 0 && lb > 0 && snow.loanDone < plan.loanDone ? ", if the card payment moves to the loan" : ""}.</b> After that, ${money((cn.now > 0 ? pay : 0) + (lb > 0 ? lp : 0))} a month is free for savings goals.</div>`;
   return html;
 }
 function goalsCard() {
@@ -1086,7 +1185,7 @@ function owedCard() {
 const weekStart = ds => { const d = toDate(ds); d.setDate(d.getDate() - ((d.getDay() + 1) % 7)); return toStr(d); };
 function fuelCard() {
   const fc = S.cats.find(c => c.id === "fuel") || S.cats.find(c => /fuel|petrol|gas|بنزين|وقود/i.test(c.name || ""));
-  const plan = +settings().fuelWeekly || 0;
+  const plan = fc ? (+fc.weekly || +settings().fuelWeekly || 0) : 0;
   if (!fc) return `<div class="card stack"><h2>Fuel</h2><div class="small muted">Create a category named Fuel to track fuel spending each week.</div></div>`;
   const cur = weekStart(todayStr());
   const weeks = Array.from({ length: 8 }, (_, i) => { const d = toDate(cur); d.setDate(d.getDate() - 7 * (7 - i)); return toStr(d); });
@@ -1105,14 +1204,14 @@ function fuelCard() {
   const now = sums[7], avg = sums.slice(0, 7).filter(v => v > 0);
   const avgV = avg.length ? avg.reduce((a, v) => a + v, 0) / avg.length : 0;
   return `<div class="card stack">
-    <div class="row"><h2>Fuel</h2><a class="link" href="#setup">Weekly plan</a></div>
+    <div class="row"><h2>Fuel</h2><a class="link" href="#cats">Weekly limit</a></div>
     <div class="kpis">
       <div class="kpi"><span>This week</span><b class="num ${plan && now > plan ? "badtxt" : ""}">${fmt(now)}</b></div>
-      <div class="kpi"><span>Weekly plan</span><b class="num">${plan ? fmt(plan) : "—"}</b></div>
+      <div class="kpi"><span>Weekly limit</span><b class="num">${plan ? fmt(plan) : "—"}</b></div>
       <div class="kpi"><span>Average week</span><b class="num">${avgV ? fmt(avgV) : "—"}</b></div>
     </div>
     <div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fuel spending for the last 8 weeks">${g}</svg></div>
-    <div class="small muted">Weeks start on Saturday. ${plan ? "The dashed line is your weekly plan; red bars went over it." : ""}</div>
+    <div class="small muted">Weeks start on Saturday. ${plan ? "The dashed line is your weekly limit; red bars went over it." : "Set a weekly limit on the Fuel category to compare."}</div>
   </div>`;
 }
 function renderPlan() {
@@ -1252,14 +1351,77 @@ function creditHomeCard() {
       ${lim ? `<div><div class="row small" style="opacity:.9"><span>Limit used</span><span class="num">${Math.round(util)}% of ${fmt(lim)}</span></div><div class="period-bar" style="margin-top:6px"><i style="width:${util.toFixed(1)}%"></i></div></div>` : ""}
     </div>
     <div class="ledger num">
-      <div><span>Statement balance${c.asOf ? " (" + esc(dayLabel(c.asOf)) + ")" : ""}</span><b>${fmt(cn.base)}</b></div>
-      <div><span>New credit purchases</span><b class="plus">+ ${fmt(cn.adds)}</b></div>
+      <div><span>Balance${c.asOf ? " on " + esc(dayLabel(c.asOf)) : ""}</span><b>${fmt(cn.base)}</b></div>
+      <div><span>New credit purchases since</span><b class="plus">+ ${fmt(cn.adds)}</b></div>
       ${cn.refunds ? `<div><span>Refunds</span><b class="minus">− ${fmt(cn.refunds)}</b></div>` : ""}
       <div><span>Payments you made</span><b class="minus">− ${fmt(cn.paid)}</b></div>
       <div class="tot"><span>Owed now</span><b>${fmt(cn.now)}</b></div>
     </div>
     <div class="btns"><button type="button" class="btn grad" id="recPay" ${S.dbOk ? "" : "disabled"}>Record a card payment</button></div>
-    ${cn.adds > 0 && po ? `<div class="small muted">New purchases on the card since the statement add about ${money(cn.adds * (1 + c.rate))} to what you owe. Paying by debit keeps the payoff date from slipping.</div>` : ""}
+    ${cn.adds > 0 && po ? `<div class="small muted">New purchases on the card since then add about ${money(cn.adds * (1 + c.rate))} to what you owe. Paying by debit keeps the payoff date from slipping.</div>` : ""}
+  </div>`;
+}
+function balancesCard() {
+  const st = settings(), an = accountNow(), cn = cardNow(), cc = creditCard();
+  const lim = cc && +cc.limit > 0 ? +cc.limit : 0, util = lim ? Math.min(100, cn.now / lim * 100) : 0;
+  const due = st.card.dueDate, dueIn = due ? daysDiff(todayStr(), due) : null;
+  return `<div class="card stack">
+    <div class="row"><h2>Your balances</h2><button type="button" class="link-btn" id="updBal" ${S.dbOk ? "" : "disabled"}>Update</button></div>
+    <div class="bal-grid">
+      <div class="bal acc">
+        <span class="bal-lab">Bank account</span>
+        <span class="bal-amt num"><small>EGP</small>${an.set ? fmt(an.now) : "—"}</span>
+        <span class="bal-sub">${an.set ? esc(snapLabel(st.account.asOf, st.account.asOfTime)) : "Tap Update to add it"}</span>
+      </div>
+      <div class="bal cc">
+        <span class="bal-lab">Credit card</span>
+        <span class="bal-amt num"><small>EGP</small>${fmt(cn.now)}</span>
+        ${lim ? `<span class="bal-bar" aria-label="${Math.round(util)}% of your limit used"><i style="width:${util.toFixed(1)}%"></i></span><span class="bal-sub">${fmt(Math.max(0, lim - cn.now))} left of ${fmt(lim)}</span>` : ""}
+        ${due && dueIn >= 0 ? `<span class="bal-due ${dueIn <= 3 ? "soon" : ""}">Due ${esc(dayLabel(due))}${dueIn === 0 ? " · today" : dueIn <= 7 ? ` · in ${dueIn} day${dueIn === 1 ? "" : "s"}` : ""}</span>` : ""}
+      </div>
+    </div>
+  </div>`;
+}
+function openBalances() {
+  const st = settings(), an = accountNow(), cn = cardNow(), cc = creditCard();
+  openSheet(`<div class="row"><h2>Update balances</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
+    <p class="small muted" style="margin:0">Copy these from the CIB app. From now on Masarif adds your new purchases and payments to them by itself.</p>
+    <form id="bForm" style="display:flex;flex-direction:column;gap:12px">
+      <label class="field"><span>Bank account: available balance</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="bAcc" value="${an.set ? fmtIn(Math.round(an.now * 100) / 100) : ""}" autocomplete="off"><span>EGP</span></div></label>
+      <label class="field"><span>Credit card: outstanding amount</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="bCc" value="${cn.now ? fmtIn(Math.round(cn.now * 100) / 100) : ""}" autocomplete="off"><span>EGP</span></div></label>
+      <div class="grid2">
+        <label class="field"><span>Credit limit</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="bLim" value="${cc && cc.limit ? fmtIn(cc.limit) : ""}" autocomplete="off"><span>EGP</span></div></label>
+        <label class="field"><span>Due date</span><input type="date" id="bDue" value="${esc(st.card.dueDate || "")}"></label>
+      </div>
+      <div class="btns"><button class="btn grad" type="submit">Save</button></div>
+      <div class="small muted" id="bMsg"></div>
+    </form>`);
+  $("#xClose").onclick = closeSheet;
+  sheet.querySelectorAll(".money-in").forEach(el => el.addEventListener("blur", () => { if (el.value.trim()) el.value = fmtIn(numIn(el.value)); }));
+  $("#bForm").onsubmit = async e => {
+    e.preventDefault();
+    const d = todayStr(), tm = nowHM(), cur = settings();
+    const doc = Object.assign({}, S.settings || {});
+    if ($("#bAcc").value.trim()) doc.account = { balance: numIn($("#bAcc").value), asOf: d, asOfTime: tm };
+    if ($("#bCc").value.trim()) doc.card = Object.assign({}, cur.card, { balance: numIn($("#bCc").value), asOf: d, asOfTime: tm });
+    doc.card = Object.assign({}, cur.card, doc.card || {}, { dueDate: $("#bDue").value || "" });
+    if (cc) doc.cards = (cur.cards || []).map(c => c.id === cc.id ? Object.assign({}, c, { limit: numIn($("#bLim").value) }) : c);
+    $("#bMsg").textContent = "Saving…";
+    try { await db.doc("settings/main").set(doc); S.settings = doc; closeSheet(); render(true); }
+    catch { $("#bMsg").textContent = "Couldn't save. Try again."; }
+  };
+}
+function monthPlanCard(d) {
+  return `<div class="card stack">
+    <div class="row"><h2>How this month adds up</h2><a class="link" href="#setup">Edit</a></div>
+    <div class="ledger num">
+      <div><span>Salary</span><b>${fmt(d.salary)}</b></div>
+      <div><span>Fixed payments</span><b class="minus">− ${fmt(d.fixedTotal)}</b></div>
+      ${d.reserve ? `<div><span>Credit card payment</span><b class="minus">− ${fmt(d.reserve)}</b></div>` : ""}
+      <div><span>Spent so far</span><b class="minus">− ${fmt(d.total)}</b></div>
+      <div class="tot"><span>Left to spend</span><b>${fmt(d.left)}</b></div>
+    </div>
+    ${d.fixed.length ? `<div class="stack" style="gap:6px">${d.fixed.map(f => `<div class="row small"><span>${esc(f.name)}${f.until ? ` <span class="muted">until ${esc(monthLabel(f.until))}</span>` : ""}</span><span class="num" style="font-weight:700">${money(f.amount)}</span></div>`).join("")}</div>` : ""}
   </div>`;
 }
 function renderHome() {
@@ -1276,45 +1438,40 @@ function renderHome() {
   const gsum = groups.reduce((a, p) => a + p.v, 0) || 1;
   const ins = insights(key, d);
   const recent = S.txns.filter(t => !t.deleted && t.date).sort(txSort).slice(0, 5);
-  main.innerHTML = `<section class="view">
-    ${statusNote()}
-    <div class="hero">
+  let tab = "overview"; try { tab = localStorage.getItem("masarif.homeTab") || "overview"; } catch {}
+  if (tab !== "insights") tab = "overview";
+  const seg = `<div class="seg home-seg" id="homeSeg" role="group" aria-label="Home view"><button type="button" data-t="overview" aria-pressed="${tab === "overview"}">Overview</button><button type="button" data-t="insights" aria-pressed="${tab === "insights"}">Insights</button></div>`;
+  const hero = `<div class="hero">
       <div class="row"><div class="label">${isCur ? "Left to spend this month" : key < curKey() ? "Left at the end of that month" : "Planned"}</div><div class="small" style="opacity:.9">${isCur ? daysLeft + " day" + (daysLeft === 1 ? "" : "s") + " left" : ""}</div></div>
       <div class="big num ${d.left < 0 ? "neg" : ""}"><small>EGP</small>${fmt(d.left)}</div>
       <div class="period-bar" aria-hidden="true"><i style="width:${Math.min(100, elapsedPct).toFixed(1)}%"></i></div>
-      <div class="sub">${d.salary ? `${esc(pLabel(key, true))} · Salary ${fmt(d.salary)} − fixed ${fmt(d.fixedTotal)}${d.reserve ? ` − card payment ${fmt(d.reserve)}` : ""} − spent ${fmt(d.total)}` : `Add your salary in Setup to see what's left.`}</div>
-      <div class="pills">
+      ${d.salary ? `<div class="pills two">
         <div class="pill"><div>Spent</div><div class="num">${fmt(d.spend)}</div></div>
-        <div class="pill"><div>${d.reserve ? "Fixed + card" : "Fixed"}</div><div class="num">${fmt(d.fixedTotal + d.reserve)}</div></div>
         <div class="pill"><div>${daysLeft ? "Safe per day" : "Purchases"}</div><div class="num">${daysLeft ? fmt(perDay) : d.tx.length}</div></div>
-      </div>
-    </div>
-
+      </div>` : `<div class="sub">Add your salary in <a href="#setup" style="color:#fff">Setup</a> to see what's left.</div>`}
+    </div>`;
+  const overview = `
+    ${hero}
     ${alertsCard(d)}
-    ${byCardCard(d)}
-    ${compareCard(key, d)}
-    ${trendCard()}
-
+    ${balancesCard()}
+    ${isCur ? weekCard() : ""}
+    <div class="card stack">
+      <div class="row"><h2>Latest purchases</h2><a class="link" href="#txns">See all</a></div>
+      ${recent.length ? `<div>${recent.map(txRow).join("")}</div>` : `<div class="small muted">${loaded() ? "None yet." : "Loading…"}</div>`}
+    </div>
+    <button type="button" class="more-link" data-go="insights"><span><b>See your insights</b><span>Charts, categories, card details and tips</span></span><span aria-hidden="true">›</span></button>`;
+  const insightsHtml = `
+    ${monthPlanCard(d)}
     <div class="card stack">
       <div class="row"><h2>Where it went</h2><a class="link" href="#txns">All purchases</a></div>
       ${donutRows.length ? `<div class="donut-wrap">${donut(donutRows, d.total)}
         <div class="leg">${donutRows.slice(0, 7).map(r => `<div style="--c:${r.c}"><span class="sw"></span><span>${esc(r.name)}</span><b class="num">${fmt(r.v)}</b></div>`).join("")}${donutRows.length > 7 ? `<div class="muted small">+${donutRows.length - 7} more</div>` : ""}</div></div>`
-      : `<div class="empty"><b>Nothing spent yet</b>Import from your shortcut to fill this chart.</div>`}
+      : `<div class="empty"><b>Nothing spent yet</b>Your bank texts fill this chart.</div>`}
       <div class="split" role="img" aria-label="Need ${fmt(d.byGroup.need)}, Want ${fmt(d.byGroup.want)}, Debt ${fmt(d.byGroup.debt)}">
         ${groups.filter(p => p.v > 0).map(p => `<i style="width:${(p.v / gsum * 100).toFixed(2)}%;background:${GROUP_COLOR[p.g]}"></i>`).join("")}
       </div>
       <div class="legend num">${groups.filter(p => p.g !== "none" || p.v > 0).map(p => `<span style="--c:${GROUP_COLOR[p.g]}"><span class="dot"></span>${p.g === "none" ? "No category" : GROUPS[p.g]} <b>${fmt(p.v)}</b></span>`).join("")}</div>
     </div>
-
-    ${calendarCard(key)}
-
-    <div class="card stack">
-      <h2>What to watch</h2>
-      <ul class="ins">${ins.map(i => `<li class="${i.t}">${esc(i.x)}</li>`).join("")}</ul>
-      <div class="btns"><button class="btn grad" type="button" id="askBtn">Ask Claude how to save more</button></div>
-      <div class="ask-out" id="askOut" hidden></div>
-    </div>
-
     <div class="card stack">
       <div class="row"><h2>Category limits</h2><a class="link" href="#cats">Set limits</a></div>
       ${catRows.length ? `<div class="cat-list">${catRows.map(({ c, s }) => {
@@ -1324,21 +1481,27 @@ function renderHome() {
           ${b ? `<div class="bar"><i class="${s > b ? "over" : ""}" style="width:${pct.toFixed(1)}%"></i></div>` : ""}
         </div>`; }).join("")}</div>` : `<div class="empty">${loaded() ? "No categories yet. Add them in the Categories tab." : "Loading…"}</div>`}
     </div>
-
-    ${habitsCard(d)}
-
+    ${byCardCard(d)}
+    ${compareCard(key, d)}
+    ${trendCard()}
+    ${calendarCard(key)}
     <div class="card stack">
-      <div class="row"><h2>Latest purchases</h2><a class="link" href="#txns">See all</a></div>
-      ${recent.length ? `<div>${recent.map(txRow).join("")}</div>` : `<div class="small muted">${loaded() ? "None yet." : "Loading…"}</div>`}
+      <h2>What to watch</h2>
+      <ul class="ins">${ins.map(i => `<li class="${i.t}">${esc(i.x)}</li>`).join("")}</ul>
+      <div class="btns"><button class="btn grad" type="button" id="askBtn">Ask Claude how to save more</button></div>
+      <div class="ask-out" id="askOut" hidden></div>
     </div>
-
     ${creditHomeCard()}
-
-    ${d.fixed.length ? `<div class="card stack">
-      <div class="row"><h2>Fixed payments</h2><a class="link" href="#setup">Edit</a></div>
-      ${d.fixed.map(f => `<div class="row small"><span>${esc(f.name)}${f.until ? ` <span class="muted">until ${esc(monthLabel(f.until))}</span>` : ""}</span><span class="num" style="font-weight:700">${money(f.amount)}</span></div>`).join("")}
-    </div>` : ""}
+    ${habitsCard(d)}`;
+  main.innerHTML = `<section class="view">
+    ${statusNote()}
+    ${seg}
+    ${tab === "overview" ? overview : insightsHtml}
   </section>`;
+  const setTab = t => { try { localStorage.setItem("masarif.homeTab", t); } catch {} render(true); window.scrollTo(0, 0); };
+  $("#homeSeg").onclick = e => { const b = e.target.closest("button[data-t]"); if (b && b.dataset.t !== tab) setTab(b.dataset.t); };
+  main.querySelectorAll("[data-go]").forEach(b => b.onclick = () => setTab(b.dataset.go));
+  const ub = $("#updBal"); if (ub) ub.onclick = openBalances;
   const ab = $("#askBtn"); if (ab) ab.onclick = () => askClaude(d);
   const cal = $("#cal"); if (cal) cal.onclick = e => { const b = e.target.closest("button[data-day]"); if (!b) return; S.calSel = S.calSel === b.dataset.day ? null : b.dataset.day; render(true); };
   const calGo = $("#calGo"); if (calGo) calGo.onclick = () => { S.q = ""; S.scope = "period"; S.filter = "all"; S.cardF = "all"; location.hash = "#txns"; };
@@ -1440,7 +1603,7 @@ function renderCats() {
         ${list.length ? `<div>${list.map(c => `<button type="button" class="tx" data-cat="${esc(c.id)}" style="--c:${catColor(c)}">
           <span class="ic" aria-hidden="true">${esc((c.name || "?")[0].toUpperCase())}</span>
           <span class="mid"><b>${esc(c.name)}</b><span>${esc(kw(c).slice(0, 6).join(", ") || "No keywords")}${kw(c).length > 6 ? "…" : ""}</span></span>
-          <span class="amt num">${+c.budget ? fmt(c.budget) : "—"}</span></button>`).join("")}</div>`
+          <span class="amt num" style="text-align:right">${+c.budget ? fmt(c.budget) : "—"}${+c.weekly ? `<span class="muted small" style="display:block;font-weight:600">${fmt(c.weekly)} / wk</span>` : ""}</span></button>`).join("")}</div>`
         : `<div class="small muted">${loaded() ? "None yet." : "Loading…"}</div>`}
       </div>`; }).join("")}
   </section>`;
@@ -1560,6 +1723,8 @@ function renderSetup() {
         <label class="field"><span>My month starts on day</span><select id="sStart">${Array.from({ length: 28 }, (_, i) => i + 1).map(n => `<option value="${n}" ${n === startDay() ? "selected" : ""}>${n}${n === 1 ? " (calendar month)" : ""}</option>`).join("")}</select></label>
         <p class="small muted" style="margin:-4px 0 0">With day ${startDay()}, this month runs ${esc(pLabel(curKey(), true))}. Change it any time; all totals follow.</p>
         <label class="field"><span>Monthly salary</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="sSalary" value="${st.salary ? fmtIn(st.salary) : ""}" autocomplete="off"><span>EGP</span></div></label>
+        <label class="field"><span>Weekly spending limit (Saturday to Friday)</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="sWeek" value="${st.weekLimit ? fmtIn(st.weekLimit) : ""}" placeholder="${suggestedWeekly() ? fmtIn(suggestedWeekly()) : ""}" autocomplete="off"><span>EGP</span></div></label>
+        <p class="small muted" style="margin:-4px 0 0">${suggestedWeekly() ? `About ${money(suggestedWeekly())} a week fits your plan: salary minus fixed payments and the card payment, spread over the month's weeks. ` : ""}Set limits for single categories, like fuel, in Categories.</p>
       </div>
 
       <div class="card stack">
@@ -1580,7 +1745,7 @@ function renderSetup() {
       <div class="card stack">
         <h2>Credit card</h2>
         <div class="cc-face" aria-live="polite">
-          <div class="row"><span class="cc-lab">From your last statement</span><span class="cc-chip" id="ccWhen"></span></div>
+          <div class="row"><span class="cc-lab">Balance owed</span><span class="cc-chip" id="ccWhen"></span></div>
           <div class="cc-big num"><small>EGP</small><span id="ccBal"></span></div>
           <div class="cc-stats">
             <div><span>Interest / month</span><b class="num" id="ccInt"></b></div>
@@ -1589,27 +1754,12 @@ function renderSetup() {
           </div>
         </div>
         <div class="grid2">
-          <label class="field"><span>Statement balance</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="cBal" value="${st.card.balance ? fmtIn(st.card.balance) : ""}" autocomplete="off"><span>EGP</span></div></label>
-          <label class="field"><span>Statement date</span><input type="date" id="cAsOf" value="${esc(st.card.asOf || "")}"></label>
+          <label class="field"><span>Balance owed</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="cBal" value="${st.card.balance ? fmtIn(st.card.balance) : ""}" autocomplete="off"><span>EGP</span></div></label>
+          <label class="field"><span>As of date</span><input type="date" id="cAsOf" value="${esc(st.card.asOf || "")}"></label>
           <label class="field"><span>Monthly interest</span><div class="affix"><input type="text" inputmode="decimal" id="cRate" value="${esc(st.card.rate ? +(st.card.rate * 100).toFixed(3) : "")}" autocomplete="off"><span>%</span></div></label>
           <label class="field"><span>You pay each month</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="cPay" value="${st.card.payment ? fmtIn(st.card.payment) : ""}" autocomplete="off"><span>EGP</span></div></label>
         </div>
-        <p class="small muted" style="margin:0">Enter the balance and date from your latest statement. Home then adds new credit card purchases and subtracts payments you record, so it shows what you owe now. Check the real interest rate in the CIB app.</p>
-      </div>
-
-      <div class="card stack">
-        <h2>Loan</h2>
-        <p class="small muted" style="margin:0">Used by the debt-free planner on the Plan tab. Find the remaining balance in your bank app.</p>
-        <div class="grid2">
-          <label class="field"><span>Remaining balance</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="lBal" value="${st.loan.balance ? fmtIn(st.loan.balance) : ""}" autocomplete="off"><span>EGP</span></div></label>
-          <label class="field"><span>Monthly payment</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="lPay" value="${fmtIn(st.loan.payment || ((st.fixed || []).find(f => /loan|قرض/i.test(f.name)) || {}).amount || 0) || ""}" autocomplete="off"><span>EGP</span></div></label>
-          <label class="field"><span>Monthly interest (optional)</span><div class="affix"><input type="text" inputmode="decimal" id="lRate" value="${st.loan.rate ? +(st.loan.rate * 100).toFixed(3) : ""}" autocomplete="off"><span>%</span></div></label>
-        </div>
-      </div>
-
-      <div class="card stack">
-        <h2>Fuel plan</h2>
-        <label class="field"><span>Weekly fuel budget</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="sFuel" value="${fmtIn(st.fuelWeekly || 0)}" autocomplete="off"><span>EGP</span></div></label>
+        <p class="small muted" style="margin:0">Easiest: tap Update under "Your balances" on Home and copy the numbers from the CIB app. Home then adds new credit card purchases and subtracts payments you record, so it shows what you owe now. Check the real interest rate in the CIB app.</p>
       </div>
 
       <div class="card stack">
@@ -1737,14 +1887,13 @@ function renderSetup() {
     const m = $("#setupMsg");
     const newStart = +$("#sStart").value || 1;
     const doc = Object.assign({}, S.settings || {}, {
-      loan: { balance: numIn($("#lBal").value), rate: numIn($("#lRate").value) / 100, payment: numIn($("#lPay").value) },
-      fuelWeekly: numIn($("#sFuel").value),
       startDay: newStart,
       cards: cfg.filter(c => String(c.name || "").trim() || c.last4).map(c => ({ id: c.id, name: String(c.name || "").trim() || TYPE_NAME[c.type === "credit" ? "credit" : "debit"], type: c.type === "credit" ? "credit" : "debit", last4: String(c.last4 || ""), limit: +c.limit || 0, color: c.color || "" })),
       defaultCardId: $("#sDefCard").value,
       salary: numIn($("#sSalary").value),
+      weekLimit: numIn($("#sWeek").value),
       fixed: fixed.filter(f => String(f.name).trim() && +f.amount).map(f => ({ name: String(f.name).trim(), amount: +f.amount, until: f.until || "" })),
-      card: { balance: numIn($("#cBal").value), rate: numIn($("#cRate").value) / 100, payment: numIn($("#cPay").value), asOf: $("#cAsOf").value || "" },
+      card: Object.assign({}, st.card, { balance: numIn($("#cBal").value), rate: numIn($("#cRate").value) / 100, payment: numIn($("#cPay").value), asOf: $("#cAsOf").value || "", asOfTime: ($("#cAsOf").value || "") === st.card.asOf && numIn($("#cBal").value) === +st.card.balance ? (st.card.asOfTime || "") : "" }),
       dateOrder: $("#sOrder").value
     });
     m.textContent = "Saving…";
@@ -1863,7 +2012,10 @@ function openCat(id) {
       <div class="field"><span>Color</span><div class="swatches" role="radiogroup" aria-label="Color">
         ${PALETTE.map(p => `<label style="--c:${p}"><input type="radio" name="col" value="${p}" ${p.toLowerCase() === String(cur).toLowerCase() ? "checked" : ""} aria-label="${p}"></label>`).join("")}
       </div></div>
-      <label class="field"><span>Monthly limit (EGP, optional)</span><input type="number" inputmode="decimal" id="cBud" value="${esc(v.budget || "")}" step="any" min="0"></label>
+      <div class="grid2">
+        <label class="field"><span>Monthly limit (optional)</span><div class="affix"><input type="number" inputmode="decimal" id="cBud" value="${esc(v.budget || "")}" step="any" min="0"><span>EGP</span></div></label>
+        <label class="field"><span>Weekly limit (optional)</span><div class="affix"><input type="number" inputmode="decimal" id="cWk" value="${esc(v.weekly || "")}" step="any" min="0"><span>EGP</span></div></label>
+      </div>
       <label class="field"><span>Keywords, separated by commas</span><textarea id="cKw" placeholder="carrefour, spinneys, seoudi">${esc(v.keywords || "")}</textarea></label>
       ${c ? `<label class="check"><input type="checkbox" id="cRe"><span>Also move uncategorized purchases that match these keywords</span></label>` : ""}
       <div class="btns"><button class="btn grad" type="submit" ${S.dbOk ? "" : "disabled"}>Save</button>${c ? `<button class="btn danger" type="button" id="cDel">Delete</button>` : ""}</div>
@@ -1873,7 +2025,7 @@ function openCat(id) {
   $("#catForm").onsubmit = async e => {
     e.preventDefault();
     const colEl = sheet.querySelector("input[name=col]:checked");
-    const data = { name: $("#cName").value.trim(), group: sheet.querySelector("input[name=grp]:checked").value, budget: +$("#cBud").value || 0,
+    const data = { name: $("#cName").value.trim(), group: sheet.querySelector("input[name=grp]:checked").value, budget: +$("#cBud").value || 0, weekly: +$("#cWk").value || 0,
       color: colEl ? colEl.value : cur,
       keywords: $("#cKw").value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean).join(", ") };
     if (!data.name) { $("#cMsg").textContent = "Give the category a name."; return; }
