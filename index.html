@@ -79,6 +79,49 @@ h2{font:700 18px/1.2 var(--f-display);margin:0;text-wrap:balance}
 .pill div:first-child{font-size:12px;opacity:.9}
 .pill div:last-child{font:800 17px var(--f-display)}
 .pills.two{grid-template-columns:repeat(2,1fr)}
+.plan-card{border:0;color:#fff;display:flex;flex-direction:column;gap:16px;background:radial-gradient(120% 90% at 100% 0%,rgba(255,255,255,.16),transparent 60%),linear-gradient(150deg,#6D28D9,#4338CA 60%,#1E3A8A);box-shadow:0 14px 30px rgba(79,70,229,.28)}
+.pc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pc-lab{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;opacity:.85}
+.pc-big{font:800 clamp(30px,9vw,38px)/1.1 var(--f-display);letter-spacing:-.02em;margin-top:4px}
+.pc-big small{font-size:.42em;opacity:.8;margin-right:5px;letter-spacing:0}
+.pc-chip{background:#A7F3D0;color:#064E3B;font-size:12px;font-weight:800;border-radius:999px;padding:5px 10px;white-space:nowrap}
+.pc-chip.bad{background:#FECACA;color:#7F1D1D}
+.pc-pay{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.pc-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pc-lab2{font-size:13px;font-weight:700;opacity:.9}
+.pc-steps{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+.pc-steps b{font:800 26px var(--f-display);text-align:center;white-space:nowrap}
+.pc-steps button{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:#4338CA;font:800 20px/1 var(--f-display);cursor:pointer}
+.pc-slider{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;background:linear-gradient(to right,#A7F3D0 var(--p,50%),rgba(255,255,255,.25) var(--p,50%));outline:none;margin:6px 0}
+.pc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);border:0}
+.pc-slider::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:0}
+.pc-ends{font-size:11.5px;opacity:.75}
+#ppRes{display:flex;flex-direction:column;gap:12px}
+.pc-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pc-stats div{background:rgba(255,255,255,.12);border-radius:14px;padding:10px 11px;min-width:0}
+.pc-stats span{display:block;font-size:11.5px;opacity:.8}
+.pc-stats b{font:800 17px var(--f-display)}
+.pc-delta{font-size:13px;font-weight:700;border-radius:12px;padding:9px 12px}
+.pc-delta.good{background:rgba(167,243,208,.2);color:#D1FAE5}
+.pc-delta.bad{background:rgba(254,202,202,.2);color:#FEE2E2}
+.pc-chart{display:flex;flex-direction:column;gap:6px}
+.pc-bars{display:flex;align-items:flex-end;gap:3px;height:84px}
+.pc-bars i{flex:1;border-radius:4px 4px 1px 1px;background:linear-gradient(to top,rgba(255,255,255,.35),rgba(255,255,255,.75))}
+.pc-bars i:last-child{background:#A7F3D0}
+.pc-free{background:#fff;color:#1F2937;border-radius:14px;padding:11px 13px;font-size:13.5px}
+.pc-free b{color:#047857}
+.pc-warn{background:#FEE2E2;color:#7F1D1D;border-radius:14px;padding:11px 13px;font-size:13.5px;font-weight:700}
+.btn.pc-use{background:#fff;color:#4338CA;border:0;width:100%;padding:13px}
+.btn.pc-reset{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);width:100%;padding:12px}
+#ppBtns{flex-direction:column;gap:8px}
+#ppBtns:empty{display:none}
+.goal-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:8px 6px 2px}
+.goal-empty > span:not(.ge-ic):not(.ge-amt){color:var(--muted);font-size:14px;max-width:34ch}
+.goal-empty > b{font:800 18px var(--f-display)}
+.ge-ic{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:#D1FAE5;color:#047857}
+.ge-amt{font:800 28px var(--f-display);color:#047857;margin:2px 0 4px}
+.ge-amt small{font-size:.45em;margin-right:4px;color:var(--muted)}
+.goal-empty .btn.big{width:100%;max-width:320px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .txf{display:flex;flex-direction:column;gap:14px;--k:var(--bad)}
 .txf[data-kind=refund]{--k:#10B981}.txf[data-kind=income]{--k:#059669}.txf[data-kind=payment]{--k:#7C3AED}
@@ -1127,49 +1170,48 @@ function simulate(cb, cr, cp, lb, lr, lp, snowball) {
 const monthAfter = n => toDate(shiftMonth(curKey(), n) + "-01").toLocaleDateString("en-GB", { month: "short", year: "numeric" });
 function plannerCard() {
   const st = settings(), c = st.card, cn = cardNow();
-  if (cn.now <= 0) return `<div class="card stack"><h2>Credit card planner</h2><div class="small muted">No card balance recorded. Tap Update under "Your balances" on Home.</div></div>`;
+  if (cn.now <= 0) return `<div class="card plan-card"><div class="pc-lab">Credit card</div><div class="pc-big">Debt-free</div><div class="small" style="opacity:.85">No card balance recorded. Tap Update under "Credit card" on Home if that's not right.</div></div>`;
   const pay0 = +c.payment || 0, floorPay = Math.max(1000, cn.now * c.rate * 1.05);
   const minPay = pay0 > floorPay ? pay0 - 500 * Math.floor((pay0 - floorPay) / 500) : Math.ceil(floorPay / 500) * 500;
   const maxPay = minPay + 500 * Math.ceil((Math.max(100000, pay0 * 2) - minPay) / 500);
   const pay = Math.min(maxPay, Math.max(minPay, S.planPay ?? (+c.payment || minPay)));
-  return `<div class="card stack">
-    <div class="row"><h2>Credit card planner</h2></div>
-    ${cn.now > 0 ? `<label class="field"><span>Credit card payment per month</span>
-      <div class="row"><b class="big-out num" id="ppOut">${money(pay)}</b></div>
-      <input type="range" class="slider" id="pp" min="${minPay}" max="${maxPay}" step="500" value="${pay}" aria-label="Monthly credit card payment"></label>` : ""}
+  return `<div class="card plan-card">
+    <div class="pc-head">
+      <div><div class="pc-lab">You owe</div><div class="pc-big num"><small>EGP</small>${fmt(cn.now)}</div></div>
+      <span class="pc-chip" id="ppChip"></span>
+    </div>
+    <div class="pc-pay">
+      <span class="pc-lab2">Pay each month</span>
+      <div class="pc-row"><span class="pc-steps"><button type="button" data-step="-500" aria-label="Pay 500 less">−</button><b class="num" id="ppOut">${money(pay)}</b><button type="button" data-step="500" aria-label="Pay 500 more">+</button></span></div>
+      <input type="range" class="pc-slider" id="pp" min="${minPay}" max="${maxPay}" step="500" value="${pay}" aria-label="Monthly credit card payment">
+      <div class="pc-row pc-ends num"><span>${fmt(minPay)}</span><span>${fmt(maxPay)}</span></div>
+    </div>
     <div id="ppRes"></div>
     <div class="btns" id="ppBtns"></div>
   </div>`;
 }
 function plannerResult(pay) {
-  const st = settings(), c = st.card, cn = cardNow();
-  const lb = 0, lr = 0, lp = 0;
-  const base = simulate(cn.now, c.rate, +c.payment || 0, lb, lr, lp, false);
-  const plan = simulate(cn.now, c.rate, pay, lb, lr, lp, false);
-  const snow = simulate(cn.now, c.rate, pay, lb, lr, lp, true);
-  const never = x => x === null;
-  let html = "";
-  if (cn.now > 0) {
-    const saved = base.cardDone !== null && plan.cardDone !== null ? base.cInt - plan.cInt : 0;
-    const sooner = base.cardDone !== null && plan.cardDone !== null ? base.cardDone - plan.cardDone : 0;
-    html += `<div class="kpis">
-      <div class="kpi"><span>Card paid off</span><b>${never(plan.cardDone) ? "Never" : monthAfter(plan.cardDone)}</b></div>
-      <div class="kpi"><span>Interest you pay</span><b class="num">${never(plan.cardDone) ? "—" : fmt(plan.cInt)}</b></div>
-      <div class="kpi"><span>vs your plan</span><b class="num ${saved > 0 ? "goodtxt" : saved < 0 ? "badtxt" : ""}">${saved > 0 ? "−" + fmt(saved) : saved < 0 ? "+" + fmt(-saved) : "same"}</b></div>
+  const c = settings().card, cn = cardNow(), r = +c.rate || 0;
+  const series = []; let bal = cn.now, m = 0, int = 0;
+  if (pay > bal * r) while (bal > 0.005 && m < 600) { const i = bal * r; int += i; bal = Math.max(0, bal + i - pay); m++; series.push(bal); }
+  const never = !series.length;
+  const chip = $("#ppChip"); if (chip) { chip.textContent = never ? "Payment too low" : "Debt-free by " + monthAfter(m); chip.classList.toggle("bad", never); }
+  if (never) return `<div class="pc-warn">This payment doesn't cover the interest (about ${money(cn.now * r)} a month), so the balance never goes down.</div>`;
+  const base = payoff(cn.now, r, +c.payment || 0);
+  const saved = base ? base.interest - int : 0, sooner = base ? base.months - m : 0;
+  const shown = series.slice(0, 36), max = cn.now;
+  const lab = n => toDate(shiftMonth(curKey(), n) + "-01").toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+  return `<div class="pc-stats">
+      <div><span>Months to go</span><b class="num">${m}</b></div>
+      <div><span>Interest you pay</span><b class="num">${fmt(int)}</b></div>
+      <div><span>Total you pay</span><b class="num">${fmt(cn.now + int)}</b></div>
     </div>
-    ${never(plan.cardDone) ? `<div class="small badtxt">This payment doesn't cover the interest, so the balance never goes down.</div>` : sooner > 0 ? `<div class="small goodtxt">${sooner} month${sooner === 1 ? "" : "s"} sooner and ${money(saved)} less interest than your current EGP ${fmt(c.payment)} plan.</div>` : sooner < 0 ? `<div class="small badtxt">${-sooner} month${sooner === -1 ? "" : "s"} later than your current plan.</div>` : ""}`;
-  }
-  if (lb > 0) {
-    html += `<div class="timeline">
-      ${cn.now > 0 ? `<div style="--c:#7C3AED"><b>${never(plan.cardDone) ? "Card: never" : "Card cleared " + monthAfter(plan.cardDone)}</b></div>` : ""}
-      <div style="--c:#0EA5E9"><b>Loan cleared ${never(plan.loanDone) ? "— add the monthly payment in Setup" : monthAfter(plan.loanDone)}</b>${never(plan.loanDone) ? "" : ` <span class="muted small">paying ${money(lp)} a month</span>`}</div>
-      ${cn.now > 0 && !never(snow.loanDone) && !never(plan.loanDone) && snow.loanDone < plan.loanDone ? `<div style="--c:#10B981"><b>Loan cleared ${monthAfter(snow.loanDone)}</b> <span class="muted small">if the card payment moves to the loan once the card is done: ${plan.loanDone - snow.loanDone} months sooner${lr ? `, ${money(plan.lInt - snow.lInt)} less interest` : ""}</span></div>` : ""}
-    </div>`;
-  }
-  const best = !never(snow.loanDone) && !never(snow.cardDone) ? snow : plan;
-  const allDone = never(best.cardDone) || never(best.loanDone) ? null : Math.max(best.cardDone, best.loanDone);
-  if (allDone !== null && allDone > 0) html += `<div class="note ok"><b>Card paid off by ${monthAfter(allDone)}${best === snow && cn.now > 0 && lb > 0 && snow.loanDone < plan.loanDone ? ", if the card payment moves to the loan" : ""}.</b> After that, ${money((cn.now > 0 ? pay : 0) + (lb > 0 ? lp : 0))} a month is free for savings goals.</div>`;
-  return html;
+    ${+pay !== +c.payment && base ? `<div class="pc-delta ${saved >= 0 ? "good" : "bad"}">${saved >= 0 ? `${sooner > 0 ? sooner + " month" + (sooner === 1 ? "" : "s") + " sooner and " : ""}${money(saved)} less interest` : `${-sooner} month${sooner === -1 ? "" : "s"} later and ${money(-saved)} more interest`} than your current ${money(c.payment)} plan</div>` : ""}
+    <div class="pc-chart" role="img" aria-label="Balance going down to zero by ${monthAfter(m)}">
+      <div class="pc-bars">${shown.map((v, i) => `<i style="height:${Math.max(3, v / max * 100).toFixed(1)}%" title="${lab(i + 1)}: ${money(v)}"></i>`).join("")}</div>
+      <div class="pc-row pc-ends"><span>${lab(1)}</span><span>${series.length > 36 ? "…" : lab(m)}</span></div>
+    </div>
+    <div class="pc-free"><b>From ${monthAfter(m + 1)}</b>, ${money(pay)} a month is free for your savings goals.</div>`;
 }
 function goalsCard() {
   const st = settings(), cn = cardNow();
@@ -1180,8 +1222,7 @@ function goalsCard() {
   const monthlyNeed = (activeFixed(curKey()).reduce((a, f) => a + (+f.amount || 0), 0)) + avgSpend;
   const efTarget = Math.round(monthlyNeed * 3 / 1000) * 1000;
   return `<div class="card stack">
-    <div class="row"><h2>Savings goals</h2><button type="button" class="btn" id="addGoal" ${S.dbOk ? "" : "disabled"}>+ New goal</button></div>
-    ${freeFrom ? `<div class="small muted">From ${freeFrom}, when the card is paid off, ${money(st.card.payment)} a month is free to put into these goals.</div>` : ""}
+    <div class="row"><h2>Savings goals</h2>${S.goals.length ? `<button type="button" class="link-btn" id="addGoal" ${S.dbOk ? "" : "disabled"}>+ New goal</button>` : ""}</div>
     ${S.goals.length ? S.goals.map(g => {
       const tgt = +g.target || 0, sv = +g.saved || 0, pct = tgt ? Math.min(100, sv / tgt * 100) : 0, left = Math.max(0, tgt - sv), mo = +g.monthly || 0;
       const eta = left <= 0 ? "Reached!" : mo > 0 ? "Reached by " + monthAfter(Math.ceil(left / mo)) : "Set a monthly amount to see when";
@@ -1190,7 +1231,14 @@ function goalsCard() {
         <div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>
         <div class="row small"><span class="muted">${esc(eta)}${mo ? ` · ${money(mo)} a month` : ""}</span><span class="mini-btns"><button type="button" data-gadd="${esc(g.id)}">+ Add money</button><button type="button" data-gedit="${esc(g.id)}">Edit</button></span></div>
       </div>`; }).join("")
-    : `<div class="empty"><b>No goals yet</b>An emergency fund of 3 months of costs, about ${money(efTarget)}, is a good first goal.<div class="btns" style="justify-content:center;margin-top:10px"><button type="button" class="btn grad" id="efGoal" data-target="${efTarget}" ${S.dbOk ? "" : "disabled"}>Start an emergency fund</button></div></div>`}
+    : `<div class="goal-empty">
+        <span class="ge-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <b>Start with a safety cushion</b>
+        <span>An emergency fund covers about 3 months of your costs, so a surprise bill doesn't go on the credit card.</span>
+        <span class="ge-amt num"><small>EGP</small>${fmt(efTarget)}</span>
+        <button type="button" class="btn grad big" id="efGoal" data-target="${efTarget}" ${S.dbOk ? "" : "disabled"}>Start an emergency fund</button>
+        <button type="button" class="link-btn" id="addGoal" ${S.dbOk ? "" : "disabled"}>Or make your own goal</button>
+      </div>`}
   </div>`;
 }
 const SUB_KW = /netflix|spotify|google ?play|apple\.com|itunes|icloud|prime video|amazon prime|osn|shahid|youtube|anghami|watch ?it|chatgpt|openai|adobe|microsoft|xbox|playstation|membership|subscription|اشتراك/i;
@@ -1285,9 +1333,9 @@ function renderPlan() {
   const pp = $("#pp");
   const drawPP = () => {
     const pay = pp ? +pp.value : +settings().card.payment || 0;
-    if (pp) $("#ppOut").textContent = money(pay);
+    if (pp) { $("#ppOut").textContent = money(pay); pp.style.setProperty("--p", ((pay - pp.min) / (pp.max - pp.min) * 100).toFixed(1) + "%"); }
     $("#ppRes").innerHTML = plannerResult(pay);
-    $("#ppBtns").innerHTML = pp && pay !== +settings().card.payment ? `<button type="button" class="btn grad" id="ppUse">Make ${money(pay)} my monthly payment</button><button type="button" class="btn" id="ppReset">Back to ${money(settings().card.payment)}</button>` : "";
+    $("#ppBtns").innerHTML = pp && pay !== +settings().card.payment ? `<button type="button" class="btn pc-use" id="ppUse">Make ${money(pay)} my plan</button><button type="button" class="btn pc-reset" id="ppReset">Back to ${money(settings().card.payment)}</button>` : "";
     const use = $("#ppUse"); if (use) use.onclick = async () => { try { await db.doc("settings/main").update({ card: Object.assign({}, settings().card, { payment: pay }) }); S.planPay = null; } catch {} };
     const rs = $("#ppReset"); if (rs) rs.onclick = () => { S.planPay = null; pp.value = settings().card.payment; drawPP(); };
   };
@@ -1295,6 +1343,7 @@ function renderPlan() {
   if ($("#ppRes")) drawPP();
   const ag = $("#addGoal"); if (ag) ag.onclick = () => openGoal(null);
   const ef = $("#efGoal"); if (ef) ef.onclick = () => openGoal(null, { name: "Emergency fund", target: +ef.dataset.target, monthly: +settings().card.payment || 0 });
+  main.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { if (!pp) return; pp.value = Math.min(+pp.max, Math.max(+pp.min, +pp.value + +b.dataset.step)); S.planPay = +pp.value; drawPP(); });
   main.querySelectorAll("[data-gadd]").forEach(b => b.onclick = () => openGoalAdd(b.dataset.gadd));
   main.querySelectorAll("[data-gedit]").forEach(b => b.onclick = () => openGoal(b.dataset.gedit));
   main.querySelectorAll("[data-sub]").forEach(b => b.onclick = async () => { try { await db.doc("subs/" + b.dataset.sub).set({ status: b.dataset.st }); } catch {} });
@@ -1439,7 +1488,7 @@ function billsFor(key) {
 async function saveChecks(key, patch) {
   const prev = S.checks[key] || {}, next = Object.assign({}, prev, patch);
   S.checks[key] = next;
-  try { await db.doc("checks/" + key).set(next); return true; } catch { S.checks[key] = prev; return false; }
+  try { await db.doc("checks/m_" + key).set(next); return true; } catch { S.checks[key] = prev; return false; }
 }
 function bankHero() {
   const st = settings(), an = accountNow(), key = curKey(), today = todayStr();
@@ -2284,7 +2333,8 @@ function start() {
   coll("goals", snap => { S.goals = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); });
   coll("owed", snap => { S.owed = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); });
   coll("subs", snap => { S.subs = Object.fromEntries(snap.docs.map(d => [d.id, d.data()])); });
-  coll("checks", snap => { S.checks = Object.fromEntries(snap.docs.map(d => [d.id, d.data()])); });
+  /* ids are saved as "m_2026-10" so Google Sheets keeps them as text instead of turning them into dates */
+  coll("checks", snap => { S.checks = Object.fromEntries(snap.docs.filter(d => /^m_\d{4}-\d{2}$/.test(d.id)).map(d => [d.id.slice(2), d.data()])); });
   db.doc("settings/main").onSnapshot(snap => {
     const before = startDay();
     S.settings = snap.exists ? snap.data() : null;
