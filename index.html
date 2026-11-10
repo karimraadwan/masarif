@@ -46,7 +46,7 @@ a{color:var(--accent)}
 
 
 /* ---------- round 2 ---------- */
-nav.tabs .in{grid-template-columns:repeat(6,1fr)!important;align-items:center}
+nav.tabs .in{grid-template-columns:repeat(5,1fr)!important;align-items:center}
 .nav-add{justify-self:center;width:52px;height:52px;border-radius:18px;border:0;background:var(--hero);color:#fff;box-shadow:0 8px 20px rgba(14,165,233,.35);display:grid;place-items:center;margin-top:-18px}
 .nav-add span{font:700 30px/1 var(--f-display);margin-top:-2px}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:30;background:#151827;color:#fff;border-radius:14px;padding:11px 14px;display:flex;gap:14px;align-items:center;font-weight:700;font-size:14px;transition:.2s;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
@@ -159,10 +159,36 @@ nav.tabs .in{grid-template-columns:repeat(6,1fr)!important;align-items:center}
 .fuel-econ > span{font-size:13px;color:var(--muted)}
 .fuel-econ .btn{align-self:flex-start}
 
+
+.top-r{display:flex;align-items:center;gap:8px}
+.hdr-btn{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--soft);border:1px solid var(--line);color:var(--ink)}
+.hdr-btn.on{background:color-mix(in srgb,var(--accent) 12%,#fff);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 30%,#fff)}
+.page-h{font:800 26px var(--f-display);margin:0;letter-spacing:-.01em}
+.qa{display:flex;flex-direction:column;gap:12px}
+.qgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.qtile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px 9px;border-radius:16px;border:1px solid var(--line);background:#fff;color:inherit;min-width:0;transition:transform .1s}
+.qtile:active{transform:scale(.96)}
+.q-ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);font:800 17px var(--f-display);margin-bottom:2px}
+.qtile b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.qtile > span:last-child{font-size:12px;color:var(--muted)}
+.afford-btn{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-align:left;border:0;border-radius:14px;padding:11px 12px;background:var(--soft);color:inherit}
+.afford-btn > span:nth-child(2){display:flex;flex-direction:column}.afford-btn b{font-weight:800}.afford-btn span span{font-size:12.5px;color:var(--muted)}
+.afford-btn .chev,.act .chev{color:var(--muted);font-size:20px}
+.act.payday{display:grid;grid-template-columns:auto 1fr auto}
+.heads{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;border-color:#F8C9CB;background:#FFF5F5}
+.heads h2{font-size:16px;display:flex;align-items:center;gap:8px}
+.h-dot{width:9px;height:9px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 4px #FEE2E2}
+.heads .ln{display:flex;justify-content:space-between;font-size:14px}.heads em{font-style:normal;color:var(--muted);font-size:12.5px}.heads .ln b{color:var(--bad)}
+.heads .chev{color:var(--muted);font-size:20px}
+.bills-done{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-align:left;color:inherit;width:100%}
+.bills-done .mid{display:flex;flex-direction:column;min-width:0}.bills-done .mid span{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-ic{width:36px;height:36px;border-radius:50%;background:#D1FAE5;color:#047857;display:grid;place-items:center;font-weight:800}
+.bills-done .chev{color:var(--muted);font-size:20px}
+
 /* Top bar */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;gap:10px;padding-block:14px 10px}
 .brand{display:flex;align-items:center;gap:9px;min-width:0}
-.logo{width:34px;height:34px;border-radius:11px;background:var(--hero);display:grid;place-items:center;color:#fff;font:800 17px var(--f-display);box-shadow:0 4px 12px rgba(15,157,116,.35)}
+.logo{width:36px;height:36px;border-radius:10px;display:block;object-fit:cover;box-shadow:0 4px 12px rgba(15,157,116,.3)}
 .brand b{font:800 21px/1 var(--f-display);letter-spacing:-.015em}
 .brand span{font-size:13px;color:var(--muted);display:block;margin-top:2px}
 .month{display:flex;align-items:center;gap:2px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px}
@@ -523,8 +549,7 @@ code.k{font-size:12px;background:var(--sunk);padding:2px 6px;border-radius:6px;w
 pre.code{font-size:12px;background:#0F172A;color:#E2E8F0;padding:12px;border-radius:12px;overflow-x:auto;white-space:pre;margin:0}
 details.howto summary{cursor:pointer;font-weight:700;color:var(--accent)}
 details.howto ol{padding-left:20px;margin:8px 0 0;display:flex;flex-direction:column;gap:6px;font-size:14px}
-nav.tabs .in{grid-template-columns:repeat(6,1fr)!important}
-nav.tabs a{font-size:10.5px!important}
+nav.tabs a{font-size:11px!important}
 /* Cards / payment methods */
 .paygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
 .paytile{border:0;text-align:left;color:#fff;border-radius:16px;padding:12px 13px;display:flex;flex-direction:column;gap:6px;min-width:0;
@@ -607,11 +632,14 @@ img{max-width:100%}
 
 <div class="app">
   <header class="top">
-    <div class="brand"><div class="logo" aria-hidden="true">M</div><div><b>Masarif</b><span lang="ar">مصاريف</span></div></div>
-    <div class="month" id="monthBox">
-      <button type="button" id="mPrev" aria-label="Previous month">‹</button>
-      <span id="mLabel" class="num"></span>
-      <button type="button" id="mNext" aria-label="Next month">›</button>
+    <div class="brand"><img class="logo" src="icon-180.png" alt="" width="34" height="34"><div><b>Masarif</b><span lang="ar">مصاريف</span></div></div>
+    <div class="top-r">
+      <div class="month" id="monthBox">
+        <button type="button" id="mPrev" aria-label="Previous month">‹</button>
+        <span id="mLabel" class="num"></span>
+        <button type="button" id="mNext" aria-label="Next month">›</button>
+      </div>
+      <a href="#more" class="hdr-btn" id="hdrMore" aria-label="Settings and tools"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a>
     </div>
   </header>
   <main id="main"></main>
@@ -625,7 +653,6 @@ img{max-width:100%}
   <button type="button" class="nav-add" id="navAdd" aria-label="Add a purchase"><span>+</span></button>
   <a href="#plan" data-v="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>Plan</a>
   <a href="#insights" data-v="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Insights</a>
-  <a href="#more" data-v="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>More</a>
 </div></nav>
 
 <div class="sheet-wrap" id="sheetWrap" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
@@ -1192,7 +1219,7 @@ function insights(key, d) {
 /* ---------- rendering ---------- */
 const main = $("#main");
 function setChrome() {
-  const navV = ["cats", "import", "setup"].includes(S.view) ? "more" : S.view;
+  const navV = S.view; const hm = document.getElementById("hdrMore"); if (hm) hm.classList.toggle("on", ["more", "cats", "import", "setup"].includes(S.view));
   document.querySelectorAll("nav.tabs a").forEach(a => { if (a.dataset.v === navV) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
   let insTab = "month"; try { insTab = localStorage.getItem("masarif.insTab") || "month"; } catch {}
   $("#monthBox").hidden = !((S.view === "insights" && insTab === "month") || (S.view === "txns" && S.scope === "period"));
@@ -1213,7 +1240,7 @@ function render(force) {
   if (S.view === "setup" && S.setupDirty && !force) return;
   if (S.view === "import" && !force && main.dataset.v === "import") { renderImportPreview(); return; }
   main.dataset.v = S.view;
-  queueMicrotask(() => { if (["cats", "import", "setup"].includes(S.view) && !main.querySelector(".back")) { const sec = main.querySelector("section.view"); if (sec) sec.insertAdjacentHTML("afterbegin", `<a class="back" href="#more">‹ More</a>`); } });
+  queueMicrotask(() => { if (["cats", "import", "setup"].includes(S.view) && !main.querySelector(".back")) { const sec = main.querySelector("section.view"); if (sec) sec.insertAdjacentHTML("afterbegin", `<a class="back" href="#more">‹ Settings & tools</a>`); } });
   ({ home: renderHome, txns: renderTxns, plan: renderPlan, insights: renderInsights, more: renderMore, cats: renderCats, import: renderImport, setup: renderSetup }[S.view] || renderHome)();
 }
 
@@ -1678,6 +1705,7 @@ function billsCard() {
     <div class="small muted">Add the day each fixed payment leaves your account (Setup → Fixed monthly payments). Masarif then keeps that money aside before it tells you what's safe to spend.</div>
   </div>`;
   const left = bills.filter(b => !b.paid).reduce((a, b) => a + b.amount, 0);
+  if (!left && !S.billsOpen) return `<button type="button" class="card bills-done" id="billsOpen"><span class="bd-ic" aria-hidden="true">✓</span><span class="mid"><b>All bills paid this month</b><span>${bills.map(b => esc(b.name)).join(" · ")}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
   return `<div class="card stack">
     <div class="row"><h2>Bills this month</h2><span class="small muted num">${left ? money(left) + " to pay" : "All paid"}</span></div>
     <div class="bills" id="bills">${bills.map(b => {
@@ -1755,11 +1783,12 @@ function renderHome() {
   main.innerHTML = `<section class="view">
     ${statusNote()}
     ${healthHero()}
-    ${countdownStrip()}
-    ${actionsRow()}
-    ${alertsCard(d)}
+    ${paydayBanner()}
+    ${quickCard()}
+    ${homeAlerts(d)}
     ${leftoverCard()}
     ${weekCard()}
+    ${countdownStrip()}
     ${billsCard()}
     <div class="card stack">
       <div class="row"><h2>Latest purchases</h2><a class="link" href="#txns">See all</a></div>
@@ -1786,6 +1815,7 @@ function renderHome() {
     $("#xClose").onclick = closeSheet;
     sheet.querySelectorAll("[data-pot]").forEach(b => b.onclick = async () => { const g = S.goals.find(x => x.id === b.dataset.pot); try { await db.collection("goals").doc(g.id).update({ saved: (+g.saved || 0) + lo.left }); await markWeek(lo.ws, { moved: lo.left }); closeSheet(); toast(`${money(lo.left)} moved to ${g.name} ✓`); render(true); } catch {} });
   };
+  const bo = $("#billsOpen"); if (bo) bo.onclick = () => { S.billsOpen = true; render(true); };
   const ls = $("#loSkip"); if (ls) ls.onclick = async () => { const lo = lastWeekLeftover(); if (lo) { await markWeek(lo.ws, { dismissed: true }); render(true); } };
 }
 
@@ -2546,6 +2576,32 @@ const DEFAULT_QUICK = [
   { label: "Car wash", amount: 100, categoryId: "transport", cardId: "cash" }
 ];
 const quickList = () => Array.isArray(settings().quick) ? settings().quick : DEFAULT_QUICK;
+const QA_ICONS = { parking: "P", coffee: "☕", tip: "♥", "car wash": "✦" };
+function quickCard() {
+  const list = quickList();
+  return `<div class="card qa">
+    <div class="row"><h2>Quick add</h2><button type="button" class="link-btn" data-act="quickEdit">Edit</button></div>
+    ${list.length ? `<div class="qgrid">${list.map((q, i) => { const c = catColor(catById(q.categoryId)); return `<button type="button" class="qtile" data-quick="${i}" style="--c:${c}" ${S.dbOk ? "" : "disabled"}>
+        <span class="q-ic" aria-hidden="true">${esc(QA_ICONS[String(q.label).toLowerCase()] || String(q.label).trim()[0] || "+").toUpperCase()}</span>
+        <b>${esc(q.label)}</b><span class="num">${fmt(q.amount)}</span></button>`; }).join("")}</div>` : `<div class="small muted">Add buttons for cash you pay often, like parking or coffee.</div>`}
+    <button type="button" class="afford-btn" data-act="afford"><span class="act-ic" aria-hidden="true">?</span><span><b>Can I afford it?</b><span>Check a price before you buy</span></span><span class="chev" aria-hidden="true">›</span></button>
+  </div>`;
+}
+function paydayBanner() {
+  if (!paydayDue()) return "";
+  return `<button type="button" class="act payday" data-act="payday"><span class="act-ic" aria-hidden="true">₤</span><span><b>It's payday!</b><span>Start the month right: 5 quick steps</span></span><span class="chev" aria-hidden="true">›</span></button>`;
+}
+function homeAlerts(d) {
+  const m = limitStatus(d), wk = weekLimitStatus(weekData(wkStart(todayStr())));
+  const over = m.over.map(x => Object.assign({ when: "this month" }, x)).concat(wk.over.map(x => Object.assign({ when: "this week" }, x)));
+  if (!over.length) return "";
+  over.sort((a, b) => (b.s - b.lim) - (a.s - a.lim));
+  return `<a class="card heads" href="#insights">
+    <div class="row"><h2><span class="h-dot"></span>Over ${over.length === 1 ? "a limit" : over.length + " limits"}</h2><span class="chev" aria-hidden="true">›</span></div>
+    ${over.slice(0, 3).map(x => `<div class="ln"><span>${esc(x.c.name)} <em>${x.when}</em></span><b class="num">+${fmt(x.s - x.lim)}</b></div>`).join("")}
+    ${over.length > 3 ? `<span class="small muted">and ${over.length - 3} more</span>` : ""}
+  </a>`;
+}
 function actionsRow() {
   const showPayday = paydayDue();
   return `<div class="actions">
@@ -3108,6 +3164,7 @@ function renderMore() {
   const row = (href, ic, t, s, id) => `<${href ? `a href="${href}"` : `button type="button" id="${id}"`} class="m-row"><span class="m-ic" aria-hidden="true">${ic}</span><span class="mid"><b>${t}</b><span>${s}</span></span><span class="chev" aria-hidden="true">›</span></${href ? "a" : "button"}>`;
   main.innerHTML = `<section class="view">
     ${statusNote()}
+    <h1 class="page-h">Settings & tools</h1>
     <div class="card m-list">
       ${row("#cats", "▦", "Categories & limits", "Monthly and weekly limits, keywords")}
       ${row("#setup", "⚙", "Settings", "Salary, bills, cards, payday, connection")}
