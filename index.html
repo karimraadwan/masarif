@@ -79,6 +79,26 @@ h2{font:700 18px/1.2 var(--f-display);margin:0;text-wrap:balance}
 .pill div:first-child{font-size:12px;opacity:.9}
 .pill div:last-child{font:800 17px var(--f-display)}
 .pills.two{grid-template-columns:repeat(2,1fr)}
+.hero-btn{border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.18);color:#fff;font:700 14px var(--f-body,inherit);border-radius:999px;padding:9px 16px;cursor:pointer}
+.hero-btn.sm{padding:4px 12px;font-size:12.5px}
+.hero-warn{background:rgba(255,255,255,.95);color:#B42318;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:700}
+.bills{display:flex;flex-direction:column;gap:8px}
+.bill{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"d m a" "d m t";gap:2px 12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--soft)}
+.bill-d{grid-area:d;display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);line-height:1}
+.bill-d b{font:800 17px var(--f-display)}
+.bill-d span{font-size:11px;color:var(--muted);margin-top:2px}
+.bill .mid{grid-area:m;display:flex;flex-direction:column;min-width:0}
+.bill .mid span{font-size:12.5px;color:var(--muted)}
+.bill .amt{grid-area:a;font-weight:800;text-align:right}
+.bill-tg{grid-area:t;justify-self:end;border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.bill-tg[aria-pressed=true]{background:var(--good,#10B981);border-color:transparent;color:#fff}
+.bill.paid{opacity:.65}
+.bill.late .mid span{color:#B42318;font-weight:700}
+.nsd{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.nsd span{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:11.5px;font-weight:800;background:var(--sunk);color:var(--muted)}
+.nsd span.free{background:#D1FAE5;color:#047857}
+.nsd span.today{outline:2px solid var(--accent);outline-offset:1px}
+.nsd b{margin-left:4px;color:#047857}
 .home-seg{margin-bottom:2px}
 .bal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .bal{border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;gap:5px;min-width:0;color:#fff}
@@ -803,6 +823,7 @@ function weekCard() {
       <div class="bar" style="--c:var(--accent);height:11px"><i class="${left < 0 ? "over" : ""}" style="width:${pct.toFixed(1)}%"></i></div>`
     : `<div class="small muted">Spent ${money(w.total)} so far. Set a weekly limit${suggestedWeekly() ? ` (about ${money(suggestedWeekly())} fits your plan)` : ""} in <a href="#setup">Setup</a> to see what's left each week.</div>`}
     <div class="small muted num">Spent ${money(w.total)} in ${w.n} purchase${w.n === 1 ? "" : "s"}${prev.total ? ` · last week ${money(prev.total)}` : ""}</div>
+    ${(() => { const dd = []; for (let x = toDate(ws); toStr(x) <= today; x.setDate(x.getDate() + 1)) dd.push(toStr(x)); const spent = new Set(S.txns.filter(t => !t.deleted && t.date >= ws && t.date <= today && !isFlow(t) && t.kind !== "refund").map(t => t.date)); const free = dd.filter(x => !spent.has(x)); return `<div class="nsd">${dd.map(x => `<span class="${spent.has(x) ? "" : "free"}${x === today ? " today" : ""}" title="${esc(x)}">${toDate(x).toLocaleDateString("en-GB", { weekday: "narrow" })}</span>`).join("")}<b class="small">${free.length} no-spend day${free.length === 1 ? "" : "s"}</b></div>`; })()}
     ${catRows.length ? `<div class="cat-list">${catRows.map(r => `<div class="cat-line" style="--c:${catColor(r.c)}">
         <div class="row"><b><span class="sw"></span>${esc(r.c.name)}</b><span class="num small">${r.s > r.lim ? `<span class="over-tag">${fmt(r.s)}</span>` : fmt(r.s)} <span class="muted">/ ${fmt(r.lim)} a week</span></span></div>
         <div class="bar"><i class="${r.s > r.lim ? "over" : ""}" style="width:${Math.min(100, r.s / r.lim * 100).toFixed(1)}%"></i></div></div>`).join("")}</div>` : ""}
@@ -1361,20 +1382,79 @@ function creditHomeCard() {
     ${cn.adds > 0 && po ? `<div class="small muted">New purchases on the card since then add about ${money(cn.adds * (1 + c.rate))} to what you owe. Paying by debit keeps the payoff date from slipping.</div>` : ""}
   </div>`;
 }
+/* Fixed payments that have a day set, placed on their date inside this month */
+function billsFor(key) {
+  const ps = pStart(key), pn = pNext(key), done = (S.checks[key] || {}).bills || {};
+  const out = [];
+  activeFixed(key).forEach(f => {
+    const day = Math.round(+f.day || 0); if (day < 1) return;
+    const d = toDate(ps);
+    for (let i = 0; i < 32; i++) {
+      const ds = toStr(d); if (ds >= pn) break;
+      const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      if (d.getDate() === Math.min(day, last)) { out.push({ id: f.name, name: f.name, amount: +f.amount || 0, date: ds, paid: !!done[f.name] }); break; }
+      d.setDate(d.getDate() + 1);
+    }
+  });
+  return out.sort((a, b) => a.date.localeCompare(b.date));
+}
+async function saveChecks(key, patch) {
+  const prev = S.checks[key] || {}, next = Object.assign({}, prev, patch);
+  S.checks[key] = next;
+  try { await db.doc("checks/" + key).set(next); return true; } catch { S.checks[key] = prev; return false; }
+}
+function bankHero() {
+  const st = settings(), an = accountNow(), key = curKey(), today = todayStr();
+  const bills = billsFor(key).filter(b => !b.paid), toPay = bills.reduce((a, b) => a + b.amount, 0);
+  const days = Math.max(1, daysDiff(today, pNext(key)));
+  const free = an.now - toPay, perDay = Math.max(0, free) / days;
+  const payday = toDate(pNext(key)).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (!an.set) return `<div class="hero">
+      <div class="label">In your bank account</div>
+      <div class="sub">Copy your available balance from the CIB app once. After that Masarif follows it from your bank texts.</div>
+      <div><button type="button" class="hero-btn" data-bal>Add my bank balance</button></div>
+    </div>`;
+  return `<div class="hero">
+      <div class="row"><div class="label">In your bank account</div><button type="button" class="hero-btn sm" data-bal>Update</button></div>
+      <div class="big num ${an.now < 0 ? "neg" : ""}"><small>EGP</small>${fmt(an.now)}</div>
+      <div class="sub">${esc(snapLabel(st.account.asOf, st.account.asOfTime))} · payday ${esc(payday)}, in ${days} day${days === 1 ? "" : "s"}</div>
+      <div class="pills two">
+        <div class="pill"><div>Bills before payday</div><div class="num">${fmt(toPay)}</div></div>
+        <div class="pill"><div>Safe per day</div><div class="num">${fmt(perDay)}</div></div>
+      </div>
+      ${free < 0 ? `<div class="hero-warn">Your bills before payday are ${money(-free)} more than your balance.</div>` : ""}
+    </div>`;
+}
+function billsCard() {
+  const key = curKey(), fx = activeFixed(key);
+  if (!fx.length) return "";
+  const bills = billsFor(key), today = todayStr();
+  if (!bills.length) return `<div class="card stack">
+    <div class="row"><h2>Bills this month</h2><a class="link" href="#setup">Set days</a></div>
+    <div class="small muted">Add the day each fixed payment leaves your account (Setup → Fixed monthly payments). Masarif then keeps that money aside before it tells you what's safe to spend.</div>
+  </div>`;
+  const left = bills.filter(b => !b.paid).reduce((a, b) => a + b.amount, 0);
+  return `<div class="card stack">
+    <div class="row"><h2>Bills this month</h2><span class="small muted num">${left ? money(left) + " to pay" : "All paid"}</span></div>
+    <div class="bills" id="bills">${bills.map(b => {
+      const late = !b.paid && b.date < today, dd = toDate(b.date);
+      return `<div class="bill ${b.paid ? "paid" : late ? "late" : ""}">
+        <span class="bill-d"><b>${dd.getDate()}</b><span>${dd.toLocaleDateString("en-GB", { month: "short" })}</span></span>
+        <span class="mid"><b>${esc(b.name)}</b><span>${b.paid ? "Paid" : late ? "Date passed. Paid it?" : b.date === today ? "Due today" : "In " + daysDiff(today, b.date) + " days"}</span></span>
+        <span class="num amt">${fmt(b.amount)}</span>
+        <button type="button" class="bill-tg" data-bill="${esc(b.id)}" aria-pressed="${b.paid}" ${S.dbOk ? "" : "disabled"}>${b.paid ? "✓ Paid" : "Mark paid"}</button>
+      </div>`; }).join("")}</div>
+  </div>`;
+}
 function balancesCard() {
   const st = settings(), an = accountNow(), cn = cardNow(), cc = creditCard();
   const lim = cc && +cc.limit > 0 ? +cc.limit : 0, util = lim ? Math.min(100, cn.now / lim * 100) : 0;
   const due = st.card.dueDate, dueIn = due ? daysDiff(todayStr(), due) : null;
   return `<div class="card stack">
-    <div class="row"><h2>Your balances</h2><button type="button" class="link-btn" id="updBal" ${S.dbOk ? "" : "disabled"}>Update</button></div>
+    <div class="row"><h2>Credit card</h2><button type="button" class="link-btn" id="updBal" ${S.dbOk ? "" : "disabled"}>Update</button></div>
     <div class="bal-grid">
-      <div class="bal acc">
-        <span class="bal-lab">Bank account</span>
-        <span class="bal-amt num"><small>EGP</small>${an.set ? fmt(an.now) : "—"}</span>
-        <span class="bal-sub">${an.set ? esc(snapLabel(st.account.asOf, st.account.asOfTime)) : "Tap Update to add it"}</span>
-      </div>
       <div class="bal cc">
-        <span class="bal-lab">Credit card</span>
+        <span class="bal-lab">You owe</span>
         <span class="bal-amt num"><small>EGP</small>${fmt(cn.now)}</span>
         ${lim ? `<span class="bal-bar" aria-label="${Math.round(util)}% of your limit used"><i style="width:${util.toFixed(1)}%"></i></span><span class="bal-sub">${fmt(Math.max(0, lim - cn.now))} left of ${fmt(lim)}</span>` : ""}
         ${due && dueIn >= 0 ? `<span class="bal-due ${dueIn <= 3 ? "soon" : ""}">Due ${esc(dayLabel(due))}${dueIn === 0 ? " · today" : dueIn <= 7 ? ` · in ${dueIn} day${dueIn === 1 ? "" : "s"}` : ""}</span>` : ""}
@@ -1451,8 +1531,9 @@ function renderHome() {
       </div>` : `<div class="sub">Add your salary in <a href="#setup" style="color:#fff">Setup</a> to see what's left.</div>`}
     </div>`;
   const overview = `
-    ${hero}
+    ${isCur ? bankHero() : hero}
     ${alertsCard(d)}
+    ${isCur ? billsCard() : ""}
     ${balancesCard()}
     ${isCur ? weekCard() : ""}
     <div class="card stack">
@@ -1502,6 +1583,13 @@ function renderHome() {
   $("#homeSeg").onclick = e => { const b = e.target.closest("button[data-t]"); if (b && b.dataset.t !== tab) setTab(b.dataset.t); };
   main.querySelectorAll("[data-go]").forEach(b => b.onclick = () => setTab(b.dataset.go));
   const ub = $("#updBal"); if (ub) ub.onclick = openBalances;
+  main.querySelectorAll("[data-bal]").forEach(b => b.onclick = openBalances);
+  const bl = $("#bills"); if (bl) bl.onclick = async e => {
+    const t = e.target.closest("[data-bill]"); if (!t || !db) return;
+    const key = curKey(), cur = Object.assign({}, (S.checks[key] || {}).bills || {});
+    cur[t.dataset.bill] = t.getAttribute("aria-pressed") !== "true";
+    await saveChecks(key, { bills: cur }); render(true);
+  };
   const ab = $("#askBtn"); if (ab) ab.onclick = () => askClaude(d);
   const cal = $("#cal"); if (cal) cal.onclick = e => { const b = e.target.closest("button[data-day]"); if (!b) return; S.calSel = S.calSel === b.dataset.day ? null : b.dataset.day; render(true); };
   const calGo = $("#calGo"); if (calGo) calGo.onclick = () => { S.q = ""; S.scope = "period"; S.filter = "all"; S.cardF = "all"; location.hash = "#txns"; };
@@ -1513,8 +1601,7 @@ function renderHome() {
     const cb = e.target.closest("input[data-h]"); if (!cb || !db) return;
     const key = S.month, prev = (S.checks[key] || {}).done || {};
     const done = Object.assign({}, prev, { [cb.dataset.h]: cb.checked });
-    S.checks[key] = { done };
-    try { await db.doc("checks/" + key).set({ done }); } catch { cb.checked = !cb.checked; S.checks[key] = { done: prev }; }
+    if (!(await saveChecks(key, { done }))) cb.checked = !cb.checked;
   };
 }
 
@@ -1789,9 +1876,10 @@ function renderSetup() {
   let openFx = -1;
   const monthsBetween = (a, b) => { const [ay, am] = a.split("-").map(Number), [by, bm] = b.split("-").map(Number); return (by - ay) * 12 + (bm - am); };
   const fxSub = f => {
-    if (!f.until) return "Every month";
+    const dayTxt = +f.day ? "Day " + Math.round(+f.day) + " · " : "";
+    if (!f.until) return dayTxt + "Every month";
     const left = monthsBetween(curKey(), f.until) + 1;
-    return `Until ${monthLabel(f.until)} · ${left > 0 ? left + " payment" + (left === 1 ? "" : "s") + " left" : "finished"}`;
+    return `${dayTxt}Until ${monthLabel(f.until)} · ${left > 0 ? left + " payment" + (left === 1 ? "" : "s") + " left" : "finished"}`;
   };
   const fxTotal = () => fixed.filter(f => !f.until || curKey() <= f.until).reduce((a, f) => a + (+f.amount || 0), 0);
   const drawFixed = () => {
@@ -1808,6 +1896,7 @@ function renderSetup() {
           <label class="field"><span>Name</span><input type="text" data-k="name" data-i="${i}" value="${esc(f.name)}" placeholder="e.g. Car loan"></label>
           <div class="grid2">
             <label class="field"><span>Amount each month (EGP)</span><input type="number" inputmode="decimal" data-k="amount" data-i="${i}" value="${esc(f.amount)}" step="any" min="0"></label>
+            <label class="field"><span>Day it leaves (1–31)</span><input type="number" inputmode="numeric" data-k="day" data-i="${i}" value="${esc(f.day || "")}" min="1" max="31" step="1" placeholder="e.g. 5"></label>
             <div class="field"><span>Last payment (optional)</span><div class="fx-ends"><input type="month" data-k="until" data-i="${i}" value="${esc(f.until || "")}" aria-label="Month of the last payment">${f.until ? `<button type="button" data-clear="${i}">Clear</button>` : ""}</div></div>
           </div>
           <div class="btns"><button type="button" class="btn danger" data-del="${i}">Remove</button><button type="button" class="btn primary" data-done>Done</button></div>
@@ -1892,7 +1981,7 @@ function renderSetup() {
       defaultCardId: $("#sDefCard").value,
       salary: numIn($("#sSalary").value),
       weekLimit: numIn($("#sWeek").value),
-      fixed: fixed.filter(f => String(f.name).trim() && +f.amount).map(f => ({ name: String(f.name).trim(), amount: +f.amount, until: f.until || "" })),
+      fixed: fixed.filter(f => String(f.name).trim() && +f.amount).map(f => ({ name: String(f.name).trim(), amount: +f.amount, until: f.until || "", day: Math.min(31, Math.max(0, Math.round(+f.day || 0))) })),
       card: Object.assign({}, st.card, { balance: numIn($("#cBal").value), rate: numIn($("#cRate").value) / 100, payment: numIn($("#cPay").value), asOf: $("#cAsOf").value || "", asOfTime: ($("#cAsOf").value || "") === st.card.asOf && numIn($("#cBal").value) === +st.card.balance ? (st.card.asOfTime || "") : "" }),
       dateOrder: $("#sOrder").value
     });
