@@ -527,17 +527,24 @@ const catColor = c => c ? (c.color || PALETTE[(S.cats.indexOf(c) + PALETTE.lengt
 const CASH = { id: "cash", name: "Cash", type: "cash", color: "#65A30D" };
 const TYPE_COLOR = { credit: "#7C3AED", debit: "#0EA5E9", cash: "#65A30D" };
 const TYPE_NAME = { credit: "Credit card", debit: "Debit card", cash: "Cash" };
-const cards = () => (settings().cards || []).filter(c => c && c.id);
+const numsOf = c => String((c && c.last4) || "").split(/\D+/).filter(x => x.length >= 3);
+const cards = () => (settings().cards || []).filter(c => c && c.id).map(c => Object.assign({}, c, { nums: numsOf(c), last4: numsOf(c)[0] || "" }));
 const payMethods = () => cards().concat([CASH]);
 const cardById = id => payMethods().find(c => c.id === id) || null;
 const creditCard = () => cards().find(c => c.type === "credit") || null;
 const cardColor = c => c ? (c.color || TYPE_COLOR[c.type] || "#64748B") : NONE_COLOR;
 const cardLabel = c => c ? c.name + (c.last4 ? " ••" + c.last4 : "") : "Card not set";
+const INCOME_RE = /إلى حسابك|الى حسابك|لحسابك|to your account|credited to your account|transfer received|received a transfer/i;
+const REFUND_RE = /refund|reversal|reversed|cashback|تم رد|رد مبلغ|استرداد|ارجاع|إرجاع|مرتجع/i;
+const OTP_RE = /\b(otp|one[- ]time|verification|password|passcode)\b|رمز|كلمة المرور|كود التفعيل/i;
+const BANK_RE = /card|بطاقة|حساب|account|cib|19666|apple pay|تحويل/i;
+const kindOf = m => PAY_RE.test(m) ? "payment" : INCOME_RE.test(m) ? "income" : REFUND_RE.test(m) ? "refund" : "expense";
+const isFlow = t => t.kind === "payment" || t.kind === "income";
 const PAY_RE = /\b(payment received|thank you for your payment|payment of .{0,30} (?:has been )?received|card payment received)\b|تم سداد|سداد مبلغ|تم استلام سداد/i;
 function detectCard(text) {
   const t = norm(text);
   if (/\|\s*CASH\s*$/i.test(t.trim())) return "cash";
-  for (const c of cards()) { const l = String(c.last4 || "").replace(/\D/g, ""); if (l.length >= 3 && new RegExp("(?:^|\\D)" + l + "(?:\\D|$)").test(t)) return c.id; }
+  for (const c of cards()) for (const l of c.nums) if (new RegExp("(?:^|\\D)" + l + "(?:\\D|$)").test(t)) return c.id;
   return null;
 }
 
@@ -557,11 +564,18 @@ function pLabel(key, long) {
   return a.toLocaleDateString("en-GB", o) + " – " + b.toLocaleDateString("en-GB", o) + yr;
 }
 
+/* Keywords match the start of a word, so "lab" doesn't match "available" but "fawry" matches "FawryPF". The shop name is checked before the rest of the text. */
+const kwRe = k => new RegExp("(^|[^a-z0-9\u0600-\u06ff])" + k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 function autoCat(text) {
-  const t = String(text || "").toLowerCase();
-  let best = null, len = 0;
-  for (const c of S.cats) for (const k of kw(c)) if (t.includes(k) && k.length > len) { best = c.id; len = k.length; }
-  return best;
+  const parts = String(text || "").split("|");
+  const tries = [parts.length > 3 ? parts[2] : "", String(text || "")];
+  for (const t of tries) {
+    if (!t.trim()) continue;
+    let best = null, len = 0;
+    for (const c of S.cats) for (const k of kw(c)) if (k.length > len && kwRe(k).test(t)) { best = c.id; len = k.length; }
+    if (best) return best;
+  }
+  return null;
 }
 
 /* ---------- parsing ---------- */
@@ -596,20 +610,39 @@ function parseShortcutFile(text) {
   for (const line of lines) {
     const parts = line.split("|").map(s => s.trim());
     if (parts.length < 2) continue;
+    const sms = parts.slice(3).join(" | ").trim();
+    if (sms) {
+      if (OTP_RE.test(sms)) continue;
+      const cardId = detectCard(line);
+      if (!cardId && !BANK_RE.test(sms)) continue;
+      const amount = amountIn(sms) || parseAmount(parts[1]);
+      if (!amount) continue;
+      const kind = kindOf(sms);
+      rows.push({ id: "s_" + hash(line), date: parseDate(dateIn(sms), "dmy") || parseDate(parts[0], order) || todayStr(), time: parseTime(sms) || parseTime(parts[0]),
+        amount, merchant: shopFor(sms, kind, kind === "expense" || kind === "refund" ? parts[2] : ""), raw: line, source: "shortcut", kind, cardId });
+      continue;
+    }
     const amount = parseAmount(parts[1]);
     if (!amount) continue;
     rows.push({ id: "s_" + hash(line), date: parseDate(parts[0], order) || todayStr(), time: parseTime(parts[0]),
-      amount, merchant: (parts[2] || "").trim(), raw: line, source: "shortcut", kind: PAY_RE.test(line) ? "payment" : "expense", cardId: detectCard(line) });
+      amount, merchant: (parts[2] || "").trim(), raw: line, source: "shortcut", kind: kindOf(line), cardId: detectCard(line) });
   }
   return rows;
 }
-const CUR = "(?:EGP|LE|L\\.E\\.?|جنيه|ج\\.م\\.?)";
+const CUR = "(?:EGP|LE|L\\.E\\.?|جنيه|ج\\.م\\.?|جم)";
 function amountIn(m) {
   m = norm(m);
   const x = m.match(new RegExp(CUR + "\\s*([\\d,]+(?:\\.\\d+)?)", "i")) || m.match(new RegExp("([\\d,]+(?:\\.\\d+)?)\\s*" + CUR, "i")) || m.match(/([\d,]+\.\d{2})/);
   return x ? parseFloat(x[1].replace(/,/g, "")) : 0;
 }
 function dateIn(m) { const x = norm(m).match(/\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}/); return x ? x[0] : ""; }
+function shopFor(m, kind, fallback) {
+  const shop = merchantIn(m);
+  if (shop) return shop;
+  if (kind === "income") { const who = m.match(/من\s+([\u0600-\u06FF ]{2,40}?)\s+(?:برقم|بتاريخ|في)/); return "Transfer from " + (who ? who[1].trim() : "someone"); }
+  if (/تحويل|transfer|instapay/i.test(m)) return "InstaPay transfer";
+  return fallback || "";
+}
 function merchantIn(m) {
   let x = m.match(/\b(?:at|from|to)\s+([A-Za-z][A-Za-z0-9 .&'*\-]{1,40}?)(?=\s+(?:on|at|with|using|for|via)\b|[,;\n]|\.\s|$)/i);
   if (x) return x[1].trim();
@@ -625,22 +658,23 @@ function parseSms(text) {
   return msgs.map(m => {
     const amount = amountIn(m);
     if (!amount) return null;
-    if (/\b(otp|one[- ]time|verification code)\b|رمز التحقق|كلمة المرور/i.test(m)) return null;
+    if (OTP_RE.test(m)) return null;
+    const kind = kindOf(m);
     return { id: "m_" + hash(m), date: parseDate(dateIn(m), order) || todayStr(), time: parseTime(m), amount,
-      merchant: merchantIn(m), raw: m, source: "sms",
-      kind: PAY_RE.test(m) ? "payment" : /refund|reversal|reversed|credited|cashback|استرداد|ارجاع|إرجاع|مرتجع/i.test(m) ? "refund" : "expense", cardId: detectCard(m) };
+      merchant: shopFor(m, kind), raw: m, source: "sms", kind, cardId: detectCard(m) };
   }).filter(Boolean);
 }
 
 /* ---------- numbers ---------- */
-const signed = t => t.kind === "payment" ? 0 : (t.kind === "refund" ? -1 : 1) * (+t.amount || 0);
+const signed = t => isFlow(t) ? 0 : (t.kind === "refund" ? -1 : 1) * (+t.amount || 0);
 function activeFixed(key) { return (settings().fixed || []).filter(f => (+f.amount || 0) > 0 && (!f.until || key <= f.until)); }
 function periodData(key) {
   const tx = S.txns.filter(t => !t.deleted && inP(t.date, key));
   const byCat = {}, byGroup = { need: 0, want: 0, debt: 0, none: 0 }, byCard = {}, cardCount = {};
-  let total = 0, payments = 0;
+  let total = 0, payments = 0, income = 0;
   for (const t of tx) {
     if (t.kind === "payment") { payments += +t.amount || 0; continue; }
+    if (t.kind === "income") { income += +t.amount || 0; continue; }
     const v = signed(t), g = groupOf(t);
     const ck = cardById(t.cardId) ? t.cardId : "_none";
     byCard[ck] = (byCard[ck] || 0) + v; cardCount[ck] = (cardCount[ck] || 0) + 1;
@@ -651,7 +685,7 @@ function periodData(key) {
   const fixed = activeFixed(key), fixedTotal = fixed.reduce((a, f) => a + (+f.amount || 0), 0);
   const salary = +settings().salary || 0;
   const cn = cardNow(), reserve = cn.now > 0 || payments > 0 ? (+settings().card.payment || 0) : 0;
-  return { tx, byCat, byGroup, byCard, cardCount, payments, reserve, total, spend: byGroup.need + byGroup.want + byGroup.none, fixed, fixedTotal, salary, left: salary - fixedTotal - reserve - total };
+  return { tx, byCat, byGroup, byCard, cardCount, payments, income, reserve, total, spend: byGroup.need + byGroup.want + byGroup.none, fixed, fixedTotal, salary, left: salary - fixedTotal - reserve - total };
 }
 function payoff(b, r, p) {
   b = +b || 0; r = +r || 0; p = +p || 0;
@@ -668,6 +702,7 @@ function cardNow() {
   for (const t of S.txns) {
     if (t.deleted || !t.date || (asOf && t.date <= asOf)) continue;
     if (t.kind === "payment") { paid += +t.amount || 0; continue; }
+    if (t.kind === "income") continue;
     if (cc && t.cardId === cc.id) { if (t.kind === "refund") refunds += +t.amount || 0; else adds += +t.amount || 0; }
   }
   const base = +c.balance || 0;
@@ -805,9 +840,9 @@ function insights(key, d) {
   const cc = creditCard();
   if (cc && (d.byCard[cc.id] || 0) > 0 && cardNow().now > 0) out.push({ t: "warn", x: `You put ${money(d.byCard[cc.id])} on the credit card this month. While you're paying it off, use the debit card or cash so the balance doesn't grow.` });
   if (cc && +cc.limit > 0) { const u = cardNow().now / +cc.limit; if (u >= 0.3) out.push({ t: u >= 0.7 ? "bad" : "warn", x: `You're using ${Math.round(u * 100)}% of your credit limit. Under 30% is healthier for your credit record.` }); }
-  const unset = d.tx.filter(t => t.kind !== "payment" && !cardById(t.cardId)).length;
+  const unset = d.tx.filter(t => !isFlow(t) && !cardById(t.cardId)).length;
   if (unset && cards().length) out.push({ t: "", x: `${unset} purchase${unset > 1 ? "s don't" : " doesn't"} say which card paid. Tap them on the Spending tab to set it.` });
-  const none = d.tx.filter(t => t.kind !== "payment" && groupOf(t) === "none").length;
+  const none = d.tx.filter(t => !isFlow(t) && groupOf(t) === "none").length;
   if (none) out.push({ t: "", x: `${none} purchase${none > 1 ? "s have" : " has"} no category. Give them one so Need and Want stay accurate.` });
   if (key === curKey()) {
     const elapsed = daysDiff(pStart(key), todayStr()) + 1;
@@ -880,7 +915,7 @@ async function processInbox() {
   for (const r of rows) {
     const cardId = r.kind === "payment" ? (cc ? cc.id : null) : (r.cardId || defCard);
     await db.collection("transactions").doc(r.id).set({ date: r.date, time: r.time || "", amount: r.amount, kind: r.kind || "expense",
-      merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: "", categoryId: r.kind === "payment" ? null : autoCat((r.merchant || "") + " " + r.raw),
+      merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: "", categoryId: isFlow(r) ? null : autoCat((r.merchant || "") + " " + r.raw),
       cardId, source: "sync", raw: r.raw, createdAt: Date.now() });
   }
   S.sync.added = rows.length;
@@ -899,7 +934,7 @@ async function refresh(force) {
 function calendarCard(key) {
   const start = pStart(key), end = pEndStr(key), today = todayStr();
   const per = {}, cnt = {};
-  for (const t of S.txns) { if (t.deleted || !inP(t.date, key) || t.kind === "payment" || groupOf(t) === "debt") continue; per[t.date] = (per[t.date] || 0) + signed(t); cnt[t.date] = (cnt[t.date] || 0) + 1; }
+  for (const t of S.txns) { if (t.deleted || !inP(t.date, key) || isFlow(t) || groupOf(t) === "debt") continue; per[t.date] = (per[t.date] || 0) + signed(t); cnt[t.date] = (cnt[t.date] || 0) + 1; }
   const max = Math.max(1, ...Object.values(per));
   const days = []; for (let d = toDate(start); toStr(d) <= end; d.setDate(d.getDate() + 1)) days.push(toStr(d));
   const lead = (toDate(start).getDay() + 1) % 7;
@@ -1055,7 +1090,7 @@ function fuelCard() {
   if (!fc) return `<div class="card stack"><h2>Fuel</h2><div class="small muted">Create a category named Fuel to track fuel spending each week.</div></div>`;
   const cur = weekStart(todayStr());
   const weeks = Array.from({ length: 8 }, (_, i) => { const d = toDate(cur); d.setDate(d.getDate() - 7 * (7 - i)); return toStr(d); });
-  const sums = weeks.map(w => S.txns.filter(t => !t.deleted && t.categoryId === fc.id && t.kind !== "payment" && weekStart(t.date) === w).reduce((a, t) => a + signed(t), 0));
+  const sums = weeks.map(w => S.txns.filter(t => !t.deleted && t.categoryId === fc.id && !isFlow(t) && weekStart(t.date) === w).reduce((a, t) => a + signed(t), 0));
   const max = niceMax(Math.max(plan, ...sums));
   const W = 340, H = 160, Lp = 34, R = 6, T = 12, B = 22, cw = (W - Lp - R) / 8, bw = Math.min(26, cw * .6);
   const y = v => T + (H - T - B) * (1 - v / max);
@@ -1195,6 +1230,7 @@ function byCardCard(d) {
     <div class="split">${rows.filter(r => r.v > 0).map(r => `<i style="width:${(r.v / sum * 100).toFixed(2)}%;background:${cardColor(r.c)}"></i>`).join("")}${unset > 0 ? `<i style="width:${(unset / sum * 100).toFixed(2)}%;background:${NONE_COLOR}"></i>` : ""}</div>
     ${unsetN ? `<button type="button" class="link-btn" data-cardf="_none">${unsetN} purchase${unsetN === 1 ? "" : "s"} (${money(unset)}) without a card. Set them →</button>` : ""}
     ${d.payments ? `<div class="small muted">You paid ${money(d.payments)} to the credit card this month.</div>` : ""}
+    ${d.income ? `<div class="small muted">Money received this month: <b class="goodtxt">${money(d.income)}</b> (not counted as spending).</div>` : ""}
   </div>`;
 }
 function creditHomeCard() {
@@ -1323,13 +1359,13 @@ const txSort = (a, b) => (b.date + (b.time || "")).localeCompare(a.date + (a.tim
 function txRow(t) {
   const c = catById(t.categoryId);
   const name = t.merchant || (c ? c.name : "Purchase");
-  const pm = cardById(t.cardId), isPay = t.kind === "payment";
-  const meta = isPay ? ["Payment to credit card", t.time].filter(Boolean).join(" · ") : [c ? c.name : "No category", t.time].filter(Boolean).join(" · ");
-  const nm = isPay ? (t.merchant || "Credit card payment") : name;
-  return `<button type="button" class="tx" data-id="${esc(t.id)}" style="--c:${isPay ? "var(--debt)" : catColor(c)}">
-    <span class="ic" aria-hidden="true">${isPay ? "↓" : esc((name.trim()[0] || "?").toUpperCase())}</span>
-    <span class="mid"><b>${esc(nm)}</b><span>${esc(meta)}</span>${!isPay && cards().length ? `<span class="pmchip" style="--p:${cardColor(pm)}">${esc(pm ? (pm.type === "cash" ? "Cash" : (pm.type === "credit" ? "Credit" : "Debit") + (pm.last4 ? " ••" + pm.last4 : "")) : "Card not set")}</span>` : ""}</span>
-    <span class="amt num ${t.kind === "refund" ? "refund" : isPay ? "paid" : ""}">${t.kind === "refund" ? "+" : isPay ? "−" : ""}${fmt(t.amount)}</span>
+  const pm = cardById(t.cardId), isPay = t.kind === "payment", isIn = t.kind === "income";
+  const meta = isPay ? ["Payment to credit card", t.time].filter(Boolean).join(" · ") : isIn ? ["Money in", t.time].filter(Boolean).join(" · ") : [c ? c.name : "No category", t.time].filter(Boolean).join(" · ");
+  const nm = isPay ? (t.merchant || "Credit card payment") : isIn ? (t.merchant || "Money received") : name;
+  return `<button type="button" class="tx" data-id="${esc(t.id)}" style="--c:${isPay ? "var(--debt)" : isIn ? "var(--good)" : catColor(c)}">
+    <span class="ic" aria-hidden="true">${isPay ? "↓" : isIn ? "↑" : esc((name.trim()[0] || "?").toUpperCase())}</span>
+    <span class="mid"><b>${esc(nm)}</b><span>${esc(meta)}</span>${!isPay && !isIn && cards().length ? `<span class="pmchip" style="--p:${cardColor(pm)}">${esc(pm ? (pm.type === "cash" ? "Cash" : (pm.type === "credit" ? "Credit" : "Debit") + (pm.last4 ? " ••" + pm.last4 : "")) : "Card not set")}</span>` : ""}</span>
+    <span class="amt num ${t.kind === "refund" || isIn ? "refund" : isPay ? "paid" : ""}">${t.kind === "refund" || isIn ? "+" : isPay ? "−" : ""}${fmt(t.amount)}</span>
   </button>`;
 }
 function renderTxns() {
@@ -1362,10 +1398,10 @@ function renderTxList() {
   const q = S.q.trim().toLowerCase();
   let tx = S.txns.filter(t => !t.deleted && t.date);
   if (S.scope === "period") tx = tx.filter(t => inP(t.date, S.month));
-  if (S.filter !== "all") tx = tx.filter(t => t.kind !== "payment" && groupOf(t) === S.filter);
+  if (S.filter !== "all") tx = tx.filter(t => !isFlow(t) && groupOf(t) === S.filter);
   if (S.cardF === "pay") tx = tx.filter(t => t.kind === "payment");
-  else if (S.cardF === "_none") tx = tx.filter(t => t.kind !== "payment" && !cardById(t.cardId));
-  else if (S.cardF !== "all") tx = tx.filter(t => t.kind !== "payment" && t.cardId === S.cardF);
+  else if (S.cardF === "_none") tx = tx.filter(t => !isFlow(t) && !cardById(t.cardId));
+  else if (S.cardF !== "all") tx = tx.filter(t => !isFlow(t) && t.cardId === S.cardF);
   if (q) tx = tx.filter(t => [t.merchant, t.note, String(t.amount), (catById(t.categoryId) || {}).name].join(" ").toLowerCase().includes(q));
   tx.sort(txSort);
   const total = tx.reduce((a, t) => a + signed(t), 0);
@@ -1462,7 +1498,7 @@ function setImport(rows) {
     const similar = !exists && S.txns.some(t => !t.deleted && t.date === r.date && Math.abs((+t.amount || 0) - r.amount) < 0.01);
     const cardDetected = !!r.cardId;
     const cardId = r.kind === "payment" ? ((creditCard() || {}).id || null) : (r.cardId || S.importCard || null);
-    return Object.assign(r, { exists, similar, pick: !exists && !similar, cardDetected, cardId, categoryId: r.kind === "payment" ? null : autoCat((r.merchant || "") + " " + (r.raw || "")) });
+    return Object.assign(r, { exists, similar, pick: !exists && !similar, cardDetected, cardId, categoryId: isFlow(r) ? null : autoCat((r.merchant || "") + " " + (r.raw || "")) });
   });
   renderImportPreview();
 }
@@ -1476,7 +1512,7 @@ function renderImportPreview() {
     ${cards().length ? `<label class="field"><span>Card for purchases where the text doesn't show the card digits</span><select id="impCard">${payOptions(S.importCard, "Leave unset")}</select></label>` : ""}
     <div class="prev">${rows.map((r, i) => { const c = catById(r.categoryId), pm = cardById(r.cardId); return `<label class="${r.exists ? "dup" : ""}" style="--c:${catColor(c)}">
       <input type="checkbox" data-i="${i}" ${r.pick ? "checked" : ""} ${r.exists ? "disabled" : ""}>
-      <span class="mid"><b>${esc(r.merchant || "Unknown shop")}</b><span class="small muted"><span class="dot"></span>${esc(dayLabel(r.date))} · ${r.kind === "payment" ? "Card payment" : esc(c ? c.name : "No category")} · ${esc(pm ? (pm.type === "cash" ? "Cash" : pm.name + (pm.last4 ? " ••" + pm.last4 : "")) : "card not set")}${r.exists ? " · already imported" : r.similar ? " · maybe a duplicate" : ""}</span></span>
+      <span class="mid"><b>${esc(r.merchant || "Unknown shop")}</b><span class="small muted"><span class="dot"></span>${esc(dayLabel(r.date))} · ${r.kind === "payment" ? "Card payment" : r.kind === "income" ? "Money in" : esc(c ? c.name : "No category")} · ${esc(pm ? (pm.type === "cash" ? "Cash" : pm.name + (pm.last4 ? " ••" + pm.last4 : "")) : "card not set")}${r.exists ? " · already imported" : r.similar ? " · maybe a duplicate" : ""}</span></span>
       <span class="num" style="font-weight:800">${r.kind === "refund" ? "+" : ""}${fmt(r.amount)}</span></label>`; }).join("")}</div>
     <div class="btns"><button class="btn grad" type="button" id="doImport" ${n && S.dbOk ? "" : "disabled"}>Import ${n} purchase${n === 1 ? "" : "s"}</button><button class="btn" type="button" id="clrImport">Clear</button></div>
     <div class="small muted" id="impMsg"></div>
@@ -1535,7 +1571,7 @@ function renderSetup() {
 
       <div class="card stack">
         <h2>Your cards</h2>
-        <p class="small muted" style="margin:0">Enter the last 4 digits as they appear in your bank texts. Masarif uses them to tell which card paid.</p>
+        <p class="small muted" style="margin:0">Enter the numbers your bank texts show for each card. Bank transfers show your <b>account</b> number instead, so add it after a comma, for example <b>1234, 9683</b>.</p>
         <div id="cardRows" class="stack"></div>
         <button type="button" class="add-row" id="addCard">+ Add a card</button>
         <label class="field"><span>When a text doesn't show the card digits, use</span><select id="sDefCard"></select></label>
@@ -1651,32 +1687,32 @@ function renderSetup() {
     $("#ccWhen").textContent = bal <= 0 ? "Debt-free" : po ? "Debt-free by " + end : "Payment too low";
   };
   drawCard();
-  const cfg = cards().map(c => Object.assign({}, c));
+  const cfg = (settings().cards || []).filter(c => c && c.id).map(c => Object.assign({}, c));
   const drawCfg = () => {
     $("#cardRows").innerHTML = cfg.map((c, i) => `<div class="cfg" style="--c:${cardColor(c)}">
-      <div class="cfg-top"><span class="cfg-face"><span data-face="type">${esc(TYPE_NAME[c.type] || "Card")}</span><b data-face="num">•••• ${esc(c.last4 || "····")}</b></span><button type="button" class="link-btn danger-t" data-cdel="${i}">Remove</button></div>
+      <div class="cfg-top"><span class="cfg-face"><span data-face="type">${esc(TYPE_NAME[c.type] || "Card")}</span><b data-face="num">•••• ${esc(numsOf(c)[0] || "····")}</b></span><button type="button" class="link-btn danger-t" data-cdel="${i}">Remove</button></div>
       <div class="seg" role="radiogroup" aria-label="Card type">
         <label><input type="radio" name="ctype${i}" value="debit" data-ci="${i}" data-ck="type" ${c.type !== "credit" ? "checked" : ""}>Debit</label>
         <label><input type="radio" name="ctype${i}" value="credit" data-ci="${i}" data-ck="type" ${c.type === "credit" ? "checked" : ""}>Credit</label>
       </div>
       <div class="grid2">
         <label class="field"><span>Name</span><input type="text" data-ci="${i}" data-ck="name" value="${esc(c.name || "")}" placeholder="e.g. CIB Debit"></label>
-        <label class="field"><span>Last 4 digits</span><input type="text" inputmode="numeric" maxlength="4" data-ci="${i}" data-ck="last4" value="${esc(c.last4 || "")}" placeholder="1234"></label>
+        <label class="field"><span>Last 4 digits (card, then account)</span><input type="text" inputmode="text" data-ci="${i}" data-ck="last4" value="${esc(c.last4 || "")}" placeholder="1234, 9683" autocomplete="off"></label>
       </div>
       ${c.type === "credit" ? `<label class="field"><span>Credit limit (optional)</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" data-ci="${i}" data-ck="limit" value="${c.limit ? fmtIn(c.limit) : ""}"><span>EGP</span></div></label>` : ""}
     </div>`).join("") || `<div class="small muted">No cards yet.</div>`;
     const ds = $("#sDefCard"), cur = ds.dataset.v ?? (settings().defaultCardId || "");
-    ds.innerHTML = `<option value="">Leave the card unset</option>` + cfg.map(c => `<option value="${esc(c.id)}" ${c.id === cur ? "selected" : ""}>${esc(c.name || TYPE_NAME[c.type])}${c.last4 ? " ••" + esc(c.last4) : ""}</option>`).join("") + `<option value="cash" ${cur === "cash" ? "selected" : ""}>Cash</option>`;
+    ds.innerHTML = `<option value="">Leave the card unset</option>` + cfg.map(c => `<option value="${esc(c.id)}" ${c.id === cur ? "selected" : ""}>${esc(c.name || TYPE_NAME[c.type])}${numsOf(c)[0] ? " ••" + esc(numsOf(c)[0]) : ""}</option>`).join("") + `<option value="cash" ${cur === "cash" ? "selected" : ""}>Cash</option>`;
     ds.onchange = () => { ds.dataset.v = ds.value; S.setupDirty = true; };
   };
   drawCfg();
   const cfgInput = el => {
     const i = +el.dataset.ci, k = el.dataset.ck; let v = el.value;
-    if (k === "last4") { v = v.replace(/\D/g, "").slice(0, 4); if (el.value !== v) el.value = v; }
+    if (k === "last4") { v = v.replace(/[^\d, ]/g, ""); if (el.value !== v) el.value = v; }
     if (k === "limit") v = numIn(v);
     cfg[i][k] = v;
     if (k === "type") { cfg[i].color = ""; drawCfg(); return; }
-    const box = $("#cardRows").children[i]; if (box) box.querySelector('[data-face="num"]').textContent = "•••• " + (cfg[i].last4 || "····");
+    const box = $("#cardRows").children[i]; if (box) box.querySelector('[data-face="num"]').textContent = "•••• " + (numsOf(cfg[i])[0] || "····");
   };
   $("#cardRows").onclick = e => { const b = e.target.closest("[data-cdel]"); if (b) { cfg.splice(+b.dataset.cdel, 1); S.setupDirty = true; drawCfg(); } };
   $("#addCard").onclick = () => { cfg.push({ id: "k_" + uid(), name: "", type: cfg.some(c => c.type === "credit") ? "debit" : "credit", last4: "", limit: 0 }); S.setupDirty = true; drawCfg(); };
@@ -1764,6 +1800,7 @@ function openTx(id, preset) {
         <label><input type="radio" name="kind" value="expense" ${v.kind !== "refund" ? "checked" : ""}>Spent</label>
         <label><input type="radio" name="kind" value="refund" ${v.kind === "refund" ? "checked" : ""}>Refund</label>
         <label><input type="radio" name="kind" value="payment" ${v.kind === "payment" ? "checked" : ""}>Card payment</label>
+        <label><input type="radio" name="kind" value="income" ${v.kind === "income" ? "checked" : ""}>Money in</label>
       </div>
       <label class="field"><span>Amount (EGP)</span><input type="number" inputmode="decimal" id="tAmt" value="${esc(v.amount)}" step="any" min="0" required></label>
       <div class="grid2">
@@ -1784,7 +1821,7 @@ function openTx(id, preset) {
   $("#xClose").onclick = closeSheet;
   const kindNow = () => sheet.querySelector("input[name=kind]:checked").value;
   $("#tMer").oninput = e => { const val = e.target.value.trim(); $("#rememberBox").hidden = !val || kindNow() === "payment"; $("#remName").textContent = val; };
-  const syncKind = () => { const k = kindNow(); $("#tCatWrap").hidden = k === "payment"; if (k === "payment") $("#rememberBox").hidden = true; else $("#rememberBox").hidden = !$("#tMer").value.trim(); };
+  const syncKind = () => { const k = kindNow(); $("#tCatWrap").hidden = k === "payment" || k === "income"; if (k === "payment") $("#rememberBox").hidden = true; else $("#rememberBox").hidden = !$("#tMer").value.trim(); };
   sheet.querySelectorAll("input[name=kind]").forEach(r => r.onchange = syncKind); syncKind();
   $("#txForm").onsubmit = async e => {
     e.preventDefault();
@@ -1792,6 +1829,7 @@ function openTx(id, preset) {
     if (!(amount > 0)) { $("#tMsg").textContent = "Enter an amount above zero."; return; }
     const data = { date: $("#tDate").value, time: $("#tTime").value || "", amount, kind: sheet.querySelector("input[name=kind]:checked").value,
       merchant: $("#tMer").value.trim(), note: $("#tNote").value.trim(), categoryId: $("#tCat").value || null, cardId: $("#tPay").value || null };
+    if (data.kind === "income") { data.categoryId = null; if (!data.merchant) data.merchant = "Money received"; }
     if (data.kind === "payment") { data.categoryId = null; data.cardId = (creditCard() || {}).id || null; if (!data.merchant) data.merchant = "Credit card payment"; }
     $("#tMsg").textContent = "Saving…";
     try {
