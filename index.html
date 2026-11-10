@@ -79,6 +79,44 @@ h2{font:700 18px/1.2 var(--f-display);margin:0;text-wrap:balance}
 .pill div:first-child{font-size:12px;opacity:.9}
 .pill div:last-child{font:800 17px var(--f-display)}
 .pills.two{grid-template-columns:repeat(2,1fr)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.txf{display:flex;flex-direction:column;gap:14px;--k:var(--bad)}
+.txf[data-kind=refund]{--k:#10B981}.txf[data-kind=income]{--k:#059669}.txf[data-kind=payment]{--k:#7C3AED}
+.kinds{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.kind{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 2px 8px;border-radius:14px;background:var(--sunk);font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;text-align:center;line-height:1.15}
+.kind input{position:absolute;opacity:0;pointer-events:none}
+.k-ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#fff;font:800 15px var(--f-display);color:var(--muted)}
+.kind:has(input:checked){background:#fff;color:var(--ink);box-shadow:0 0 0 2px var(--k),0 4px 10px rgba(0,0,0,.06)}
+.kind:has(input:checked) .k-ic{background:var(--k);color:#fff}
+.amt-box{display:flex;flex-direction:column-reverse;align-items:center;gap:2px;padding:12px 12px 10px;border-radius:18px;background:color-mix(in srgb,var(--k) 7%,#fff);border:1.5px solid color-mix(in srgb,var(--k) 25%,transparent)}
+.amt-cur{font:800 12px var(--f-display);color:var(--muted);letter-spacing:.12em}
+.amt-box input[type=text]{border:0!important;background:transparent!important;box-shadow:none!important;padding:0;width:100%;text-align:center;font:800 42px/1.1 var(--f-display);color:var(--k);letter-spacing:-.02em}
+.amt-box input::placeholder{color:color-mix(in srgb,var(--k) 35%,transparent)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{position:relative;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:var(--sunk);font-size:13.5px;font-weight:700;cursor:pointer;border:1.5px solid transparent}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip .dot{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.chip:has(input:checked){background:color-mix(in srgb,var(--c) 14%,#fff);border-color:var(--c);color:var(--ink)}
+.paychips{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+.paychip{position:relative;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;cursor:pointer;color:#fff;background:linear-gradient(140deg,var(--c),color-mix(in srgb,var(--c) 65%,#111827));transition:opacity .15s}
+.paychips:has(input:checked) .paychip:not(:has(input:checked)){opacity:.4}
+.paychip input{position:absolute;opacity:0;pointer-events:none}
+.paychip .pc-type{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.9}
+.paychip b{font:800 15px var(--f-display);letter-spacing:.04em;white-space:nowrap}
+.paychip:has(input:checked){opacity:1;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--c)}
+.dt-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.dt-row .field{min-width:0}
+.dt-row input{width:100%;min-width:0;box-sizing:border-box}
+.sheet-actions{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom,0px));margin:0 -16px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#fff 75%,rgba(255,255,255,0));display:flex;gap:10px}
+.btn.big{flex:1;padding:14px;font-size:16px;border-radius:14px}
+.ccard{width:100%;border:0;text-align:left;color:#fff;cursor:pointer;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;aspect-ratio:1.9/1;max-height:180px;justify-content:space-between;background:radial-gradient(120% 140% at 100% 0%,rgba(255,255,255,.22),transparent 55%),linear-gradient(140deg,var(--c),color-mix(in srgb,var(--c) 55%,#0B1220));box-shadow:0 8px 18px color-mix(in srgb,var(--c) 30%,transparent)}
+.ccard-top,.ccard-bot{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;font-weight:700}
+.ccard-top span:first-child{text-transform:uppercase;letter-spacing:.07em;opacity:.9}
+.ccard-top span:last-child{font-size:14px}
+.ccard-num{font:800 clamp(17px,5.4vw,21px) var(--f-display);letter-spacing:.06em;white-space:nowrap}
+.ccard-bot span:first-child{opacity:.85}
+.ccard-edit{background:rgba(255,255,255,.2);border-radius:999px;padding:4px 11px}
+.cfg-edit{display:flex;flex-direction:column;gap:10px;padding:4px 2px 2px}
 .hero-btn{border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.18);color:#fff;font:700 14px var(--f-body,inherit);border-radius:999px;padding:9px 16px;cursor:pointer}
 .hero-btn.sm{padding:4px 12px;font-size:12.5px}
 .hero-warn{background:rgba(255,255,255,.95);color:#B42318;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:700}
@@ -347,7 +385,7 @@ nav.tabs a{font-size:10.5px!important}
 .ledger .tot{border-top:1px dashed var(--line);padding-top:7px}
 .ledger .tot span{color:var(--ink);font-weight:700}
 .ledger .tot b{font:800 17px var(--f-display)}
-.cfg{border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;background:#fff}
+.cfg{display:flex;flex-direction:column;gap:10px}
 .cfg-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .cfg-face{display:flex;flex-direction:column;gap:2px;color:#fff;border-radius:12px;padding:9px 14px;min-width:150px;background:linear-gradient(140deg,var(--c) 0%,color-mix(in srgb,var(--c) 70%,#111827) 100%)}
 .cfg-face span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.9}
@@ -357,7 +395,7 @@ nav.tabs a{font-size:10.5px!important}
 .affix{position:relative;display:block}
 .affix input{padding-right:44px;padding-left:10px}
 .affix > span{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:800;color:var(--muted);pointer-events:none}
-input[type=date],input[type=month]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;text-align:left;min-height:46px}
+input[type=date],input[type=month],input[type=time]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;text-align:left;min-height:46px}
 input[type=date]::-webkit-date-and-time-value,input[type=month]::-webkit-date-and-time-value{text-align:left}
 
 /* Credit card preview */
@@ -1823,7 +1861,7 @@ function renderSetup() {
 
       <div class="card stack">
         <h2>Your cards</h2>
-        <p class="small muted" style="margin:0">Enter the numbers your bank texts show for each card. Bank transfers show your <b>account</b> number instead, so add it after a comma, for example <b>1234, 9683</b>.</p>
+        <p class="small muted" style="margin:0">Masarif matches your bank texts to a card by these digits. Tap a card to change it.</p>
         <div id="cardRows" class="stack"></div>
         <button type="button" class="add-row" id="addCard">+ Add a card</button>
         <label class="field"><span>When a text doesn't show the card digits, use</span><select id="sDefCard"></select></label>
@@ -1927,19 +1965,25 @@ function renderSetup() {
   };
   drawCard();
   const cfg = (settings().cards || []).filter(c => c && c.id).map(c => Object.assign({}, c));
+  let openCfg = -1;
   const drawCfg = () => {
-    $("#cardRows").innerHTML = cfg.map((c, i) => `<div class="cfg" style="--c:${cardColor(c)}">
-      <div class="cfg-top"><span class="cfg-face"><span data-face="type">${esc(TYPE_NAME[c.type] || "Card")}</span><b data-face="num">•••• ${esc(numsOf(c)[0] || "····")}</b></span><button type="button" class="link-btn danger-t" data-cdel="${i}">Remove</button></div>
-      <div class="seg" role="radiogroup" aria-label="Card type">
-        <label><input type="radio" name="ctype${i}" value="debit" data-ci="${i}" data-ck="type" ${c.type !== "credit" ? "checked" : ""}>Debit</label>
-        <label><input type="radio" name="ctype${i}" value="credit" data-ci="${i}" data-ck="type" ${c.type === "credit" ? "checked" : ""}>Credit</label>
-      </div>
-      <div class="grid2">
+    $("#cardRows").innerHTML = cfg.map((c, i) => { const ns = numsOf(c), open = i === openCfg; return `<div class="cfg" style="--c:${cardColor(c)}">
+      <button type="button" class="ccard" data-copen="${i}" aria-expanded="${open}">
+        <span class="ccard-top"><span data-face="type">${esc(TYPE_NAME[c.type] || "Card")}</span><span data-face="name">${esc(c.name || "New card")}</span></span>
+        <span class="ccard-num" data-face="num">••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;${esc(ns[0] || "····")}</span>
+        <span class="ccard-bot"><span data-face="acc">${ns[1] ? "Account •• " + esc(ns[1]) : c.type === "credit" && c.limit ? "Limit " + fmt(c.limit) : ""}</span><span class="ccard-edit">${open ? "Close" : "Edit"}</span></span>
+      </button>
+      ${open ? `<div class="cfg-edit">
+        <div class="seg" role="radiogroup" aria-label="Card type">
+          <label><input type="radio" name="ctype${i}" value="debit" data-ci="${i}" data-ck="type" ${c.type !== "credit" ? "checked" : ""}>Debit</label>
+          <label><input type="radio" name="ctype${i}" value="credit" data-ci="${i}" data-ck="type" ${c.type === "credit" ? "checked" : ""}>Credit</label>
+        </div>
         <label class="field"><span>Name</span><input type="text" data-ci="${i}" data-ck="name" value="${esc(c.name || "")}" placeholder="e.g. CIB Debit"></label>
-        <label class="field"><span>Last 4 digits (card, then account)</span><input type="text" inputmode="text" data-ci="${i}" data-ck="last4" value="${esc(c.last4 || "")}" placeholder="1234, 9683" autocomplete="off"></label>
-      </div>
-      ${c.type === "credit" ? `<label class="field"><span>Credit limit (optional)</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" data-ci="${i}" data-ck="limit" value="${c.limit ? fmtIn(c.limit) : ""}"><span>EGP</span></div></label>` : ""}
-    </div>`).join("") || `<div class="small muted">No cards yet.</div>`;
+        <label class="field"><span>Last 4 digits of the card, then of the account</span><input type="text" inputmode="numeric" data-ci="${i}" data-ck="last4" value="${esc(c.last4 || "")}" placeholder="1234, 9683" autocomplete="off"></label>
+        ${c.type === "credit" ? `<label class="field"><span>Credit limit</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" data-ci="${i}" data-ck="limit" value="${c.limit ? fmtIn(c.limit) : ""}"><span>EGP</span></div></label>` : ""}
+        <div class="btns" style="justify-content:space-between"><button type="button" class="btn danger" data-cdel="${i}">Remove card</button><button type="button" class="btn primary" data-cdone>Done</button></div>
+      </div>` : ""}
+    </div>`; }).join("") || `<div class="small muted">No cards yet.</div>`;
     const ds = $("#sDefCard"), cur = ds.dataset.v ?? (settings().defaultCardId || "");
     ds.innerHTML = `<option value="">Leave the card unset</option>` + cfg.map(c => `<option value="${esc(c.id)}" ${c.id === cur ? "selected" : ""}>${esc(c.name || TYPE_NAME[c.type])}${numsOf(c)[0] ? " ••" + esc(numsOf(c)[0]) : ""}</option>`).join("") + `<option value="cash" ${cur === "cash" ? "selected" : ""}>Cash</option>`;
     ds.onchange = () => { ds.dataset.v = ds.value; S.setupDirty = true; };
@@ -1951,10 +1995,17 @@ function renderSetup() {
     if (k === "limit") v = numIn(v);
     cfg[i][k] = v;
     if (k === "type") { cfg[i].color = ""; drawCfg(); return; }
-    const box = $("#cardRows").children[i]; if (box) box.querySelector('[data-face="num"]').textContent = "•••• " + (numsOf(cfg[i])[0] || "····");
+    if (k === "limit") { /* face updates below */ }
+    const box = $("#cardRows").children[i];
+    if (box) { const ns = numsOf(cfg[i]); box.querySelector('[data-face="num"]').innerHTML = "••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;" + esc(ns[0] || "····"); box.querySelector('[data-face="name"]').textContent = cfg[i].name || "New card"; box.querySelector('[data-face="acc"]').textContent = ns[1] ? "Account •• " + ns[1] : cfg[i].type === "credit" && cfg[i].limit ? "Limit " + fmt(cfg[i].limit) : ""; }
   };
-  $("#cardRows").onclick = e => { const b = e.target.closest("[data-cdel]"); if (b) { cfg.splice(+b.dataset.cdel, 1); S.setupDirty = true; drawCfg(); } };
-  $("#addCard").onclick = () => { cfg.push({ id: "k_" + uid(), name: "", type: cfg.some(c => c.type === "credit") ? "debit" : "credit", last4: "", limit: 0 }); S.setupDirty = true; drawCfg(); };
+  $("#cardRows").onclick = e => {
+    const del = e.target.closest("[data-cdel]"), op = e.target.closest("[data-copen]");
+    if (del) { if (!del.classList.contains("armed")) { del.classList.add("armed"); del.textContent = "Tap again to remove"; return; } cfg.splice(+del.dataset.cdel, 1); openCfg = -1; S.setupDirty = true; drawCfg(); }
+    else if (e.target.closest("[data-cdone]")) { openCfg = -1; drawCfg(); }
+    else if (op) { const i = +op.dataset.copen; openCfg = openCfg === i ? -1 : i; drawCfg(); }
+  };
+  $("#addCard").onclick = () => { cfg.push({ id: "k_" + uid(), name: "", type: cfg.some(c => c.type === "credit") ? "debit" : "credit", last4: "", limit: 0 }); openCfg = cfg.length - 1; S.setupDirty = true; drawCfg(); };
   form.oninput = e => {
     S.setupDirty = true; const el = e.target;
     if (el.dataset.ck) cfgInput(el);
@@ -2032,41 +2083,50 @@ function openTx(id, preset) {
   if (id && !t) return;
   const defDate = S.month === curKey() ? todayStr() : pStart(S.month);
   const v = t || Object.assign({ date: defDate, time: "", amount: "", kind: "expense", merchant: "", note: "", categoryId: "", cardId: settings().defaultCardId || "" }, preset || {});
+  const KINDS = [["expense", "Spent", "−"], ["refund", "Refund", "↩"], ["payment", "Card payment", "▤"], ["income", "Money in", "+"]];
+  const catChips = `<label class="chip" style="--c:${NONE_COLOR}"><input type="radio" name="tcat" value="" ${!v.categoryId ? "checked" : ""}><span class="dot"></span>None</label>` +
+    S.cats.map(c => `<label class="chip" style="--c:${catColor(c)}"><input type="radio" name="tcat" value="${esc(c.id)}" ${c.id === v.categoryId ? "checked" : ""}><span class="dot"></span>${esc(c.name)}</label>`).join("");
+  const payChips = payMethods().map(c => `<label class="paychip" style="--c:${cardColor(c)}"><input type="radio" name="tpay" value="${esc(c.id)}" ${c.id === v.cardId ? "checked" : ""}>
+      <span class="pc-type">${c.type === "cash" ? "Cash" : c.type === "credit" ? "Credit" : "Debit"}</span><b>${c.type === "cash" ? "Cash" : c.last4 ? "•• " + esc(c.last4) : esc(c.name)}</b></label>`).join("");
   openSheet(`<div class="row"><h2>${t ? (t.kind === "payment" ? "Edit card payment" : "Edit purchase") : v.kind === "payment" ? "Record a card payment" : "Add a purchase"}</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
-    <form id="txForm" style="display:flex;flex-direction:column;gap:12px">
-      <div class="seg" role="radiogroup" aria-label="Type">
-        <label><input type="radio" name="kind" value="expense" ${v.kind !== "refund" ? "checked" : ""}>Spent</label>
-        <label><input type="radio" name="kind" value="refund" ${v.kind === "refund" ? "checked" : ""}>Refund</label>
-        <label><input type="radio" name="kind" value="payment" ${v.kind === "payment" ? "checked" : ""}>Card payment</label>
-        <label><input type="radio" name="kind" value="income" ${v.kind === "income" ? "checked" : ""}>Money in</label>
-      </div>
-      <label class="field"><span>Amount (EGP)</span><input type="number" inputmode="decimal" id="tAmt" value="${esc(v.amount)}" step="any" min="0" required></label>
-      <div class="grid2">
+    <form id="txForm" class="txf">
+      <div class="kinds" role="radiogroup" aria-label="Type">${KINDS.map(([k, label, ic]) => `<label class="kind k-${k}"><input type="radio" name="kind" value="${k}" ${(v.kind || "expense") === k ? "checked" : ""}><span class="k-ic" aria-hidden="true">${ic}</span><span>${label}</span></label>`).join("")}</div>
+      <label class="amt-box"><span class="sr">Amount in EGP</span><span class="amt-cur">EGP</span><input type="text" inputmode="decimal" id="tAmt" value="${v.amount ? esc(fmtIn(v.amount)) : ""}" placeholder="0" autocomplete="off" required></label>
+      <label class="field"><span>Shop or description</span><input type="text" id="tMer" value="${esc(v.merchant)}" placeholder="e.g. Carrefour, cash for taxi" autocomplete="off"></label>
+      <div class="field" id="tCatWrap"><span>Category</span><div class="chips" id="tCats">${catChips}</div></div>
+      <label class="check" id="rememberBox" ${v.merchant ? "" : "hidden"}><input type="checkbox" id="tRem"><span>Always put <b id="remName">${esc(v.merchant)}</b> in this category</span></label>
+      <div class="field" id="tPayWrap"><span>Paid with</span><div class="paychips">${payChips}</div></div>
+      <div class="dt-row">
         <label class="field"><span>Date</span><input type="date" id="tDate" value="${esc(v.date)}" required></label>
         <label class="field"><span>Time</span><input type="time" id="tTime" value="${esc(v.time || "")}"></label>
       </div>
-      <label class="field"><span>Shop or description</span><input type="text" id="tMer" value="${esc(v.merchant)}" placeholder="e.g. Carrefour, cash for taxi"></label>
-      <div class="grid2" id="tCatWrap">
-        <label class="field"><span>Category</span><select id="tCat">${catOptions(v.categoryId)}</select></label>
-        <label class="field"><span>Paid with</span><select id="tPay">${payOptions(v.cardId)}</select></label>
-      </div>
-      <label class="check" id="rememberBox" ${v.merchant ? "" : "hidden"}><input type="checkbox" id="tRem"><span>Always put <b id="remName">${esc(v.merchant)}</b> in this category</span></label>
-      <label class="field"><span>Note</span><input type="text" id="tNote" value="${esc(v.note || "")}"></label>
+      <label class="field"><span>Note (optional)</span><input type="text" id="tNote" value="${esc(v.note || "")}" placeholder="Anything to remember"></label>
       ${t && t.raw ? `<details><summary class="small muted">Original ${t.source === "shortcut" ? "shortcut line" : "bank text"}</summary><div class="raw">${esc(t.raw)}</div></details>` : ""}
-      <div class="btns"><button class="btn grad" type="submit" ${S.dbOk ? "" : "disabled"}>Save</button>${t ? `<button class="btn danger" type="button" id="tDel">Delete</button>` : ""}</div>
-      <div class="small muted" id="tMsg"></div>
+      <div class="sheet-actions">${t ? `<button class="btn danger" type="button" id="tDel">Delete</button>` : ""}<button class="btn grad big" type="submit" ${S.dbOk ? "" : "disabled"}>Save</button></div>
+      <div class="small muted" id="tMsg" style="text-align:center"></div>
     </form>`);
   $("#xClose").onclick = closeSheet;
   const kindNow = () => sheet.querySelector("input[name=kind]:checked").value;
-  $("#tMer").oninput = e => { const val = e.target.value.trim(); $("#rememberBox").hidden = !val || kindNow() === "payment"; $("#remName").textContent = val; };
-  const syncKind = () => { const k = kindNow(); $("#tCatWrap").hidden = k === "payment" || k === "income"; if (k === "payment") $("#rememberBox").hidden = true; else $("#rememberBox").hidden = !$("#tMer").value.trim(); };
+  const catVal = () => { const r = sheet.querySelector("input[name=tcat]:checked"); return r ? r.value : ""; };
+  const payVal = () => { const r = sheet.querySelector("input[name=tpay]:checked"); return r ? r.value : ""; };
+  let catTouched = !!v.categoryId;
+  $("#tCats").onchange = () => { catTouched = true; };
+  const amt = $("#tAmt");
+  amt.addEventListener("blur", () => { if (amt.value.trim()) amt.value = fmtIn(numIn(amt.value)); });
+  $("#tMer").oninput = e => {
+    const val = e.target.value.trim();
+    $("#rememberBox").hidden = !val || kindNow() === "payment" || kindNow() === "income"; $("#remName").textContent = val;
+    if (!catTouched) { const id = autoCat(val) || ""; const r = sheet.querySelector(`input[name=tcat][value="${CSS.escape(id)}"]`); if (r) r.checked = true; }
+  };
+  const syncKind = () => { const k = kindNow(); sheet.querySelector(".txf").dataset.kind = k; $("#tCatWrap").hidden = k === "payment" || k === "income"; $("#tPayWrap").hidden = k === "payment"; if (k === "payment" || k === "income") $("#rememberBox").hidden = true; else $("#rememberBox").hidden = !$("#tMer").value.trim(); };
   sheet.querySelectorAll("input[name=kind]").forEach(r => r.onchange = syncKind); syncKind();
+  if (!t) setTimeout(() => { try { amt.focus(); } catch {} }, 250);
   $("#txForm").onsubmit = async e => {
     e.preventDefault();
-    const amount = +$("#tAmt").value;
+    const amount = numIn($("#tAmt").value);
     if (!(amount > 0)) { $("#tMsg").textContent = "Enter an amount above zero."; return; }
     const data = { date: $("#tDate").value, time: $("#tTime").value || "", amount, kind: sheet.querySelector("input[name=kind]:checked").value,
-      merchant: $("#tMer").value.trim(), note: $("#tNote").value.trim(), categoryId: $("#tCat").value || null, cardId: $("#tPay").value || null };
+      merchant: $("#tMer").value.trim(), note: $("#tNote").value.trim(), categoryId: catVal() || null, cardId: payVal() || null };
     if (data.kind === "income") { data.categoryId = null; if (!data.merchant) data.merchant = "Money received"; }
     if (data.kind === "payment") { data.categoryId = null; data.cardId = (creditCard() || {}).id || null; if (!data.merchant) data.merchant = "Credit card payment"; }
     $("#tMsg").textContent = "Saving…";
