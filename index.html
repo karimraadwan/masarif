@@ -334,7 +334,9 @@ h2{font:700 18px/1.2 var(--f-display);margin:0;text-wrap:balance}
 .bal-bar i{display:block;height:100%;background:#FBBF24;border-radius:999px}
 .bal-due{align-self:flex-start;font-size:11.5px;font-weight:800;background:rgba(255,255,255,.16);border-radius:999px;padding:3px 9px;margin-top:2px}
 .bal-due.soon{background:#F59E0B;color:#1F2937}
-.back{align-self:flex-start;font-weight:800;text-decoration:none;font-size:14px;padding:2px 0}
+.link-btn,a.link{display:inline-flex;align-items:center;min-height:36px;padding:4px 6px;margin:-4px -6px}
+.hero-btn.sm{min-height:32px}
+.back{display:inline-flex;align-items:center;min-height:40px;align-self:flex-start;font-weight:800;text-decoration:none;font-size:14px;padding:2px 0}
 .due-chip{color:#B45309;font-weight:800}
 .more-link{text-decoration:none;color:inherit;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);cursor:pointer;color:inherit;font:inherit}
 .more-link > span:first-child{display:flex;flex-direction:column;gap:2px}
@@ -1268,6 +1270,7 @@ function syncText() {
 async function processInbox() {
   if (!db) return;
   const have = new Set(S.txns.map(t => t.id));
+  for (const t of S.txns) if (t.smsId) have.add(t.smsId);
   let rows = [];
   for (const r of Store.inbox()) { const line = String((r && r[1]) || "").trim(); if (line) rows = rows.concat(parseShortcutFile(line)); }
   const seen = new Set();
@@ -1275,6 +1278,9 @@ async function processInbox() {
   const defCard = settings().defaultCardId || null, cc = creditCard();
   for (const r of rows) {
     const cardId = r.kind === "payment" ? (cc ? cc.id : null) : (r.cardId || defCard);
+    /* the same purchase or card payment already added by hand (within 2 days, same amount): link the bank text to it instead of counting it twice */
+    const twin = S.txns.find(t => !t.deleted && t.source === "manual" && !t.smsId && (t.kind || "expense") === (r.kind || "expense") && Math.abs((+t.amount || 0) - r.amount) < 0.01 && t.date && Math.abs(daysDiff(t.date, r.date)) <= 2 && t.cardId !== "cash");
+    if (twin) { twin.smsId = r.id; await db.collection("transactions").doc(twin.id).update({ smsId: r.id, raw: r.raw, cardId: twin.cardId || cardId, time: twin.time || r.time || "" }); continue; }
     await db.collection("transactions").doc(r.id).set({ date: r.date, time: r.time || "", amount: r.amount, kind: r.kind || "expense",
       merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: "", categoryId: isFlow(r) ? null : autoCat((r.merchant || "") + " " + r.raw),
       cardId, source: "sync", raw: r.raw, createdAt: Date.now() });
@@ -2268,7 +2274,7 @@ function openTx(id, preset) {
   openSheet(`<div class="row"><h2>${t ? (t.kind === "payment" ? "Edit card payment" : "Edit purchase") : v.kind === "payment" ? "Record a card payment" : "Add a purchase"}</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
     <form id="txForm" class="txf">
       <div class="kinds" role="radiogroup" aria-label="Type">${KINDS.map(([k, label, ic]) => `<label class="kind k-${k}"><input type="radio" name="kind" value="${k}" ${(v.kind || "expense") === k ? "checked" : ""}><span class="k-ic" aria-hidden="true">${ic}</span><span>${label}</span></label>`).join("")}</div>
-      <label class="amt-box"><span class="sr">Amount in EGP</span><span class="amt-cur">EGP</span><input type="text" inputmode="decimal" id="tAmt" value="${v.amount ? esc(fmtIn(v.amount)) : ""}" placeholder="0" autocomplete="off" required></label>
+      <label class="amt-box"><span class="sr">Amount in EGP</span><span class="amt-cur">EGP</span><input type="text" inputmode="decimal" id="tAmt" value="${v.amount ? esc(fmtIn(v.amount)) : ""}" placeholder="0" autocomplete="off"></label>
       <label class="field"><span>Shop or description</span><input type="text" id="tMer" value="${esc(v.merchant)}" placeholder="e.g. Carrefour, cash for taxi" autocomplete="off"></label>
       <div class="field" id="tCatWrap"><span class="row" style="width:100%"><span>Category</span><button type="button" class="link-btn" id="splitTog">Split</button></span><div class="chips" id="tCats">${catChips}</div>
         <div class="split-box" id="splitBox" hidden><div id="splitRows" class="stack" style="gap:8px"></div><div class="row"><button type="button" class="link-btn" id="splitAdd">+ Add a part</button><span class="small num" id="splitLeft"></span></div></div></div>
@@ -2697,6 +2703,7 @@ function affordVerdict(amt, catId, payId) {
     }
   }
   if (isCash) lines.push({ t: "Paying cash: remember to add it so Masarif counts it.", l: "good" });
+  if (!lines.length) return `<div class="verdict v-warn"><b>Not enough to judge yet</b><span>Add your bank balance, a weekly limit, or pick a category with a limit, and Masarif can tell you.</span></div>`;
   for (const x of lines) if (x.l === "bad") level = "bad"; else if (x.l === "warn" && level === "good") level = "warn";
   const head = { good: ["Yes, it fits", "It fits your plan."], warn: ["Possible, but careful", "It fits, with some trade-offs."], bad: ["Better not now", "It breaks part of your plan."] }[level];
   return `<div class="verdict v-${level}"><b>${head[0]}</b><span>${head[1]}</span></div>
@@ -2726,7 +2733,7 @@ function openPayday() {
         <b>Tick the bills that already left</b>
         ${bills.length ? bills.map(b => `<label class="check"><input type="checkbox" data-pbill="${esc(b.id)}" ${b.paid ? "checked" : ""}><span>${esc(b.name)} · ${money(b.amount)}</span></label>`).join("") : `<span class="small muted">No bills with a day set. Add days in Settings → Fixed monthly payments.</span>`}</div></div>
       <div class="pd-step"><span class="pd-n">3</span><div class="stack">
-        <b>Pay the credit card</b><span class="small muted">Your plan: ${money(st.card.payment)}. Pay it in the CIB app, then record it here.</span>
+        <b>Pay the credit card</b><span class="small muted">Your plan: ${money(st.card.payment)}. Pay it in the CIB app. Masarif records it from CIB's text; tick this only if no text comes.</span>
         <label class="check"><input type="checkbox" id="pdPay"><span>I paid <input type="text" inputmode="decimal" class="inline-num money-in" id="pdPayAmt" value="${fmtIn(st.card.payment || 0)}"> to the card today</span></label></div></div>
       <div class="pd-step"><span class="pd-n">4</span><div class="stack">
         <b>Pay yourself</b><span class="small muted">Move something to savings first, before spending starts.</span>
