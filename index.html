@@ -470,7 +470,7 @@ h2{font:700 20px/1.2 var(--f-display);margin:0;text-wrap:balance}
 .cmp-box{background:var(--soft);border-radius:14px;padding:10px 12px}
 .cmp-box div:first-child{font-size:12px;color:var(--muted)}
 .cmp-box div:last-child{font:800 20px var(--f-display)}
-.delta{display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:13px;padding:3px 9px;border-radius:999px}
+.delta{display:inline-flex;align-items:center;justify-content:center;gap:4px;font-weight:800;font-size:12px;padding:3px 9px;border-radius:999px;width:auto;flex:none;justify-self:end;align-self:center;white-space:nowrap;line-height:1.3}
 .delta.up{color:#B4232A;background:#FDECEC}
 .delta.down{color:#04704F;background:#E6F8F0}
 .delta.flat{color:var(--muted);background:var(--sunk)}
@@ -868,6 +868,8 @@ section.view{gap:12px}
 .mission .ms-t{font-size:15px;font-weight:800}.ms-s{font-size:13px;color:var(--muted)}.mission.fail .ms-s{color:var(--bad-ink)}.mission.fail .ms-t{text-decoration:none;color:var(--ink)}
 .sc-how{margin-top:4px}.sc-how summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--accent-ink);min-height:40px;display:flex;align-items:center;list-style:none}.sc-how summary::-webkit-details-marker{display:none}.sc-how summary::after{content:"›";margin-left:6px;transition:transform .2s}.sc-how[open] summary::after{transform:rotate(90deg)}.sc-how[open]>*:not(summary){margin-top:6px}
 .card-d{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}.stack>.card-d{margin-top:-8px}.card:not(.stack)>.card-d{margin-top:2px;margin-bottom:10px}
+.soon{gap:8px}.soon h2{color:var(--muted)}.soon-tag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--sunk);border-radius:999px;padding:3px 9px}
+.soon-w{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink);background:var(--soft);border-radius:12px;padding:9px 12px}.soon .card-d{margin-top:-4px}
 .ask{padding:12px}.ask .chips{margin-top:8px}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
@@ -1374,6 +1376,7 @@ function compareCard(key, d) {
     prevSame = p.tx.filter(t => groupOf(t) !== "debt" && daysDiff(pStart(pk), t.date) < elapsed).reduce((a, t) => a + signed(t), 0);
     sameNote = `first ${elapsed} days`;
   }
+  if (!p.tx.some(t => t.kind === "expense" && !t.deleted)) return soonCard("This month vs last month", "The same days of both months, side by side.", "Starts next month, once there's a full month to compare with.");
   const rows = S.cats.map(c => ({ c, a: d.byCat[c.id] || 0, b: p.byCat[c.id] || 0 })).filter(r => (r.a || r.b) && (r.c.group || "need") !== "debt")
     .sort((x, y) => Math.abs(y.a - y.b) - Math.abs(x.a - x.b)).slice(0, 6);
   return `<div class="card stack">
@@ -1785,8 +1788,8 @@ function planSections() {
   const np = nextPlan(), up = upcoming()[0], pots = S.goals.reduce((a, g) => a + (+g.saved || 0), 0), car = carCfg && carState ? carState() : null;
   const owedOpen = (S.owed || []).filter(o => !o.received), fixedPct = +settings().salary ? pct(activeFixed(curKey()).reduce((a, f) => a + (+f.amount || 0), 0) + (+settings().card.payment || 0), +settings().salary) : 0;
   return [
-    sec("plans", "Plans", np ? `Next month: ${money(np.total)} in limits` : "Pick a plan, next month, what if", () => whatIfPlansCard() + nextPlanCard() + whatIfCard()),
-    sec("goals", "Savings & goals", S.goals.length ? `${plural(S.goals.length, "pot")} · ${money(pots)} saved` : "Start a pot or plan for a goal", () => goalsCard() + roundUpCard()),
+    sec("plans", "Plans", np ? `Next month: ${money(np.total)} in limits` : "Pick a plan, next month, what if", () => orSoon(whatIfPlansCard(), "Pick a plan", "Three ways to split money between the card and everyday life.", "Needs your salary and card balance in Settings.") + nextPlanCard() + whatIfCard()),
+    sec("goals", "Savings & goals", S.goals.length ? `${plural(S.goals.length, "pot")} · ${money(pots)} saved` : "Start a pot or plan for a goal", () => goalsCard() + orSoon(roundUpCard(), "Round-ups", "Small change from rounding each purchase, ready to save.", "Turn it on in Settings → Spending helpers → Round-ups.")),
     sec("coming", "Coming up", up ? `${up.name} in ${plural(Math.max(0, up.days), "day")}` : "Yearly costs, Ramadan & Eid, big months", () => seasonalCard() + yearlyCard() + seasonsCard()),
     sec("regular", "Regular costs", fixedPct ? `Fixed costs ${fixedPct}% of salary` : "Repeating purchases and subscriptions", () => fixedShareCard() + recurringCard() + subsCard()),
     sec("car", "Car & fuel", car && car.set && car.left !== undefined ? `Service in ${fmt(Math.max(0, car.left))} km` : "Service reminder and fuel", () => carCard() + fuelCard()),
@@ -3488,29 +3491,29 @@ function renderInsights() {
   const ins = insights(key, d);
   const body = tab === "month" ? `
       ${scoreCard(key)}
-      ${claudeNotesCard()}
+      ${orSoon(claudeNotesCard(), "From Claude", "Weekly tip and month review, written by Claude.", "The tip arrives every Friday evening, the month review on the 24th.")}
       ${key === curKey() ? forecastCard() : ""}
       ${whereItWentCard(d)}
       ${catLimitsCard(d)}
-      ${sec("m-more", "More about this month", "Story, calendar, suggestions", () => `${storyCard(key)}${monthPlanCard(d)}${smartCard(false)}${compareCard(key, d)}${calendarCard(key)}${gapCard(false)}${deliveryCard(key)}${regretCard(key)}<div class="card stack"><h2>What to watch</h2><ul class="ins">${ins.map(i => `<li class="${i.t}">${esc(i.x)}</li>`).join("")}</ul></div>`)}`
+      ${sec("m-more", "More about this month", "Story, calendar, suggestions", () => `${orSoon(storyCard(key), "Your month's story", "The month in a few short lines.", "Shows from day 20 of your month.")}${monthPlanCard(d)}${smartCard(false)}${compareCard(key, d)}${calendarCard(key)}${orSoon(gapCard(false), "Where did it go?", "Your real bank balance vs what Masarif recorded.", "Update your bank balance (✎ Edit on Home) twice, at least 3 days apart.")}${deliveryCard(key)}${regretCard(key)}<div class="card stack"><h2>What to watch</h2><ul class="ins">${ins.map(i => `<li class="${i.t}">${esc(i.x)}</li>`).join("")}</ul></div>`)}`
     : tab === "patterns" ? `
       ${trendCard()}
       ${rhythmCard()}
-      ${hourCard()}
-      ${sec("p-more", "More patterns", "Typical day, prices, people, cards", () => `${typicalDayCard()}${priceHikeCard()}${groceryCard()}${priceTrackerCard()}${peopleCard()}${byCardCard(d)}`)}
+      ${orSoon(hourCard(), "Time of day", "When in the day your money goes.", "Shows after 8 purchases with a time (bank texts have one).")}
+      ${sec("p-more", "More patterns", "Typical week, prices, people, cards", () => `${typicalDayCard()}${orSoon(priceHikeCard(), "Prices that went up", "Regular shops that now charge you more.", "Needs 4+ payments at the same shop, like a gym or subscription.")}${groceryCard()}${priceTrackerCard()}${peopleCard()}${byCardCard(d)}`)}
       <button type="button" class="more-link" id="stmtBtn"><span><b>Check your card statement</b><span>Compare the bank's total with Masarif</span></span><span aria-hidden="true">›</span></button>`
     : tab === "you" ? `
-      ${personalityCard()}
-      ${speedGauge()}
+      ${orSoon(personalityCard(), "Your spending style", "What kind of spender you are right now.", "Shows after about 2 weeks of purchases.")}
+      ${orSoon(speedGauge(), "Spending speed", "This week's pace vs your usual.", "Needs 2 weeks of history to know your usual pace.")}
       ${triggersCard()}
-      ${youVsCard()}
-      ${sec("y-more", "More about you", "DNA, weak days, impulse, mood", () => `${dnaCard()}${paydayEffectCard()}${weakDaysCard()}${impulseCard()}${moodCard()}${socialCard()}${hiddenCatsCard()}`)}`
+      ${orSoon(youVsCard(), "You vs last you", "This month at this pace vs your usual and best month.", "Needs 2 full months.")}
+      ${sec("y-more", "More about you", "DNA, weak days, impulse, mood", () => `${orSoon(dnaCard(), "Your spending DNA", "Your habits in six numbers.", "Shows after 15 purchases.")}${orSoon(paydayEffectCard(), "Payday effect", "How fast money goes right after payday.", `Shows after your first full month (from ${dm(pNext(curKey()))}).`)}${orSoon(weakDaysCard(), "Your weak days", "Days of the month that usually cost the most.", "Needs 2 full months.")}${impulseCard()}${moodCard()}${socialCard()}${orSoon(hiddenCatsCard(), "Hidden categories", "Regular spending hiding inside a bigger category.", "Shows when a shop like Starbucks or Uber gets 4+ purchases inside another category.")}`)}`
     : `
       ${todayStr().slice(5, 7) === "12" ? yearNumbersCard() : ""}
       ${levelCard()}
       ${streaksCard()}
       ${jarCard()}
-      ${sec("g-more", "More progress", "Treats, badges, year, inflation", () => `${treatProgressCard()}${countdownStrip()}${beforeAfterCard()}${todayStr().slice(5, 7) === "12" ? "" : yearNumbersCard()}${badgesCard()}${yearCard()}${inflationCard()}`)}`;
+      ${sec("g-more", "More progress", "Treats, badges, year, inflation", () => `${treatProgressCard()}${countdownStrip()}${orSoon(beforeAfterCard(), "Since you started", "Your first full month vs your latest.", "Needs 2 full months.")}${todayStr().slice(5, 7) === "12" ? "" : orSoon(yearNumbersCard(), "Your year in numbers", "Your year at a glance.", "Shows after 10 purchases this year.")}${badgesCard()}${yearCard()}${inflationCard()}`)}`;
   main.innerHTML = `<section class="view">${statusNote()}${askCard()}${seg}${body}</section>`;
   wireAsk();
   $("#insSeg").onclick = e => { const b = e.target.closest("button[data-t]"); if (!b) return; try { localStorage.setItem("masarif.insTab", b.dataset.t); } catch {} render(true); };
@@ -4888,6 +4891,12 @@ const wdOf = ds => (toDate(ds).getDay() + 1) % 7;
 const elapsedDays = key => Math.max(1, Math.min(daysDiff(pStart(key), todayStr()) + 1, daysDiff(pStart(key), pNext(key))));
 const periodLen = key => daysDiff(pStart(key), pNext(key));
 
+/* a feature that needs more data still shows where it lives, and when it starts */
+function soonCard(title, desc, when) {
+  return `<div class="card stack soon"><div class="row"><h2>${title}</h2><span class="soon-tag">Soon</span></div><p class="card-d">${desc}</p><div class="soon-w"><span aria-hidden="true">⏳</span><span>${when}</span></div></div>`;
+}
+const orSoon = (html, title, desc, when) => String(html || "").trim() ? html : soonCard(title, desc, when);
+
 /* ====================================================================
    Simple layout: collapsible sections. Closed sections don't even build their cards.
    ==================================================================== */
@@ -5113,7 +5122,8 @@ function openBigMonth() {
 
 /* ---------- 11. weekly mission ---------- */
 function weekMission(ws) {
-  const prev = addDays(ws, -7), pe = wkEnd(prev), f = firstTxDate(); if (!f || f > pe) return null;
+  const prev = addDays(ws, -7), pe = wkEnd(prev), f = firstTxDate();
+  if (!f || f > pe) { if (ws !== wkStart(todayStr())) return null; const g = Math.max(1, challengeGoal()); return { id: "nospend", score: 1, title: plural(g, "no-spend day"), why: "First mission", prog: (a, b) => noSpendDays(a, b).free.length, target: g, max: false }; }
   const inW = (t, a, b) => isSpend(t) && t.date >= a && t.date <= b;
   const deliv = (a, b) => S.txns.filter(t => inW(t, a, b) && t.kind === "expense" && DELIVERY_RE.test((t.merchant || "") + " " + (t.raw || ""))).length;
   const night = (a, b) => S.txns.filter(t => inW(t, a, b) && t.kind === "expense" && groupOf(t) === "want" && hourOf(t) !== null && (hourOf(t) >= 22 || hourOf(t) < 5)).length;
@@ -5134,7 +5144,7 @@ function missionState(ws) {
 function missionCard() {
   const ws = wkStart(todayStr()), s = missionState(ws); if (!s) return "";
   const { m, v } = s, pctv = m.max ? (m.target ? Math.min(100, v / m.target * 100) : (v ? 100 : 0)) : Math.min(100, v / m.target * 100);
-  const sub = s.failed ? (wdOf(todayStr()) < 5 ? "Missed. Comeback: one no-spend day before Friday" : "Missed. New mission on Saturday") : m.max ? `${m.money ? money(v) : v} so far${m.money ? "" : " · max " + m.target}` : `${v} of ${m.target} so far`;
+  const sub = s.failed ? (wdOf(todayStr()) < 5 ? "Missed. Comeback: one no-spend day before Friday" : "Missed. New mission on Saturday") : m.max ? `${m.money ? money(v) : v} so far${m.money ? "" : " · max " + m.target}` : v >= m.target ? `Done ✓ ${v} so far. Keep going!` : `${v} of ${m.target} so far`;
   return `<div class="card mission ${s.failed ? "fail" : ""}"><span class="ms-ic" aria-hidden="true">🎯</span><span class="ms-m"><span class="ms-l">This week's mission</span><b class="ms-t">${esc(m.title)}</b><span class="ms-s">${sub}</span></span><span class="ms-r"><svg viewBox="0 0 36 36" width="38" height="38" aria-hidden="true"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--sunk)" stroke-width="4"/><circle cx="18" cy="18" r="15" fill="none" stroke="${s.failed ? "var(--bad)" : "var(--accent)"}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(pctv * 0.9425).toFixed(1)} 94.25" transform="rotate(-90 18 18)"/></svg></span></div>`;
 }
 const missionsWon = () => { const out = []; const f = firstTxDate(); if (!f) return out; for (let ws = addDays(wkStart(todayStr()), -7), i = 0; i < 26 && wkEnd(ws) >= f; ws = addDays(ws, -7), i++) { const s = missionState(ws); if (s && s.done) out.push({ id: "mi_" + ws, text: `Mission done: ${s.m.title}` }); } return out; };
