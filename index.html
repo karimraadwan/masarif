@@ -863,9 +863,42 @@ section.view{gap:12px}
 .sec.open{border:0;border-radius:0;overflow:visible;background:none}.sec.open>.sec-h{border:1px solid var(--line);border-radius:var(--r);background:var(--soft)}
 .sec-b{display:flex;flex-direction:column;gap:12px;padding-top:12px}
 .sec-b>.card,.sec-b>.sec{margin:0}
-.mission{display:flex;align-items:center;gap:12px;padding:12px 16px}
-.ms-ic{font-size:22px}.ms-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.ms-l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.mission .ms-t{font-size:15px;font-weight:800}.ms-s{font-size:13px;color:var(--muted)}.mission.fail .ms-s{color:var(--bad-ink)}.mission.fail .ms-t{text-decoration:none;color:var(--ink)}
+.mission{display:flex;align-items:center;gap:14px;padding:14px 16px;position:relative;overflow:hidden;--mc:var(--accent);background:linear-gradient(135deg,color-mix(in srgb,var(--mc) 9%,#fff) 0%,#fff 62%);border-color:color-mix(in srgb,var(--mc) 22%,var(--line))}
+.mission.ms-done{--mc:#10B981}.mission.ms-fail{--mc:#E5484D}
+.mission::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:color-mix(in srgb,var(--mc) 7%,transparent);pointer-events:none}
+.ms-art{flex:none;width:56px;height:56px;display:grid;place-items:center}
+.ms-t1{fill:color-mix(in srgb,var(--mc) 16%,#fff)}.ms-t2{fill:#fff}.ms-t3{fill:color-mix(in srgb,var(--mc) 70%,#fff)}.ms-t4{fill:var(--mc)}
+.ms-fail .ms-t3,.ms-fail .ms-t4{fill:#F3B4B6}
+.ms-spark{fill:#F5B301}
+.ms-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;position:relative;z-index:1}
+.ms-l{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}.ms-days{text-transform:none;letter-spacing:0;font-weight:600}
+.mission .ms-t{font:800 16px/1.2 var(--f-display);color:var(--ink);text-decoration:none}
+.ms-s{font-size:13px;color:var(--muted);line-height:1.35}.ms-done .ms-s{color:var(--good-ink);font-weight:600}.ms-fail .ms-s{color:var(--bad-ink)}
+.ms-pills{display:flex;gap:5px;margin:2px 0}.ms-pills i{height:8px;flex:1;max-width:34px;border-radius:999px;background:color-mix(in srgb,var(--mc) 16%,#eef1f6)}
+.ms-pills i.on{background:var(--mc)}.ms-pills i.bonus.on{background:#F5B301}
+.ms-bar{height:8px;border-radius:999px;background:color-mix(in srgb,var(--mc) 14%,#eef1f6);overflow:hidden;margin:2px 0}.ms-bar i{display:block;height:100%;width:var(--w);border-radius:999px;background:var(--mc)}
+.ms-ring{flex:none;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:3px}.ms-left{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.ms-rb{fill:none;stroke:color-mix(in srgb,var(--mc) 15%,#eef1f6);stroke-width:4.5}
+.ms-rf{fill:none;stroke:var(--mc);stroke-width:4.5;stroke-linecap:round;stroke-dasharray:var(--p) 106.8;transform:rotate(-90deg);transform-origin:50% 50%}
+.ms-dot{fill:var(--mc)}.ms-pct{font:800 10.5px var(--f-body);fill:var(--ink)}
+/* animation (first time Home opens in a session) */
+.mission.anim .ms-arrow{animation:msArrow .7s cubic-bezier(.2,.9,.3,1.3) both .15s}
+.mission.anim .ms-t1,.mission.anim .ms-t2,.mission.anim .ms-t3,.mission.anim .ms-t4{animation:msPop .45s cubic-bezier(.2,.9,.3,1.4) both;transform-box:fill-box;transform-origin:center}
+.mission.anim .ms-t2{animation-delay:.05s}.mission.anim .ms-t3{animation-delay:.1s}.mission.anim .ms-t4{animation-delay:.15s}
+.mission.anim .ms-rf{animation:msRing 1s cubic-bezier(.3,.8,.3,1) both .2s}
+.mission.anim .ms-pills i.on{animation:msPill .4s ease both;animation-delay:calc(.35s + var(--d))}
+.mission.anim .ms-bar i{animation:msBar .9s cubic-bezier(.3,.8,.3,1) both .3s}
+.mission.anim .ms-check{stroke-dasharray:24;animation:msCheck .45s ease both 1s}
+.mission.anim .ms-dot{animation:msPop .4s cubic-bezier(.2,.9,.3,1.5) both .9s;transform-box:fill-box;transform-origin:center}
+.ms-done .ms-spark{animation:msTwinkle 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes msArrow{from{transform:translate(22px,-22px);opacity:0}70%{opacity:1}to{transform:none}}
+@keyframes msPop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes msRing{from{stroke-dasharray:0 106.8}}
+@keyframes msPill{from{transform:scaleX(.2);opacity:.3}to{transform:none;opacity:1}}
+@keyframes msBar{from{width:0}}
+@keyframes msCheck{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes msTwinkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+@media (prefers-reduced-motion: reduce){.mission *{animation:none!important}}
 .sc-how{margin-top:4px}.sc-how summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--accent-ink);min-height:40px;display:flex;align-items:center;list-style:none}.sc-how summary::-webkit-details-marker{display:none}.sc-how summary::after{content:"›";margin-left:6px;transition:transform .2s}.sc-how[open] summary::after{transform:rotate(90deg)}.sc-how[open]>*:not(summary){margin-top:6px}
 .card-d{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}.stack>.card-d{margin-top:-8px}.card:not(.stack)>.card-d{margin-top:2px;margin-bottom:10px}
 .soon{gap:8px}.soon h2{color:var(--muted)}.soon-tag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--sunk);border-radius:999px;padding:3px 9px}
@@ -5132,7 +5165,7 @@ function weekMission(ws) {
   if (pd >= 2) opts.push({ id: "deliv", score: pd, title: `Max ${pd - 1} delivery order${pd - 1 === 1 ? "" : "s"}`, why: `Last week: ${pd}`, prog: (a, b) => deliv(a, b), target: pd - 1, max: true });
   if (pn >= 1) opts.push({ id: "night", score: pn * 1.5, title: "No wants after 10 pm", why: `Last week: ${plural(pn, "late buy")}`, prog: (a, b) => night(a, b), target: 0, max: true });
   if (lim && pt > lim) opts.push({ id: "limit", score: (pt / lim) * 2, title: `Stay under ${money(lim)}`, why: `Last week: ${money(pt)}`, prog: (a, b) => spendBetween(a, b), target: lim, max: true, money: true });
-  opts.push({ id: "nospend", score: 1, title: `${plural(Math.min(7, pns + 1 > goal ? pns + 1 : goal), "no-spend day")}`, why: `Last week: ${pns}`, prog: (a, b) => noSpendDays(a, b).free.length, target: Math.min(7, Math.max(goal, pns + 1)), max: false });
+  opts.push({ id: "nospend", score: 1, title: plural(Math.min(4, Math.max(goal, pns + 1)), "no-spend day"), why: `Last week: ${pns}`, prog: (a, b) => noSpendDays(a, b).free.length, target: Math.min(4, Math.max(goal, pns + 1)), max: false });
   return opts.sort((a, b) => b.score - a.score)[0];
 }
 function missionState(ws) {
@@ -5141,11 +5174,42 @@ function missionState(ws) {
   const done = m.max ? (over ? v <= m.target : null) : v >= m.target, failed = m.max ? v > m.target : over && v < m.target;
   return { m, v, done: m.max ? (over && !failed) : done, failed, over };
 }
+let missionAnimDone = false;
 function missionCard() {
   const ws = wkStart(todayStr()), s = missionState(ws); if (!s) return "";
-  const { m, v } = s, pctv = m.max ? (m.target ? Math.min(100, v / m.target * 100) : (v ? 100 : 0)) : Math.min(100, v / m.target * 100);
-  const sub = s.failed ? (wdOf(todayStr()) < 5 ? "Missed. Comeback: one no-spend day before Friday" : "Missed. New mission on Saturday") : m.max ? `${m.money ? money(v) : v} so far${m.money ? "" : " · max " + m.target}` : v >= m.target ? `Done ✓ ${v} so far. Keep going!` : `${v} of ${m.target} so far`;
-  return `<div class="card mission ${s.failed ? "fail" : ""}"><span class="ms-ic" aria-hidden="true">🎯</span><span class="ms-m"><span class="ms-l">This week's mission</span><b class="ms-t">${esc(m.title)}</b><span class="ms-s">${sub}</span></span><span class="ms-r"><svg viewBox="0 0 36 36" width="38" height="38" aria-hidden="true"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--sunk)" stroke-width="4"/><circle cx="18" cy="18" r="15" fill="none" stroke="${s.failed ? "var(--bad)" : "var(--accent)"}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(pctv * 0.9425).toFixed(1)} 94.25" transform="rotate(-90 18 18)"/></svg></span></div>`;
+  const { m, v } = s, today = todayStr();
+  const done = !s.failed && !m.max && v >= m.target, okMax = m.max && !s.failed;
+  const pctv = s.failed ? 100 : m.max ? (m.target ? Math.min(100, v / m.target * 100) : (v ? 100 : 0)) : Math.min(100, v / m.target * 100);
+  const state = s.failed ? "fail" : done ? "done" : "on";
+  const daysLeft = Math.max(0, daysDiff(today, wkEnd(ws)));
+  const sub = s.failed ? (wdOf(today) < 5 ? "Missed this one. Comeback: one no-spend day before Friday." : "Missed this time. A new mission starts Saturday.")
+    : done ? (v > m.target ? `Done, with ${v - m.target} extra. Keep the streak going!` : "Done! Anything more is a bonus.")
+    : m.max ? (m.money ? `${money(v)} spent · ${money(Math.max(0, m.target - v))} left` : `${v} of max ${m.target} · ${Math.max(0, m.target - v)} more allowed`)
+    : `${v} of ${m.target} · ${m.target - v} to go`;
+  /* progress: pills for "do N" missions, a bar for "stay under" missions */
+  const prog = !m.max && m.target <= 7
+    ? `<div class="ms-pills" aria-hidden="true">${Array.from({ length: Math.max(m.target, Math.min(7, v)) }, (_, i) => `<i class="${i < v ? "on" : ""}${i >= m.target ? " bonus" : ""}" style="--d:${i * 90}ms"></i>`).join("")}</div>`
+    : `<div class="ms-bar" aria-hidden="true"><i style="--w:${pctv.toFixed(0)}%"></i></div>`;
+  const ring = state === "done" ? `<path class="ms-check" d="M13 21l5 5 10-11" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>`
+    : state === "fail" ? `<path d="M15 15l11 11M26 15L15 26" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>`
+    : `<text x="20.5" y="25" text-anchor="middle" class="ms-pct">${Math.round(pctv)}%</text>`;
+  const anim = !missionAnimDone && !matchMedia("(prefers-reduced-motion: reduce)").matches; missionAnimDone = true;
+  return `<div class="card mission ms-${state}${anim ? " anim" : ""}" role="group" aria-label="This week's mission: ${esc(m.title)}. ${esc(sub)}">
+    <div class="ms-art" aria-hidden="true">
+      <svg viewBox="0 0 64 64" width="56" height="56">
+        <circle cx="30" cy="34" r="24" class="ms-t1"/><circle cx="30" cy="34" r="16.5" class="ms-t2"/><circle cx="30" cy="34" r="9" class="ms-t3"/><circle cx="30" cy="34" r="3.2" class="ms-t4"/>
+        <g class="ms-arrow"><path d="M30 34 L55 9" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/><path d="M55 9 l-1-6.5 l6 1z M55 9 l6.5 1 l-1 6z" fill="var(--accent)"/></g>
+        ${state === "done" ? `<g class="ms-spark"><path d="M8 10l1.6 3.4L13 15l-3.4 1.6L8 20l-1.6-3.4L3 15l3.4-1.6z"/><path d="M52 44l1 2.2 2.2 1-2.2 1-1 2.2-1-2.2-2.2-1 2.2-1z"/><circle cx="48" cy="24" r="1.8"/></g>` : ""}
+      </svg>
+    </div>
+    <div class="ms-m">
+      <span class="ms-l">This week's mission</span>
+      <b class="ms-t">${esc(m.title)}</b>
+      ${prog}
+      <span class="ms-s">${sub}</span>
+    </div>
+    <div class="ms-ring" aria-hidden="true"><svg viewBox="0 0 41 41" width="46" height="46"><circle cx="20.5" cy="20.5" r="17" class="ms-rb"/>${pctv >= 1 ? `<circle cx="20.5" cy="20.5" r="17" class="ms-rf" style="--p:${(pctv * 1.068).toFixed(1)}"/>` : ""}${state !== "on" ? `<circle cx="20.5" cy="20.5" r="12.5" class="ms-dot"/>` : ""}${ring}</svg>${state === "on" ? `<span class="ms-left">${daysLeft ? plural(daysLeft, "day") + " left" : "Last day"}</span>` : ""}</div>
+  </div>`;
 }
 const missionsWon = () => { const out = []; const f = firstTxDate(); if (!f) return out; for (let ws = addDays(wkStart(todayStr()), -7), i = 0; i < 26 && wkEnd(ws) >= f; ws = addDays(ws, -7), i++) { const s = missionState(ws); if (s && s.done) out.push({ id: "mi_" + ws, text: `Mission done: ${s.m.title}` }); } return out; };
 
