@@ -721,7 +721,7 @@ nav.tabs a[aria-current=page]{color:var(--accent);background:color-mix(in srgb,v
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .mini-alert{display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:14px;color:inherit;text-decoration:none}
 .mini-alert>span:nth-child(2){flex:1;min-width:0}.mini-alert.warn{background:#FFFBEB;border-color:#FDE68A}.mini-alert.good{background:#F0FDF4;border-color:#BBF7D0}.mini-alert.bad{background:#FEF2F2;border-color:#FECACA}
-.gp{display:flex;justify-content:space-between;gap:10px;font-size:14px}.gp em{font-style:normal;color:var(--bad-ink);font-weight:700;font-size:12px}
+.gp{display:flex;justify-content:space-between;gap:10px;font-size:14px}.gp>span:last-child{white-space:nowrap}.gp em{font-style:normal;color:var(--bad-ink);font-weight:700;font-size:12px}
 .cmp2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cmp2>div{background:var(--soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}.cmp2 span{font-size:12px;color:var(--muted)}.cmp2 b{font-size:20px}.cmp2 em{font-style:normal;font-size:12px;color:var(--muted)}
 .allow{border-color:#BAE6FD;background:linear-gradient(135deg,#F0F9FF,#fff)}.allow.over{border-color:#FECACA;background:linear-gradient(135deg,#FEF2F2,#fff)}
 .gap.warn{border-color:#FDE68A}
@@ -811,6 +811,63 @@ body.locked main,body.locked nav.tabs,body.locked header.top{visibility:hidden}
 .ah-big{font:700 26px var(--f-display);letter-spacing:-.01em}
 .ah-kpis{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}.ah-kpis b{color:var(--ink);font-weight:700}
 .bal-after{display:block;font-size:11.5px;font-weight:600;color:var(--muted);text-align:right;margin-top:2px}
+/* round 7: behaviour + adaptive plans */
+.trg{display:flex;flex-direction:column;gap:3px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}.trg:first-of-type{border-top:0;padding-top:0}
+.mood{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 16px}.mood>span{font-weight:700}
+.md-btns{display:flex;gap:6px}.md-btns button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--soft);font-size:22px;line-height:1}
+.md-btns button:active{transform:scale(.92)}
+.dna-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dna-grid>div{background:var(--soft);border-radius:12px;padding:9px 11px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.dna-grid span{font-size:12px;color:var(--muted)}.dna-grid b{font-size:14px;overflow-wrap:anywhere}
+.np{display:grid;grid-template-columns:1fr 64px 14px 64px;gap:6px;align-items:center;font-size:14px}.np>span:first-child{display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.np .num,.np b{text-align:right}.np-arr{color:var(--muted);text-align:center}.np .sw{width:9px;height:9px;border-radius:3px;flex:none;display:inline-block}
+.np.tot{border-top:1px solid var(--line);padding-top:8px;font-weight:800}
+.pl{border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.pl-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;font-size:13px;color:var(--muted)}.pl-m>b{font-size:15px;color:var(--ink)}.pl-m span b{color:var(--ink)}
+.pl.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.pl em{font-style:normal;font-weight:700;color:var(--accent-ink);font-size:13px}.pl .btn{min-height:40px;padding:6px 14px;font-size:13px;flex:none}
+.up{display:grid;grid-template-columns:48px 1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.up:first-of-type{border-top:0}
+.up-d{display:flex;flex-direction:column;align-items:center;background:var(--soft);border-radius:12px;padding:5px 0}.up-d b{font-size:16px}.up-d span{font-size:12px;color:var(--muted)}
+.up-m{display:flex;flex-direction:column;min-width:0}.up-m span{font-size:12px;color:var(--muted)}.up-r{display:flex;flex-direction:column;align-items:flex-end}.up-r span{font-size:12px;color:var(--muted)}
+.mission .ms-t{font-size:17px;font-weight:800}.mission.fail .ms-t{color:var(--muted);text-decoration:line-through}
+.yv{display:grid;grid-template-columns:1fr 62px 62px 62px;gap:6px;font-size:13px;align-items:center}.yv>*:not(:first-child){text-align:right}.yv>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yv.h{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.yv.tot{border-top:1px solid var(--line);padding-top:7px;font-weight:800}
+.stk{display:grid;grid-template-columns:28px 1fr auto;grid-template-rows:auto auto;column-gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.stk:first-of-type{border-top:0}
+.stk-ic{grid-row:span 2;font-size:20px;text-align:center}.stk-l{font-weight:700;font-size:14px}.stk-v{grid-column:2;font-size:13px;color:var(--muted)}.stk-v b{color:var(--ink);font-size:15px}.stk-r{grid-row:1/span 2;grid-column:3;font-size:12px;color:var(--muted)}
+.xp-p{display:flex;flex-wrap:wrap;gap:6px}.xp-p span{font-size:12px;background:var(--soft);border-radius:999px;padding:4px 10px}.xp-p b{color:#7C3AED}
+.jar-row{display:flex;gap:16px;align-items:center}
+.jar{position:relative;width:62px;height:78px;flex:none;border:3px solid var(--line);border-top-width:8px;border-radius:12px 12px 18px 18px;overflow:hidden;background:var(--soft)}
+.jar i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#FCD34D,#F59E0B);transition:height .8s cubic-bezier(.2,.8,.2,1)}.jar span{position:absolute;inset:0;display:grid;place-items:center;font-size:24px}
+.coins{position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden}.coins i{position:absolute;top:-40px;font-style:normal;font-size:26px;animation:coinfall 1.3s ease-in forwards}
+@keyframes coinfall{to{transform:translateY(105vh) rotate(320deg)}}
+.sl-items{display:flex;flex-direction:column}.sl{display:grid;grid-template-columns:1fr auto 40px;gap:8px;align-items:center;border-bottom:1px solid var(--line);min-height:46px}
+.sl-t{display:flex;align-items:center;gap:10px;min-height:44px;border:0;background:none;padding:0;text-align:left}.sl-t i{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:13px;color:var(--on-accent);flex:none}.sl-t[aria-checked="true"] i{background:var(--accent);border-color:var(--accent)}.sl .done{text-decoration:line-through;color:var(--muted)}
+.sl-add{display:grid;grid-template-columns:1fr 96px auto;gap:8px}.sl-add input{min-height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:var(--bg);min-width:0}
+.speed{display:flex;align-items:center;gap:14px;padding:12px 16px}.speed>div{display:flex;flex-direction:column;gap:1px}.speed b{font-size:20px;font-weight:800}
+.yn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.yn-grid>div{background:var(--soft);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.yn-grid>div>span{font-size:20px}.yn-grid b{font-size:16px;overflow-wrap:anywhere}.yn-grid em{font-style:normal;font-size:12px;color:var(--muted)}
+.st-l{font-size:14px;line-height:1.5}
+.qtools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.qtools button{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:var(--soft);border-radius:12px;min-height:56px;padding:8px 4px;font-size:12px;font-weight:700}.qtools span{font-size:18px}
+.rc-btn{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;text-align:left;border:1px dashed var(--line);background:transparent;border-radius:14px;padding:10px 12px;min-height:52px}
+.rc-btn>span:first-child{grid-row:span 2;font-size:20px}.rc-btn>span:nth-child(2){font-weight:700;font-size:14px}.rc-btn em{font-style:normal;font-size:12px;color:var(--muted)}
+.si.done{opacity:.55}
+.nw-btns{display:grid!important;grid-template-columns:auto 1fr;gap:8px;align-items:center}.nw-btns select{min-height:44px;min-width:0;width:100%;border:1px solid var(--line);border-radius:12px;padding:0 10px;background:var(--soft)}
+.gf-link{text-align:left;min-height:44px}
+/* ---------- simple layout ---------- */
+.card{box-shadow:none;padding:16px}
+h2{font-size:18px}
+section.view{gap:12px}
+.sec{border:1px solid var(--line);border-radius:var(--r);background:var(--bg);overflow:hidden}
+.sec-h{width:100%;display:flex;align-items:center;gap:12px;border:0;background:none;padding:14px 16px;min-height:60px;text-align:left;color:inherit}
+.sec-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.sec-t b{font:700 16px/1.25 var(--f-display)}.sec-t span{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sec-c{font-size:22px;color:var(--muted);transition:transform .2s;line-height:1}.sec.open .sec-c{transform:rotate(90deg)}
+.sec.open{border:0;border-radius:0;overflow:visible;background:none}.sec.open>.sec-h{border:1px solid var(--line);border-radius:var(--r);background:var(--soft)}
+.sec-b{display:flex;flex-direction:column;gap:12px;padding-top:12px}
+.sec-b>.card,.sec-b>.sec{margin:0}
+.mission{display:flex;align-items:center;gap:12px;padding:12px 16px}
+.ms-ic{font-size:22px}.ms-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.ms-l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.mission .ms-t{font-size:15px;font-weight:800}.ms-s{font-size:13px;color:var(--muted)}.mission.fail .ms-s{color:var(--bad-ink)}.mission.fail .ms-t{text-decoration:none;color:var(--ink)}
+.sc-how{margin-top:4px}.sc-how summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--accent-ink);min-height:40px;display:flex;align-items:center;list-style:none}.sc-how summary::-webkit-details-marker{display:none}.sc-how summary::after{content:"›";margin-left:6px;transition:transform .2s}.sc-how[open] summary::after{transform:rotate(90deg)}.sc-how[open]>*:not(summary){margin-top:6px}
+.ask{padding:12px}.ask .chips{margin-top:8px}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
 .link-btn,a.link{min-width:40px;justify-content:center}
@@ -981,7 +1038,7 @@ const S = {
   ready: { c: false, t: false, s: false }, dbOk: null, slow: false, err: null,
   setupDirty: false, importRows: null, importNote: "",
   checks: {}, trendN: 6, cardF: "all", importCard: null,
-  goals: [], owed: [], subs: {}, weeks: {}, notes: {}, yearly: [], statements: {}, receipts: {}, recurring: [], seasons: [], askQ: "", wiCat: null, wiCut: null, sync: { state: "", msg: "", busy: false, last: null, added: 0 }, planPay: null, calSel: null
+  goals: [], owed: [], subs: {}, weeks: {}, notes: {}, yearly: [], statements: {}, receipts: {}, recurring: [], seasons: [], moods: {}, skips: [], bigs: [], lists: {}, askQ: "", wiCat: null, wiCut: null, sync: { state: "", msg: "", busy: false, last: null, added: 0 }, planPay: null, calSel: null
 };
 let db = null;
 const settings = () => Object.assign({}, DEFAULT_SETTINGS, S.settings || {}, { card: Object.assign({}, DEFAULT_SETTINGS.card, (S.settings || {}).card || {}), loan: Object.assign({}, DEFAULT_SETTINGS.loan, (S.settings || {}).loan || {}), account: Object.assign({}, DEFAULT_SETTINGS.account, (S.settings || {}).account || {}), sync: Object.assign({}, DEFAULT_SETTINGS.sync, (S.settings || {}).sync || {}) });
@@ -1623,6 +1680,7 @@ function goalsCard() {
         <button type="button" class="btn grad big" id="efGoal" data-target="${efTarget}" ${S.dbOk ? "" : "disabled"}>Start an emergency fund</button>
         <button type="button" class="link-btn" id="addGoal" ${S.dbOk ? "" : "disabled"}>Or make your own pot</button>
       </div>`}
+    <button type="button" class="link-btn gf-link" id="gfOpen">🎯 Plan for a goal: tell Masarif what and when ›</button>
   </div>`;
 }
 const SUB_KW = /netflix|spotify|google ?play|apple\.com|itunes|icloud|prime video|amazon prime|osn|shahid|youtube|anghami|watch ?it|chatgpt|openai|adobe|microsoft|xbox|playstation|membership|subscription|اشتراك/i;
@@ -1721,22 +1779,25 @@ function fuelCard() {
     ${fuelEconomy(fc)}
   </div>`;
 }
+function planSections() {
+  const np = nextPlan(), up = upcoming()[0], pots = S.goals.reduce((a, g) => a + (+g.saved || 0), 0), car = carCfg && carState ? carState() : null;
+  const owedOpen = (S.owed || []).filter(o => !o.received), fixedPct = +settings().salary ? pct(activeFixed(curKey()).reduce((a, f) => a + (+f.amount || 0), 0) + (+settings().card.payment || 0), +settings().salary) : 0;
+  return [
+    sec("plans", "Plans", np ? `Next month: ${money(np.total)} in limits` : "Pick a plan, next month, what if", () => whatIfPlansCard() + nextPlanCard() + whatIfCard()),
+    sec("goals", "Savings & goals", S.goals.length ? `${plural(S.goals.length, "pot")} · ${money(pots)} saved` : "Start a pot or plan for a goal", () => goalsCard() + roundUpCard()),
+    sec("coming", "Coming up", up ? `${up.name} in ${plural(Math.max(0, up.days), "day")}` : "Yearly costs, Ramadan & Eid, big months", () => seasonalCard() + yearlyCard() + seasonsCard()),
+    sec("regular", "Regular costs", fixedPct ? `Fixed costs ${fixedPct}% of salary` : "Repeating purchases and subscriptions", () => fixedShareCard() + recurringCard() + subsCard()),
+    sec("car", "Car & fuel", car && car.set && car.left !== undefined ? `Service in ${fmt(Math.max(0, car.left))} km` : "Service reminder and fuel", () => carCard() + fuelCard()),
+    sec("owed", "Money owed to you", owedOpen.length ? `${owedOpen.length === 1 ? "1 person" : owedOpen.length + " people"} · ${money(owedOpen.reduce((a, o) => a + (+o.amount || 0), 0))}` : "Lent someone money? Keep track", () => owedCard()),
+  ].join("");
+}
 function renderPlan() {
   main.innerHTML = `<section class="view">
     ${statusNote()}
     <div class="tools-row"><button type="button" class="tool" id="plPayday"><b>Payday routine</b><span>Start the month in 5 steps</span></button><button type="button" class="tool" id="plStmt"><b>Check statement</b><span>Bank total vs Masarif</span></button></div>
+    ${salaryShiftCard()}
     ${plannerCard()}
-    ${whatIfCard()}
-    ${goalsCard()}
-    ${roundUpCard()}
-    ${yearlyCard()}
-    ${recurringCard()}
-    ${seasonsCard()}
-    ${fixedShareCard()}
-    ${carCard()}
-    ${fuelCard()}
-    ${subsCard()}
-    ${owedCard()}
+    ${planSections()}
   </section>`;
   const pp = $("#pp");
   const drawPP = () => {
@@ -2022,27 +2083,26 @@ function monthPlanCard(d) {
 function renderHome() {
   const key = curKey(); S.month = S.monthTouched ? S.month : key;
   const d = periodData(key);
-  const recent = S.txns.filter(t => !t.deleted && t.date).sort(txSort).slice(0, 4);
+  const recent = S.txns.filter(t => !t.deleted && t.date).sort(txSort).slice(0, 3);
   main.innerHTML = `<section class="view">
     ${statusNote()}
     ${emergencyOn() ? emergencyHero() : healthHero()}
+    ${morningBrief()}
     ${checkCard()}
     ${homeNudges(d)}
     ${cardMini()}
     ${allowanceCard()}
     ${paydayPlanCard()}
-    ${quickCard()}
     ${seasonHomeCard()}
     ${weekCard()}
-    ${forecastCard()}
-    ${countdownStrip()}
+    ${missionCard()}
+    ${quickCard()}
     ${billsCard()}
     <div class="card stack">
       <div class="row"><h2>Latest purchases</h2><a class="link" href="#txns">See all</a></div>
       ${recent.length ? `<div>${recent.map(txRow).join("")}</div>` : `<div class="small muted">${loaded() ? "None yet." : "Loading…"}</div>`}
     </div>
     ${emergencyOn() ? "" : quoteCard()}
-    ${emergencyOn() ? "" : `<a class="more-link" href="#insights"><span><b>See your insights</b><span>Score, charts, patterns and badges</span></span><span aria-hidden="true">›</span></a>`}
   </section>`;
   setTimeout(checkMilestones, 400);
   main.querySelectorAll("[data-bal]").forEach(b => b.onclick = openBalances);
@@ -2497,6 +2557,8 @@ const wrap = $("#sheetWrap"), sheet = $("#sheet");
 function openSheet(html) { sheet.oninput = sheet.onchange = sheet.onclick = null; sheet.innerHTML = `<div class="grip"></div>` + html; wrap.hidden = false; document.body.style.overflow = "hidden"; }
 function closeSheet() { wrap.hidden = true; sheet.innerHTML = ""; document.body.style.overflow = ""; }
 wrap.addEventListener("click", e => { if (e.target === wrap) closeSheet(); });
+/* one tap = one save: a second tap on Save while the first is still saving is ignored */
+sheet.addEventListener("submit", e => { const f = e.target; if (f.dataset.busy) { e.preventDefault(); e.stopImmediatePropagation(); return; } f.dataset.busy = "1"; setTimeout(() => { if (f.isConnected) delete f.dataset.busy; }, 1500); }, true);
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !wrap.hidden) closeSheet(); });
 function catOptions(sel) {
   return `<option value="">No category</option>` + ["need", "want", "debt"].map(g => {
@@ -2540,6 +2602,9 @@ function openTx(id, preset) {
         <label class="field"><span>Time</span><input type="time" id="tTime" value="${esc(v.time || "")}"></label>
       </div>
       <div class="field" id="tWorthWrap"><span>Worth it?</span><div class="seg" id="tWorth"><button type="button" data-w="yes" aria-pressed="${v.worth === "yes"}">👍 Yes</button><button type="button" data-w="no" aria-pressed="${v.worth === "no"}">👎 No</button><button type="button" data-w="" aria-pressed="${!v.worth}">Skip</button></div></div>
+      <div class="grid2" id="tMoreWrap"><div class="field"><span>Was it planned?</span><div class="seg" id="tPlan"><button type="button" data-p="planned" aria-pressed="${v.plan === "planned"}">Planned</button><button type="button" data-p="impulse" aria-pressed="${v.plan === "impulse"}">Impulse</button></div></div>
+        <div class="field"><span>Who with?</span><div class="seg" id="tSoc"><button type="button" data-s="" aria-pressed="${!v.social}">Alone</button><button type="button" data-s="1" aria-pressed="${!!v.social}">Friends</button></div></div></div>
+      <button type="button" class="rc-btn" id="tPhoto"><span aria-hidden="true">📷</span><span>${t && t.receiptPhoto ? "Receipt photo sent ✓ · send another" : "Add a receipt photo"}</span><em>Claude lists the items for you</em></button>
       <label class="field"><span>Note (optional)</span><input type="text" id="tNote" value="${esc(v.note || "")}" placeholder="Anything to remember"></label>
       ${t && t.kind === "expense" && !t.recurring ? `<button type="button" class="link-btn" id="tRepeat">↻ Make this a repeating purchase</button>` : ""}
       ${t && t.raw ? `<details><summary class="small muted">Original ${t.source === "shortcut" ? "shortcut line" : "bank text"}</summary><div class="raw">${esc(t.raw)}</div></details>` : ""}
@@ -2552,6 +2617,11 @@ function openTx(id, preset) {
   const payVal = () => { const r = sheet.querySelector("input[name=tpay]:checked"); return r ? r.value : ""; };
   let catTouched = !!v.categoryId, worth = v.worth || "";
   const drawHrs = () => { if (!$("#tAmt") || !$("#tHrs") || !sheet.querySelector("input[name=kind]:checked")) return; const a = numIn($("#tAmt").value), k = sheet.querySelector("input[name=kind]:checked").value; $("#tHrs").textContent = k === "expense" && a > 0 && hoursText(a) ? "= " + hoursText(a) : ""; };
+  let plan = v.plan || "", social = !!v.social, photo = (preset && preset.photo) || null;
+  $("#tPlan").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) return; plan = plan === b.dataset.p ? "" : b.dataset.p; $("#tPlan").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.p === plan)); };
+  $("#tSoc").onclick = e => { const b = e.target.closest("[data-s]"); if (!b) return; social = !!b.dataset.s; $("#tSoc").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", !!x.dataset.s === social)); };
+  const drawPhoto = () => { const s2 = $("#tPhoto span:nth-child(2)"); if (s2 && photo) s2.textContent = "Receipt photo ready ✓ (sent when you save)"; };
+  $("#tPhoto").onclick = () => choosePhoto(b => { if (t) uploadPhoto(t.id, b, t); else { photo = b; drawPhoto(); } }); drawPhoto();
   $("#tWorth").onclick = e => { const b = e.target.closest("[data-w]"); if (!b) return; worth = b.dataset.w; $("#tWorth").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); };
   const tn = $("#tNick"); if (tn) tn.onclick = () => openNick(t);
   const trp = $("#tRepeat"); if (trp) trp.onclick = () => openRecurring(null, { name: shopName(t), amount: t.amount, categoryId: t.categoryId || "", cardId: t.cardId || "cash", every: "month", day: toDate(t.date).getDate() });
@@ -2564,7 +2634,7 @@ function openTx(id, preset) {
     $("#rememberBox").hidden = !val || kindNow() === "payment" || kindNow() === "income"; $("#remName").textContent = val;
     if (!catTouched) { const id = autoCat(val) || ""; const r = sheet.querySelector(`input[name=tcat][value="${CSS.escape(id)}"]`); if (r) r.checked = true; }
   };
-  const syncKind = () => { const k = kindNow(); sheet.querySelector(".txf").dataset.kind = k; if ($("#tWorthWrap")) $("#tWorthWrap").hidden = k !== "expense"; if ($("#tHrs")) drawHrs(); $("#tCatWrap").hidden = k === "payment" || k === "income"; $("#tPayWrap").hidden = k === "payment"; if (k === "payment" || k === "income") $("#rememberBox").hidden = true; else $("#rememberBox").hidden = !$("#tMer").value.trim(); };
+  const syncKind = () => { const k = kindNow(); sheet.querySelector(".txf").dataset.kind = k; if ($("#tWorthWrap")) $("#tWorthWrap").hidden = k !== "expense"; if ($("#tMoreWrap")) { $("#tMoreWrap").hidden = k !== "expense"; $("#tPhoto").hidden = k !== "expense"; } if ($("#tHrs")) drawHrs(); $("#tCatWrap").hidden = k === "payment" || k === "income"; $("#tPayWrap").hidden = k === "payment"; if (k === "payment" || k === "income") $("#rememberBox").hidden = true; else $("#rememberBox").hidden = !$("#tMer").value.trim(); };
   sheet.querySelectorAll("input[name=kind]").forEach(r => r.onchange = syncKind); syncKind();
   /* split across categories */
   let splitOn = Array.isArray(v.splits) && v.splits.length > 1;
@@ -2605,7 +2675,7 @@ function openTx(id, preset) {
       data.splits = parts.map(x => ({ categoryId: x.categoryId, amount: +x.amount })); data.categoryId = parts[0].categoryId;
     } else if (t && t.splits) data.splits = [];
     if (!$("#fuelBox").hidden) { data.litres = numIn($("#tLit").value) || ""; data.odo = numIn($("#tOdo").value) || ""; }
-    if (data.kind === "expense") data.worth = worth; else data.worth = "";
+    if (data.kind === "expense") { data.worth = worth; data.plan = plan; data.social = social; } else data.worth = "";
     data.reviewed = true;
     if (!t && preset && preset.treat) data.treat = true;
     if (!t && typeof TX_LOC !== "undefined" && TX_LOC) data.loc = TX_LOC;
@@ -2621,6 +2691,7 @@ function openTx(id, preset) {
         if (c && !kw(c).includes(k)) await db.collection("categories").doc(c.id).update({ keywords: kw(c).concat(k).join(", ") });
       }
       closeSheet();
+      if (newId && photo) uploadPhoto(newId, photo, data);
       if (newId) toast(`Saved ${money(data.amount)}${data.merchant ? " · " + data.merchant : ""} ✓`, () => db.collection("transactions").doc(newId).delete().catch(() => {}));
       else toast("Changes saved ✓");
     } catch (err) { $("#tMsg").textContent = "Couldn't save. Try again."; }
@@ -2740,7 +2811,8 @@ const spendTx = () => S.txns.filter(isSpend);
 const challengeGoal = () => Math.max(0, Math.min(7, +((settings().challenge || {}).noSpend ?? 2)));
 function noSpendDays(ws, upto) {
   const days = []; for (let x = toDate(ws), i = 0; i < 7; i++, x.setDate(x.getDate() + 1)) { const s = toStr(x); if (s > upto) break; days.push(s); }
-  const spent = new Set(S.txns.filter(t => isSpend(t) && t.kind !== "refund" && t.date >= ws && t.date <= upto).map(t => t.date));
+  /* loan and card instalments are not spending, so they don't break a no-spend day */
+  const spent = new Set(S.txns.filter(t => isSpend(t) && t.kind !== "refund" && t.date >= ws && t.date <= upto && catParts(t).some(p => groupOfCat(p.categoryId) !== "debt")).map(t => t.date));
   return { days, spent, free: days.filter(d => !spent.has(d)) };
 }
 /* Weeks in a row (finished weeks, newest first) that reached the no-spend goal */
@@ -2860,7 +2932,7 @@ function quickCard() {
     ${list.length ? `<div class="qgrid${list.length > 4 ? " scroll" : ""}">${list.map((q, i) => { const c = catColor(catById(q.categoryId)); return `<button type="button" class="qtile" data-quick="${i}" style="--c:${c}" ${S.dbOk ? "" : "disabled"}>
         <span class="q-ic" aria-hidden="true">${esc(QA_ICONS[String(q.label).toLowerCase()] || String(q.label).trim()[0] || "+").toUpperCase()}</span>
         <b>${esc(q.label)}</b><span class="num">${fmt(q.amount)}</span></button>`; }).join("")}</div>` : `<div class="small muted">Add buttons for cash you pay often, like parking or coffee.</div>`}
-    <button type="button" class="afford-btn" data-act="afford"><span class="act-ic" aria-hidden="true">?</span><span><b>Can I afford it?</b><span>Check a price before you buy</span></span><span class="chev" aria-hidden="true">›</span></button>
+    <div class="qtools"><button type="button" data-act="afford"><span aria-hidden="true">🤔</span>Afford it?</button><button type="button" id="slOpen"><span aria-hidden="true">🛒</span>List</button><button type="button" id="rcOpen"><span aria-hidden="true">🧾</span>Receipt</button><button type="button" id="jarAdd"><span aria-hidden="true">🫙</span>Skipped</button></div>
   </div>`;
 }
 function paydayBanner() {
@@ -2932,6 +3004,7 @@ function openAfford() {
       <div class="field"><span>What is it?</span><div class="chips" id="afCats">${S.cats.filter(c => (c.group || "need") !== "debt").map(c => `<label class="chip" style="--c:${catColor(c)}"><input type="radio" name="afcat" value="${esc(c.id)}"><span class="dot"></span>${esc(c.name)}</label>`).join("")}</div></div>
       <div class="field"><span>Paying with</span><div class="paychips">${payMethods().map(c => `<label class="paychip" style="--c:${cardColor(c)}"><input type="radio" name="afpay" value="${esc(c.id)}" ${c.id === fc ? "checked" : ""}><span class="pc-type">${c.type === "cash" ? "Cash" : c.type === "credit" ? "Credit" : "Bank"}</span><b>${c.type === "cash" ? "Cash" : c.last4 ? "•• " + esc(c.last4) : esc(c.name)}</b></label>`).join("")}</div></div>
       <div id="afOut"></div>
+      <button type="button" class="btn" id="afSkip" hidden>🫙 I'll skip it: put it in my saving jar</button>
     </div>`);
   $("#xClose").onclick = closeSheet;
   const run = () => {
@@ -2939,7 +3012,9 @@ function openAfford() {
     if (!amt) { out.innerHTML = `<div class="small muted" style="text-align:center">Type a price to see what it does to your plan.</div>`; return; }
     const catR = sheet.querySelector("input[name=afcat]:checked"), payR = sheet.querySelector("input[name=afpay]:checked");
     out.innerHTML = affordVerdict(amt, catR ? catR.value : "", payR ? payR.value : "");
+    $("#afSkip").hidden = false;
   };
+  $("#afSkip").onclick = () => { const c = catById((sheet.querySelector("input[name=afcat]:checked") || {}).value); openSkip({ amount: numIn($("#afAmt").value), name: c ? c.name : "" }); };
   sheet.oninput = sheet.onchange = run; run();
   setTimeout(() => { try { $("#afAmt").focus(); } catch {} }, 250);
 }
@@ -3070,9 +3145,9 @@ const scoreWord = s => s >= 85 ? "Excellent month" : s >= 70 ? "Good month" : s 
 function scoreCard(key) {
   const sc = monthScore(key), prev = monthScore(shiftMonth(key, -1)), hasPrev = periodData(shiftMonth(key, -1)).tx.length > 0;
   return `<div class="card score-card">
-    <div class="sc-top"><span class="score-ring" style="--s:${sc.score}"><b class="num">${sc.score}</b><small>of 100</small></span>
+    <div class="sc-top"><span class="score-ring" data-n style="--s:${sc.score}"><b class="num">${sc.score}</b><small>of 100</small></span>
       <div><div class="label">${key === curKey() ? "This month so far" : esc(pLabel(key))}</div><b class="sc-word">${esc(scoreWord(sc.score))}</b>${hasPrev ? `<span class="small muted">Last month: ${prev.score}${sc.score > prev.score ? " · you're beating it" : ""}</span>` : ""}</div></div>
-    <div class="sc-parts">${sc.parts.map(p => `<div><span>${esc(p.name)}<em>${esc(p.note)}</em></span><span class="sc-bar"><i style="width:${(p.got / p.max * 100).toFixed(0)}%"></i></span><b class="num">${Math.round(p.got)}/${p.max}</b></div>`).join("")}</div>
+    <details class="sc-how"><summary>How it's scored</summary><div class="sc-parts">${sc.parts.map(p => `<div><span>${esc(p.name)}<em>${esc(p.note)}</em></span><span class="sc-bar"><i style="width:${(p.got / p.max * 100).toFixed(0)}%"></i></span><b class="num">${Math.round(p.got)}/${p.max}</b></div>`).join("")}</div></details>
   </div>`;
 }
 
@@ -3111,8 +3186,7 @@ function badgesCard() {
   const lvl = Math.min(LEVELS.length - 1, Math.floor(n / 3)), next = (lvl + 1) * 3;
   return `<div class="card stack">
     <div class="row"><h2>Badges</h2><span class="small muted num">${n} of ${list.length}</span></div>
-    <div class="level"><span class="lv-n">Level ${lvl + 1}</span><b>${LEVELS[lvl]}</b>${lvl < LEVELS.length - 1 ? `<span class="small muted">${next - n} more badge${next - n === 1 ? "" : "s"} to ${LEVELS[lvl + 1]}</span>` : ""}<span class="cd-bar dark"><i style="width:${Math.min(100, (n - lvl * 3) / 3 * 100).toFixed(0)}%"></i></span></div>
-    <div class="badges">${list.map(b => `<div class="badge ${b.got ? "got" : ""}" title="${esc(b.how)}"><span class="b-ic" aria-hidden="true">${b.ic}</span><b>${esc(b.name)}</b><span>${esc(b.how)}</span></div>`).join("")}</div>
+    <div class="badges" data-n>${list.map(b => `<div class="badge ${b.got ? "got" : ""}" title="${esc(b.how)}"><span class="b-ic" aria-hidden="true">${b.ic}</span><b>${esc(b.name)}</b><span>${esc(b.how)}</span></div>`).join("")}</div>
   </div>`;
 }
 
@@ -3237,8 +3311,7 @@ function yearCard() {
 /* ---------- Ask Masarif ---------- */
 function askCard() {
   return `<div class="card ask">
-    <div class="row"><h2>Ask Masarif</h2></div>
-    <form id="askForm" class="ask-in"><input type="search" id="askQ" aria-label="Ask about a shop or category" placeholder="e.g. Talabat, fuel, Carrefour" autocomplete="off" enterkeyhint="search" value="${esc(S.askDraft ?? S.askQ ?? "")}"><button class="btn grad" type="submit">Ask</button></form>
+    <form id="askForm" class="ask-in"><input type="search" id="askQ" aria-label="Ask about a shop or category" placeholder="Ask about a shop or category" autocomplete="off" enterkeyhint="search" value="${esc(S.askDraft ?? S.askQ ?? "")}"><button class="btn grad" type="submit">Ask</button></form>
     <div class="chips sm">${["Talabat", "Fuel", "Dining", "Amazon"].map(x => `<button type="button" class="chip-q" data-askq="${esc(x)}">${esc(x)}</button>`).join("")}</div>
     <div id="askRes"></div>
   </div>`;
@@ -3408,40 +3481,34 @@ function catLimitsCard(d) {
 function renderInsights() {
   const key = S.month, d = periodData(key);
   let tab = "month"; try { tab = localStorage.getItem("masarif.insTab") || "month"; } catch {}
-  if (!["month", "patterns", "progress"].includes(tab)) tab = "month";
-  const seg = `<div class="seg" id="insSeg" role="group" aria-label="Insights section">${[["month", "Month"], ["patterns", "Patterns"], ["progress", "Progress"]].map(([k, l]) => `<button type="button" data-t="${k}" aria-pressed="${tab === k}">${l}</button>`).join("")}</div>`;
+  if (!["month", "patterns", "you", "progress"].includes(tab)) tab = "month";
+  const seg = `<div class="seg" id="insSeg" role="group" aria-label="Insights section">${[["month", "Month"], ["patterns", "Patterns"], ["you", "You"], ["progress", "Progress"]].map(([k, l]) => `<button type="button" data-t="${k}" aria-pressed="${tab === k}">${l}</button>`).join("")}</div>`;
   const ins = insights(key, d);
   const body = tab === "month" ? `
       ${scoreCard(key)}
-      ${personalityCard()}
-      ${smartCard(false)}
       ${claudeNotesCard()}
-      ${monthPlanCard(d)}
+      ${key === curKey() ? forecastCard() : ""}
       ${whereItWentCard(d)}
       ${catLimitsCard(d)}
-      ${compareCard(key, d)}
-      ${calendarCard(key)}
-      ${gapCard(false)}
-      ${deliveryCard(key)}
-      ${regretCard(key)}
-      <div class="card stack"><h2>What to watch</h2><ul class="ins">${ins.map(i => `<li class="${i.t}">${esc(i.x)}</li>`).join("")}</ul></div>`
+      ${sec("m-more", "More about this month", "Story, calendar, suggestions", () => `${storyCard(key)}${monthPlanCard(d)}${smartCard(false)}${compareCard(key, d)}${calendarCard(key)}${gapCard(false)}${deliveryCard(key)}${regretCard(key)}<div class="card stack"><h2>What to watch</h2><ul class="ins">${ins.map(i => `<li class="${i.t}">${esc(i.x)}</li>`).join("")}</ul></div>`)}`
     : tab === "patterns" ? `
-      ${rhythmCard()}
-      ${typicalDayCard()}
-      ${hourCard()}
-      ${priceHikeCard()}
-      ${groceryCard()}
-      ${priceTrackerCard()}
-      ${peopleCard()}
       ${trendCard()}
-      ${byCardCard(d)}
+      ${rhythmCard()}
+      ${hourCard()}
+      ${sec("p-more", "More patterns", "Typical day, prices, people, cards", () => `${typicalDayCard()}${priceHikeCard()}${groceryCard()}${priceTrackerCard()}${peopleCard()}${byCardCard(d)}`)}
       <button type="button" class="more-link" id="stmtBtn"><span><b>Check your card statement</b><span>Compare the bank's total with Masarif</span></span><span aria-hidden="true">›</span></button>`
+    : tab === "you" ? `
+      ${personalityCard()}
+      ${speedGauge()}
+      ${triggersCard()}
+      ${youVsCard()}
+      ${sec("y-more", "More about you", "DNA, weak days, impulse, mood", () => `${dnaCard()}${paydayEffectCard()}${weakDaysCard()}${impulseCard()}${moodCard()}${socialCard()}${hiddenCatsCard()}`)}`
     : `
-      ${countdownStrip()}
-      ${treatProgressCard()}
-      ${inflationCard()}
-      ${badgesCard()}
-      ${yearCard()}`;
+      ${todayStr().slice(5, 7) === "12" ? yearNumbersCard() : ""}
+      ${levelCard()}
+      ${streaksCard()}
+      ${jarCard()}
+      ${sec("g-more", "More progress", "Treats, badges, year, inflation", () => `${treatProgressCard()}${countdownStrip()}${beforeAfterCard()}${todayStr().slice(5, 7) === "12" ? "" : yearNumbersCard()}${badgesCard()}${yearCard()}${inflationCard()}`)}`;
   main.innerHTML = `<section class="view">${statusNote()}${askCard()}${seg}${body}</section>`;
   wireAsk();
   $("#insSeg").onclick = e => { const b = e.target.closest("button[data-t]"); if (!b) return; try { localStorage.setItem("masarif.insTab", b.dataset.t); } catch {} render(true); };
@@ -3484,12 +3551,7 @@ function renderMore() {
       ${row("", "≡", "Check card statement", "Compare the bank's total with Masarif", "mStmt")}
       ${row("", "+", "Quick add buttons", quickList().map(q => q.label).join(", ") || "None", "mQuick")}
     </div>
-    ${faceIdCard()}
-    <div class="card stack">
-      <div class="row"><h2>Bank statement check</h2></div>
-      <div class="small muted">Every <b>Friday</b>, download the last 7 days' statement from the CIB app as a PDF and save it to the Google Drive folder <b>Masarif statements</b> (Home shows the steps on Friday and reminds you until Monday). The next morning Claude compares every line with Masarif and shows any difference on Home.</div>
-      ${statementsList()}
-    </div>
+    ${sec("s-help", "Spending helpers", "Emergency, allowance, challenge", () => `
     <div class="card stack">
       <div class="row"><h2>Emergency mode</h2><button type="button" class="btn ${emergencyOn() ? "danger" : ""}" data-emerg="${emergencyOn() ? "off" : "on"}">${emergencyOn() ? "Turn off" : "Turn on"}</button></div>
       <div class="small muted">For tight weeks: Home shows only your strict daily amount and the essentials, and "Can I afford it?" says no to wants until payday.</div>
@@ -3500,15 +3562,9 @@ function renderMore() {
       <label class="field"><span>Each day</span><div class="affix"><input type="text" inputmode="decimal" id="alAmt" value="${allowAmt() ? fmtIn(allowAmt()) : ""}" placeholder="${fmtIn(Math.floor((+settings().weekLimit || 0) / 7 / 10) * 10)}"><span>EGP</span></div></label>
     </div>
     <div class="card stack">
-      <div class="row"><h2>Safety checks</h2></div>
-      <div class="row"><span><b>I only pay by card with Apple Pay</b><br><span class="small muted">Any card purchase without Apple Pay asks "Was this you?" Online and foreign-currency ones always do.</span></span><button type="button" class="tgl" id="apOnly" role="switch" aria-checked="${settings().applePayOnly !== false}" aria-label="I only pay with Apple Pay"><i></i></button></div>
-      <div class="row"><span><b>Use my location for categories</b><br><span class="small muted">When you add a purchase, Masarif suggests the shop and category you used at the same place before. Location stays in your Google Sheet.</span></span><button type="button" class="tgl" id="locOn" role="switch" aria-checked="${locOn()}" aria-label="Use my location"><i></i></button></div>
-    </div>
-    <div class="card stack">
-      <div class="row"><h2>Ignored bank texts</h2></div>
-      <div class="small muted">Texts containing any of these are skipped, never added as purchases or money in. Use it for other banks or accounts, like your ALEXBANK salary account (19033 is ALEXBANK's number in its texts).</div>
-      <div class="chips" id="igList">${ignoreList().map((k, i) => `<button type="button" class="chip-x" data-igdel="${i}" aria-label="Stop ignoring ${esc(k)}">${esc(k)} ×</button>`).join("") || `<span class="small muted">Nothing ignored.</span>`}</div>
-      <form id="igForm" class="ask-in"><input type="text" id="igNew" placeholder="e.g. an account number or bank name" aria-label="Text to ignore" autocomplete="off"><button class="btn" type="submit">Add</button></form>
+      <div class="row"><h2>No-spend challenge</h2><span class="small muted">${challengeStreak() ? `🔥 ${plural(challengeStreak(), "week")} in a row` : ""}</span></div>
+      <div class="small muted">How many days a week with no spending at all? The "This week" card on Home tracks it.</div>
+      <div class="seg" id="nsGoal">${[0, 1, 2, 3, 4].map(n => `<button type="button" data-n="${n}" aria-pressed="${goal === n}">${n === 0 ? "Off" : n}</button>`).join("")}</div>
     </div>
     <div class="card stack">
       <div class="row"><h2>Round-ups</h2></div>
@@ -3519,24 +3575,38 @@ function renderMore() {
       <div class="row"><h2>Hours of work</h2></div>
       <div class="small muted">Prices are also shown as time at work. Your salary ÷ hours you work a month = ${hourly() ? money(hourly()) + " an hour" : "add your salary in Settings"}.</div>
       <label class="field"><span>Hours you work a month</span><input type="number" inputmode="numeric" id="whrs" value="${+settings().workHours || 176}" min="40" max="400"></label>
+    </div>`)}
+    ${sec("s-safe", "Privacy & safety", "Face ID, Apple Pay, location", () => `${faceIdCard()}
+    <div class="card stack">
+      <div class="row"><h2>Safety checks</h2></div>
+      <div class="row"><span><b>I only pay by card with Apple Pay</b><br><span class="small muted">Any card purchase without Apple Pay asks "Was this you?" Online and foreign-currency ones always do.</span></span><button type="button" class="tgl" id="apOnly" role="switch" aria-checked="${settings().applePayOnly !== false}" aria-label="Only Apple Pay"><i></i></button></div>
+      <div class="row"><span><b>Use my location for categories</b><br><span class="small muted">When you add a purchase, Masarif suggests the shop and category you used at the same place before. Location stays in your Google Sheet.</span></span><button type="button" class="tgl" id="locOn" role="switch" aria-checked="${locOn()}" aria-label="Use location"><i></i></button></div>
+    </div>`)}
+    ${sec("s-bank", "Bank texts & statements", "Statement check, ignored texts", () => `
+    <div class="card stack">
+      <div class="row"><h2>Bank statement check</h2></div>
+      <div class="small muted">Every <b>Friday</b>, download the last 7 days' statement from the CIB app as a PDF and save it to the Google Drive folder <b>Masarif statements</b> (Home shows the steps on Friday and reminds you until Monday). The next morning Claude compares every line with Masarif and shows any difference on Home.</div>
+      ${statementsList()}
     </div>
     <div class="card stack">
-      <div class="row"><h2>No-spend challenge</h2><span class="small muted">${challengeStreak() ? `🔥 ${plural(challengeStreak(), "week")} in a row` : ""}</span></div>
-      <div class="small muted">How many days a week with no spending at all? The "This week" card on Home tracks it.</div>
-      <div class="seg" id="nsGoal">${[0, 1, 2, 3, 4].map(n => `<button type="button" data-n="${n}" aria-pressed="${goal === n}">${n === 0 ? "Off" : n}</button>`).join("")}</div>
+      <div class="row"><h2>Ignored bank texts</h2></div>
+      <div class="small muted" data-n>Texts containing any of these are skipped, never added as purchases or money in. Use it for other banks or accounts, like your ALEXBANK salary account (19033 is ALEXBANK's number in its texts).</div>
+      <div class="chips" id="igList" data-n>${ignoreList().map((k, i) => `<button type="button" class="chip-x" data-igdel="${i}" aria-label="Stop ignoring ${esc(k)}">${esc(k)} ×</button>`).join("") || `<span class="small muted">Nothing ignored.</span>`}</div>
+      <form id="igForm" class="ask-in"><input type="text" id="igNew" placeholder="e.g. an account number or bank name" aria-label="Text to ignore" autocomplete="off"><button class="btn" type="submit">Add</button></form>
     </div>
+    `)}
   </section>`;
   wireFaceId();
-  $("#alOn").onclick = async () => { try { await patchSettings({ allowance: Object.assign({}, allowCfg(), { on: !allowCfg().on }) }); render(true); toast(allowCfg().on ? "Daily allowance on: see it on Home" : "Daily allowance off"); } catch {} };
-  $("#alAmt").onchange = async e => { try { await patchSettings({ allowance: Object.assign({}, allowCfg(), { amount: numIn(e.target.value) }) }); render(true); } catch {} };
-  $("#apOnly").onclick = async () => { try { await patchSettings({ applePayOnly: settings().applePayOnly === false }); render(true); } catch {} };
-  $("#locOn").onclick = async () => { const on = !locOn(); if (on) { const l = await getLoc(); if (!l) { toast("Allow location for Masarif in iPhone Settings first"); return; } } try { await patchSettings({ useLocation: on }); render(true); } catch {} };
-  $("#igForm").onsubmit = async e => { e.preventDefault(); const v = $("#igNew").value.trim(); if (!v) return; try { await patchSettings({ ignoreTexts: ignoreList().filter(x => x !== v).concat(v) }); toast(`Texts with "${v}" will be skipped`); render(true); } catch {} };
-  $("#igList").onclick = async e => { const b = e.target.closest("[data-igdel]"); if (!b) return; try { await patchSettings({ ignoreTexts: ignoreList().filter((x, i) => i !== +b.dataset.igdel) }); render(true); } catch {} };
-  $("#ruTo").onclick = async e => { const b = e.target.closest("button[data-n]"); if (!b) return; const doc = Object.assign({}, S.settings || {}, { roundUp: { to: +b.dataset.n } }); try { await db.doc("settings/main").set(doc); S.settings = doc; render(true); } catch {} };
-  $("#whrs").onchange = async e => { const v = Math.max(40, Math.min(400, +e.target.value || 176)); const doc = Object.assign({}, S.settings || {}, { workHours: v }); try { await db.doc("settings/main").set(doc); S.settings = doc; render(true); } catch {} };
-  $("#mPayday").onclick = openPayday; $("#mAfford").onclick = openAfford; $("#mStmt").onclick = openStatementCheck; $("#mQuick").onclick = openQuickEdit;
-  $("#nsGoal").onclick = async e => { const b = e.target.closest("button[data-n]"); if (!b) return; const doc = Object.assign({}, S.settings || {}, { challenge: { noSpend: +b.dataset.n } }); try { await db.doc("settings/main").set(doc); S.settings = doc; render(true); } catch {} };
+  ($("#alOn") || {}).onclick = async () => { try { await patchSettings({ allowance: Object.assign({}, allowCfg(), { on: !allowCfg().on }) }); render(true); toast(allowCfg().on ? "Daily allowance on: see it on Home" : "Daily allowance off"); } catch {} };
+  ($("#alAmt") || {}).onchange = async e => { try { await patchSettings({ allowance: Object.assign({}, allowCfg(), { amount: numIn(e.target.value) }) }); render(true); } catch {} };
+  ($("#apOnly") || {}).onclick = async () => { try { await patchSettings({ applePayOnly: settings().applePayOnly === false }); render(true); } catch {} };
+  ($("#locOn") || {}).onclick = async () => { const on = !locOn(); if (on) { const l = await getLoc(); if (!l) { toast("Allow location for Masarif in iPhone Settings first"); return; } } try { await patchSettings({ useLocation: on }); render(true); } catch {} };
+  ($("#igForm") || {}).onsubmit = async e => { e.preventDefault(); const v = $("#igNew").value.trim(); if (!v) return; try { await patchSettings({ ignoreTexts: ignoreList().filter(x => x !== v).concat(v) }); toast(`Texts with "${v}" will be skipped`); render(true); } catch {} };
+  ($("#igList") || {}).onclick = async e => { const b = e.target.closest("[data-igdel]"); if (!b) return; try { await patchSettings({ ignoreTexts: ignoreList().filter((x, i) => i !== +b.dataset.igdel) }); render(true); } catch {} };
+  ($("#ruTo") || {}).onclick = async e => { const b = e.target.closest("button[data-n]"); if (!b) return; const doc = Object.assign({}, S.settings || {}, { roundUp: { to: +b.dataset.n } }); try { await db.doc("settings/main").set(doc); S.settings = doc; render(true); } catch {} };
+  ($("#whrs") || {}).onchange = async e => { const v = Math.max(40, Math.min(400, +e.target.value || 176)); const doc = Object.assign({}, S.settings || {}, { workHours: v }); try { await db.doc("settings/main").set(doc); S.settings = doc; render(true); } catch {} };
+  ($("#mPayday") || {}).onclick = openPayday; ($("#mAfford") || {}).onclick = openAfford; ($("#mStmt") || {}).onclick = openStatementCheck; ($("#mQuick") || {}).onclick = openQuickEdit;
+  ($("#nsGoal") || {}).onclick = async e => { const b = e.target.closest("button[data-n]"); if (!b) return; const doc = Object.assign({}, S.settings || {}, { challenge: { noSpend: +b.dataset.n } }); try { await db.doc("settings/main").set(doc); S.settings = doc; render(true); } catch {} };
 }
 
 /* ====================================================================
@@ -3957,7 +4027,7 @@ function seasonHomeCard() {
   const today = todayStr(), s = (S.seasons || []).find(x => today >= x.from && today <= x.to); if (!s) return "";
   const sp = seasonSpent(s), b = +s.budget || 0, left = b - sp, dl = daysDiff(today, s.to) + 1;
   return `<div class="card stack season">
-    <div class="row"><h2>🌙 ${esc(s.name)}</h2><span class="small muted">${plural(dl, "day")} left</span></div>
+    <div class="row"><h2>${esc(s.name)}</h2><span class="small muted">${plural(dl, "day")} left</span></div>
     ${b ? `<div class="row"><b class="big-out num ${left < 0 ? "badtxt" : ""}">${money(Math.abs(left))}</b><span class="small muted">${left < 0 ? "over the season budget" : "left of " + money(b)}</span></div><div class="bar" style="--c:#7C3AED"><i class="${left < 0 ? "over" : ""}" style="width:${Math.min(100, pct(sp, b))}%"></i></div>` : `<div class="small muted">Spent ${money(sp)} so far.</div>`}
     <div class="small muted">Season purchases don't count toward your weekly limit.</div>
   </div>`;
@@ -4087,6 +4157,7 @@ function winsList() {
     ws = addDays(ws, -7); if (wkEnd(ws) < since || wkEnd(ws) < first) break;
     if (lim && spendBetween(ws, wkEnd(ws)) <= lim) out.push({ id: "wk_" + ws, text: `Under the weekly limit (week of ${dayLabel(ws)})` });
     if (goal && noSpendDays(ws, wkEnd(ws)).free.length >= goal) out.push({ id: "ns_" + ws, text: `${goal} no-spend days (week of ${dayLabel(ws)})` });
+    if (typeof missionState === "function") { const ms = missionState(ws); if (ms && ms.done) out.push({ id: "mi_" + ws, text: `Mission done: ${ms.m.title}` }); }
   }
   for (let k = shiftMonth(curKey(), -1), i = 0; i < 6; k = shiftMonth(k, -1), i++) {
     if (pEndStr(k) < since || periodData(k).tx.length < 10) break;
@@ -4104,9 +4175,8 @@ function treatState() {
 function treatCard() {
   const s = treatState(); if (!s.ready) return "";
   return `<div class="card stack treat">
-    <div class="row"><h2>🎉 Treat unlocked!</h2><span class="small muted">${plural(s.wins.length, "win")}</span></div>
+    <div class="row"><h2>Treat unlocked!</h2><span class="small muted">${plural(s.wins.length, "win")}</span></div>
     <div>You earned it: <b>${esc(s.c.name)}</b>${s.c.budget ? ` (up to ${money(s.c.budget)})` : ""}. It won't count against your weekly limit.</div>
-    <div class="small muted">Latest wins: ${s.wins.slice(0, 3).map(w => esc(w.text)).join(" · ")}</div>
     <div class="btns"><button type="button" class="btn grad" id="treatUse">Log my treat</button><button type="button" class="btn" id="treatEdit">Change the treat</button></div>
   </div>`;
 }
@@ -4248,9 +4318,9 @@ function deliveryStats(key) {
 }
 function deliveryCard(key) {
   const d = deliveryStats(key);
-  if (!d.n && !d.prevN) return `<div class="card stack"><h2>🛵 Delivery</h2><div class="small muted">Talabat, elmenus and other delivery orders show up here with a no-delivery streak.</div></div>`;
+  if (!d.n && !d.prevN) return `<div class="card stack"><h2>Delivery</h2><div class="small muted">Talabat, elmenus and other delivery orders show up here with a no-delivery streak.</div></div>`;
   return `<div class="card stack">
-    <div class="row"><h2>🛵 Delivery</h2><span class="small muted">this month</span></div>
+    <div class="row"><h2>Delivery</h2><span class="small muted">this month</span></div>
     <div class="kpis"><div class="kpi"><span>Orders</span><b class="num">${d.n}</b></div><div class="kpi"><span>Spent</span><b class="num">${fmt(d.total)}</b></div><div class="kpi"><span>Average</span><b class="num">${fmt(d.avg)}</b></div></div>
     <div class="small">${d.streak === null ? "" : d.streak >= 1 ? `🔥 <b>${plural(d.streak, "day")}</b> without delivery.` : "Ordered today."} Last month: ${plural(d.prevN, "order")}, ${money(d.prevTotal)}.</div>
     ${d.n >= 4 ? `<div class="note">Cooking 2 of these instead would save about ${money(d.avg * 2 * 0.6)} a month (home cooking costs roughly 40% of delivery).</div>` : ""}
@@ -4285,9 +4355,9 @@ function groceryPrices() {
 }
 function groceryCard() {
   const g = groceryPrices();
-  if (!g.items) return `<div class="card stack"><h2>🛒 Grocery prices</h2><div class="small muted">When order emails (Breadfast, Talabat Mart, Carrefour, Amazon…) come in, Claude saves the items. After the same item is bought twice, this shows price rises and the cheapest shop.</div></div>`;
+  if (!g.items) return `<div class="card stack"><h2>Grocery prices</h2><div class="small muted">When order emails (Breadfast, Talabat Mart, Carrefour, Amazon…) come in, Claude saves the items. After the same item is bought twice, this shows price rises and the cheapest shop.</div></div>`;
   return `<div class="card stack">
-    <div class="row"><h2>🛒 Grocery prices</h2><span class="small muted">${plural(g.items, "item")} tracked</span></div>
+    <div class="row"><h2>Grocery prices</h2><span class="small muted">${plural(g.items, "item")} tracked</span></div>
     ${g.up.length ? g.up.slice(0, 5).map(x => `<div class="gp"><span>${esc(x.name)}</span><span class="num">${fmt(x.from)} → <b class="badtxt">${fmt(x.to)}</b> <em>+${x.pct}%</em></span></div>`).join("") : `<div class="small muted">No price rises on items you bought twice. 👍</div>`}
     ${g.cheaper.slice(0, 3).map(x => `<div class="note ok">${esc(x.name)} was ${money(x.p)} at ${esc(x.shop)}, ${money(x.now - x.p)} cheaper than last time.</div>`).join("")}
   </div>`;
@@ -4307,11 +4377,11 @@ function carState() {
 }
 function carCard() {
   const s = carState();
-  if (s.none) return `<div class="card stack"><h2>🔧 Car service</h2><div class="small muted">Add the odometer (km) when you open a fuel purchase. Masarif then reminds you every ${fmt(carCfg().every)} km.</div><button type="button" class="btn" id="carSet">Enter my last service</button></div>`;
-  if (!s.set) return `<div class="card stack"><h2>🔧 Car service</h2><div class="small muted">Your car is at about ${fmt(s.nowKm)} km. When was the last oil change and service?</div><button type="button" class="btn grad" id="carSet">Enter my last service</button></div>`;
+  if (s.none) return `<div class="card stack"><h2>Car service</h2><div class="small muted">Add the odometer (km) when you open a fuel purchase. Masarif then reminds you every ${fmt(carCfg().every)} km.</div><button type="button" class="btn" id="carSet">Enter my last service</button></div>`;
+  if (!s.set) return `<div class="card stack"><h2>Car service</h2><div class="small muted">Your car is at about ${fmt(s.nowKm)} km. When was the last oil change and service?</div><button type="button" class="btn grad" id="carSet">Enter my last service</button></div>`;
   const pc = Math.max(0, Math.min(100, 100 - s.left / s.c.every * 100));
   return `<div class="card stack">
-    <div class="row"><h2>🔧 Car service</h2><button type="button" class="link-btn" id="carSet">Edit</button></div>
+    <div class="row"><h2>Car service</h2><button type="button" class="link-btn" id="carSet">Edit</button></div>
     <div class="row"><b class="num ${s.left <= 0 ? "badtxt" : ""}">${s.left <= 0 ? `${fmt(-s.left)} km overdue` : `${fmt(s.left)} km to go`}</b><span class="small muted">next at ${fmt(s.next)} km</span></div>
     <div class="bar" style="--c:${s.left <= 800 ? "#DC2626" : "#0EA5E9"}"><i style="width:${pc.toFixed(0)}%"></i></div>
     <div class="small muted">Now about ${fmt(s.nowKm)} km${s.days !== null && s.left > 0 ? ` · around ${toDate(addDays(todayStr(), Math.round(s.days))).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} at your pace (${fmt(s.perDay * 30)} km a month)` : ""}. Every ${fmt(s.c.every)} km.</div>
@@ -4337,12 +4407,12 @@ function inflationCard() {
   const cur = curKey(), full = shiftMonth(cur, -1);
   const months = []; for (let k = full, i = 0; i < 13; k = shiftMonth(k, -1), i++) { const d = periodData(k); if (d.tx.length >= 10) months.push({ k, spend: d.spend }); }
   const r = inflRate();
-  if (months.length < 2) return `<div class="card stack"><h2>📈 After inflation</h2><div class="small muted">After a few full months, this compares your spending in today's prices (inflation ${(r * 100).toFixed(1)}% a year).</div></div>`;
+  if (months.length < 2) return `<div class="card stack"><h2>After inflation</h2><div class="small muted">After a few full months, this compares your spending in today's prices (inflation ${(r * 100).toFixed(1)}% a year).</div></div>`;
   const a = months[0], yearAgo = months.find(m => shiftMonth(m.k, 12) === a.k), b = yearAgo || months[months.length - 1];
   let gap = 0; for (let k = b.k; k !== a.k && gap < 24; k = shiftMonth(k, 1)) gap++;
   const factor = Math.pow(1 + r, gap / 12), bReal = b.spend * factor, nominal = pct(a.spend - b.spend, b.spend), real = pct(a.spend - bReal, bReal);
   return `<div class="card stack">
-    <div class="row"><h2>📈 After inflation</h2><button type="button" class="link-btn" id="inflEdit">${(r * 100).toFixed(1)}% a year</button></div>
+    <div class="row"><h2>After inflation</h2><button type="button" class="link-btn" id="inflEdit">${(r * 100).toFixed(1)}% a year</button></div>
     <div class="cmp2"><div><span>${esc(pLabel(b.k))}</span><b class="num">${fmt(b.spend)}</b><em>= ${fmt(bReal)} in today's prices</em></div><div><span>${esc(pLabel(a.k))}</span><b class="num">${fmt(a.spend)}</b></div></div>
     <div class="note ${real <= 0 ? "ok" : ""}">${real <= 0 ? `On paper you spent ${nominal > 0 ? nominal + "% more" : nominal < 0 ? -nominal + "% less" : "the same"}, but in real terms that's <b>${-real}% less</b>. Prices rose about ${pct(factor - 1, 1)}% in between.` : `Even after prices rose about ${pct(factor - 1, 1)}%, you spent <b>${real}% more</b> in real terms.`}</div>
     <div class="small muted">Urban inflation from CAPMAS. Tap the rate to update it each month.</div>
@@ -4394,7 +4464,7 @@ function gapCard(home) {
   if (home && (small || dismissed("gap_" + g.B.d + g.B.t))) return "";
   const per = `${dayLabel(g.A.d)} → ${dayLabel(g.B.d)}`;
   return `<div class="card stack gap ${small ? "" : "warn"}">
-    <div class="row"><h2>🔎 Where did it go?</h2><span class="small muted">${esc(per)}</span></div>
+    <div class="row"><h2>Where did it go?</h2><span class="small muted">${esc(per)}</span></div>
     ${small ? `<div class="note ok">Everything adds up: Masarif saw all the money that moved (within ${money(Math.abs(g.gap))}). 👍</div>`
       : g.gap > 0 ? `<div><b class="badtxt">${money(g.gap)}</b> left your account that Masarif didn't see.</div>
         <div class="small muted">Usual reasons: cash from an ATM, InstaPay or transfers without a text, bank fees, or a purchase whose text didn't reach the shortcut.</div>
@@ -4419,7 +4489,7 @@ function hourCard() {
   const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], tc = Object.entries(combo).sort((a, b) => b[1] - a[1])[0];
   const hl = h => `${(h % 12) || 12}${h < 12 ? "am" : "pm"}`;
   return `<div class="card stack">
-    <div class="row"><h2>⏰ Time of day</h2><span class="small muted">last 90 days</span></div>
+    <div class="row"><h2>Time of day</h2><span class="small muted">last 90 days</span></div>
     <div class="hours" role="img" aria-label="Spending by hour">${order.map(h => `<span title="${hl(h)}: ${money(hrs[h])}" style="height:${Math.max(3, hrs[h] / max * 100).toFixed(0)}%" class="${h === top ? "top" : ""}"></span>`).join("")}</div>
     <div class="hours-l small muted"><span>6am</span><span>noon</span><span>6pm</span><span>midnight</span></div>
     <div class="note">Your most expensive hour is <b>${hl(top)}–${hl((top + 1) % 24)}</b> (${money(hrs[top] / 13)} a week on average)${tc ? `, and the peak of the week is <b>${days[+tc[0].split("_")[0]]} at ${hl(+tc[0].split("_")[1])}</b>` : ""}.</div>
@@ -4478,7 +4548,7 @@ function checkCard() {
   }
   if (!list.length) return "";
   return `<div class="card stack checks">
-    <div class="row"><h2>⚠️ Was this you?</h2><span class="small muted">${plural(list.length, "purchase")}</span></div>
+    <div class="row"><h2>Was this you?</h2><span class="small muted">${plural(list.length, "purchase")}</span></div>
     ${list.slice(0, 3).map(x => `<div class="ck"><div class="small">${x.text} <span class="muted">${esc(shortDay(x.t.date))}${x.t.time ? " · " + esc(x.t.time) : ""}</span></div><div class="si-btns"><button type="button" class="btn sm-btn" data-ckok="${esc(x.t.id)}" data-ck="${x.kind}">Yes, it was me</button>${x.kind === "cnp" ? `<button type="button" class="btn sm-btn danger" data-cknot>No, it wasn't</button>` : `<button type="button" class="btn sm-btn" data-ckopen="${esc(x.t.id)}">Check it</button>`}</div></div>`).join("")}
   </div>`;
 }
@@ -4532,7 +4602,7 @@ function priceHikes() {
 function priceHikeCard() {
   const h = priceHikes(); if (!h.length) return "";
   return `<div class="card stack">
-    <div class="row"><h2>💹 Prices that went up</h2><span class="small muted">regular shops</span></div>
+    <div class="row"><h2>Prices that went up</h2><span class="small muted">regular shops</span></div>
     ${h.slice(0, 5).map(x => `<div class="gp"><span>${esc(x.name)}</span><span class="num">${fmt(x.from)} → <b class="badtxt">${fmt(x.to)}</b> <em>+${x.pct}%</em></span></div><div class="small muted" style="margin-top:-6px">About ${money(x.yearly)} more a year at this pace.</div>`).join("")}
   </div>`;
 }
@@ -4603,7 +4673,7 @@ function paydayPlanCard() {
   const card = cardNow().now > 0 ? +settings().card.payment || 0 : 0;
   const rows = []; for (let i = 0; i < days; i++) { const d = addDays(today, i); rows.push(`<div class="pdd ${i === 0 ? "now" : ""}"><span>${i === 0 ? "Today" : esc(shortDay(d))}</span><b class="num">${money(per)}</b>${i === 0 ? `<em>${spentToday ? "spent " + fmt(spentToday) : "nothing spent yet"}</em>` : ""}</div>`); }
   return `<div class="card stack pdplan">
-    <div class="row"><h2>⏳ ${plural(days, "day")} to payday</h2><span class="small muted">${esc(shortDay(pay))}</span></div>
+    <div class="row"><h2>${plural(days, "day")} to payday</h2><span class="small muted">${esc(shortDay(pay))}</span></div>
     <div class="pdd-list">${rows.join("")}</div>
     <div class="small muted">On payday: salary in ${money(+settings().salary || 0)}${next.length || card ? `, then ${next.map(b => `${esc(b.name)} ${fmt(b.amount)}`).join(", ")}${card ? `${next.length ? ", " : ""}card ${fmt(card)}` : ""}` : ""}.</div>
   </div>`;
@@ -4659,7 +4729,7 @@ main.addEventListener("click", async e => {
 /* ---------- Home: only the 2 most important nudges, the rest one tap away ---------- */
 let showAllNudges = false;
 function homeNudges(d) {
-  const list = [stmtBanner(), salaryBanner() || paydayBanner(), homeAlerts(d), stmtDueCard(), extraCard(), treatCard(), leftoverCard(), worthPrompt(), gapCard(true), carHome(), subAuditHome(), deliveryHome(), smartCard(true)].filter(x => x && x.trim());
+  const list = [stmtBanner(), salaryBanner() || paydayBanner(), homeAlerts(d), stmtDueCard(), extraCard(), treatCard(), leftoverCard(), gapCard(true), carHome(), subAuditHome(), deliveryHome(), worthPrompt(), moodHome(), earlyHome(), rebalanceHome(), weakDayHome(), needCheckHome(), seasonalHome(), roundGoalHome(), yearHome(), smartCard(true)].filter(x => x && x.trim());
   if (list.length <= 2) return list.join("");
   const rest = list.slice(2);
   return list.slice(0, 2).join("") + (showAllNudges ? rest.join("") + `<button type="button" class="nudge-more" data-nudges="less">Show less</button>`
@@ -4798,6 +4868,628 @@ function acctHeader(v) {
     <b class="ah-big num">${money(sum("expense") - sum("refund"))}</b><div class="ah-kpis"><span>${plural(list.filter(t => t.kind === "expense").length, "purchase")}</span>${c && c.type !== "cash" ? `<span class="muted"></span>` : ""}</div></div>`;
 }
 
+/* ====================================================================
+   Round 7: understand your behaviour + plans that adapt
+   ==================================================================== */
+
+/* ---------- shared ---------- */
+const dailySpend = (from, to) => { const m = {}; for (const t of S.txns) { if (!isSpend(t) || t.date < from || t.date > to) continue; let v = 0; for (const p of catParts(t)) if (groupOfCat(p.categoryId) !== "debt") v += p.v; m[t.date] = (m[t.date] || 0) + v; } return m; };
+const daysBetween = (a, b) => { const out = []; for (let d = a; d <= b; d = addDays(d, 1)) out.push(d); return out; };
+const firstTxDate = () => S.txns.filter(isSpend).map(t => t.date).sort()[0] || null;
+const fullMonths = (n = 3) => { const out = []; for (let k = shiftMonth(curKey(), -1), i = 0; i < 12 && out.length < n; k = shiftMonth(k, -1), i++) { const d = periodData(k); if (d.tx.length >= 10) out.push({ k, d }); } return out; };
+const spendCats = () => S.cats.filter(c => (c.group || "need") !== "debt");
+const r100 = v => Math.round(v / 100) * 100;
+const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+const hourOf = t => t.time ? +t.time.slice(0, 2) : null;
+const WD = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const wdOf = ds => (toDate(ds).getDay() + 1) % 7;
+const elapsedDays = key => Math.max(1, Math.min(daysDiff(pStart(key), todayStr()) + 1, daysDiff(pStart(key), pNext(key))));
+const periodLen = key => daysDiff(pStart(key), pNext(key));
+
+/* ====================================================================
+   Simple layout: collapsible sections. Closed sections don't even build their cards.
+   ==================================================================== */
+const SEC_KEY = "masarif.sec";
+const secState = () => { try { return JSON.parse(localStorage.getItem(SEC_KEY) || "{}"); } catch { return {}; } };
+function sec(id, title, sub, body, defOpen) {
+  const st = secState(), open = st[id] === undefined ? !!defOpen : !!st[id];
+  const inner = open ? (typeof body === "function" ? body() : body) : "";
+  if (open && !String(inner).trim()) return "";
+  return `<div class="sec${open ? " open" : ""}"><button type="button" class="sec-h" data-sect="${id}" aria-expanded="${open}"><span class="sec-t"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</span><span class="sec-c" aria-hidden="true">›</span></button>${open ? `<div class="sec-b">${inner}</div>` : ""}</div>`;
+}
+main.addEventListener("click", e => { const b = e.target.closest("[data-sect]"); if (!b) return; const st = secState(); st[b.dataset.sect] = b.getAttribute("aria-expanded") !== "true"; try { localStorage.setItem(SEC_KEY, JSON.stringify(st)); } catch {} render(true); });
+
+/* ---------- 1. spending triggers ---------- */
+function triggers() {
+  const to = addDays(todayStr(), -1), from = addDays(to, -89); const f = firstTxDate(); if (!f) return [];
+  const start = f > from ? f : from, days = daysBetween(start, to); if (days.length < 21) return [];
+  const sp = dailySpend(start, to), base = avg(days.map(d => sp[d] || 0)) || 1, out = [];
+  const after0 = days.slice(1).filter((d, i) => !(sp[days[i]] > 0)).map(d => sp[d] || 0);
+  if (after0.length >= 4 && avg(after0) > base * 1.25) out.push({ r: avg(after0) / base, t: `After a day with no spending, the next day averages ${money(avg(after0))} (your usual day is ${money(base)}).`, fix: "Plan the day after a no-spend day: decide one treat in advance instead of making up for it." });
+  const bigDays = days.filter(d => S.txns.some(t => isSpend(t) && t.kind === "expense" && t.date === d && +t.amount >= 1000 && groupOf(t) === "want"));
+  const afterBig = bigDays.map(d => (sp[addDays(d, 1)] || 0) + (sp[addDays(d, 2)] || 0)).map(v => v / 2);
+  if (afterBig.length >= 3 && avg(afterBig) > base * 1.25) out.push({ r: avg(afterBig) / base, t: `A big "want" is usually followed by 2 more expensive days (${money(avg(afterBig))} a day).`, fix: "After a big buy, switch to essentials-only for 2 days." });
+  const eve = (wd, l) => days.filter(d => wdOf(d) === wd).map(d => S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date === d && hourOf(t) >= 18).reduce((a, t) => a + (+t.amount || 0), 0));
+  const evAll = days.map(d => S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date === d && hourOf(t) >= 18).reduce((a, t) => a + (+t.amount || 0), 0)), evBase = avg(evAll) || 1;
+  let best = null; for (let w = 0; w < 7; w++) { const v = avg(eve(w)); if (!best || v > best.v) best = { w, v }; }
+  if (best && best.v > evBase * 1.4) out.push({ r: best.v / evBase, t: `${WD[best.w]} evenings are your most expensive (${money(best.v)} on average after 6 pm).`, fix: `Plan ${WD[best.w]} evenings ahead with a set amount.` });
+  const incomes = S.txns.filter(t => !t.deleted && t.kind === "income" && t.date >= start && t.date <= to);
+  const afterIn = incomes.map(t => avg([0, 1, 2].map(i => sp[addDays(t.date, i)] || 0)));
+  if (afterIn.length >= 2 && avg(afterIn) > base * 1.3) out.push({ r: avg(afterIn) / base, t: `When money comes in, the next 3 days cost ${money(avg(afterIn))} a day.`, fix: "Move money to savings the moment it arrives." });
+  const moodOf = d => (S.moods[d] || {}).m;
+  const bad = days.filter(d => moodOf(d) === "bad").map(d => sp[d] || 0), good = days.filter(d => moodOf(d) === "good").map(d => sp[d] || 0);
+  if (bad.length >= 3 && good.length >= 3 && avg(bad) > avg(good) * 1.3) out.push({ r: avg(bad) / Math.max(1, avg(good)), t: `On 😩 days you spend ${money(avg(bad))}, vs ${money(avg(good))} on 😊 days.`, fix: "On a hard day, pick a free comfort (a walk, a call) before opening an app." });
+  return out.sort((a, b) => b.r - a.r).slice(0, 3);
+}
+function triggersCard() {
+  const t = triggers();
+  return `<div class="card stack"><div class="row"><h2>Your triggers</h2><span class="small muted">last 90 days</span></div>
+    ${t.length ? t.map(x => `<div class="trg"><div>${esc(x.t)}</div><div class="small goodtxt">💡 ${esc(x.fix)}</div></div>`).join("") : `<div class="small muted">No strong triggers found yet. They show up after a few weeks of data (and your daily mood check-ins).</div>`}</div>`;
+}
+
+/* ---------- 2. mood check-in ---------- */
+const MOODS = [["good", "😊", "Good"], ["ok", "😐", "Okay"], ["bad", "😩", "Rough"]];
+function moodHome() {
+  if (S.moods[todayStr()] || +nowHM().slice(0, 2) < 12 || !loaded()) return "";
+  return `<div class="card mood"><span>How's your day?</span><div class="md-btns">${MOODS.map(([k, e, l]) => `<button type="button" data-mood="${k}" aria-label="${l}">${e}</button>`).join("")}</div></div>`;
+}
+function moodCard() {
+  const days = Object.keys(S.moods).filter(d => d >= addDays(todayStr(), -90)); if (days.length < 5) return `<div class="card stack"><h2>Mood & money</h2><div class="small muted">Answer "How's your day?" on Home (one tap, after noon). After a couple of weeks you'll see how your mood changes your spending. ${days.length ? `${plural(days.length, "day")} so far.` : ""}</div></div>`;
+  const sp = dailySpend(addDays(todayStr(), -90), todayStr());
+  const rows = MOODS.map(([k, e, l]) => { const ds = days.filter(d => S.moods[d].m === k); return { e, l, n: ds.length, v: avg(ds.map(d => sp[d] || 0)) }; }).filter(r => r.n);
+  const max = Math.max(...rows.map(r => r.v), 1);
+  return `<div class="card stack"><div class="row"><h2>Mood & money</h2><span class="small muted">${plural(days.length, "day")}</span></div>
+    ${rows.map(r => `<div class="rh"><span>${r.e} ${r.l} <em class="muted">(${r.n})</em></span><span class="rh-bar"><i style="width:${(r.v / max * 100).toFixed(0)}%"></i></span><b class="num">${fmt(r.v)}</b></div>`).join("")}
+    <div class="small muted">Average spending per day for each mood.</div></div>`;
+}
+
+/* ---------- 3. payday effect ---------- */
+function paydayEffect() {
+  return fullMonths(3).map(({ k, d }) => {
+    const s = pStart(k), first = spendBetween(s, addDays(s, 9)), share = d.spend ? first / d.spend : 0, exp = 10 / periodLen(k);
+    const score = Math.max(0, Math.min(100, Math.round(100 - Math.max(0, share - exp) / exp * 100)));
+    return { k, first, share, exp, score };
+  });
+}
+function paydayEffectCard() {
+  const p = paydayEffect(); if (!p.length) return "";
+  const last = p[0];
+  return `<div class="card stack"><div class="row"><h2>Payday effect</h2><span class="small muted">first 10 days</span></div>
+    <div class="row" data-n><b class="big-out num ${last.score < 60 ? "badtxt" : last.score >= 85 ? "goodtxt" : ""}">${last.score}<small>/100</small></b><span class="small muted" style="text-align:right">payday discipline<br>${esc(pLabel(last.k))}</span></div>
+    ${p.map(x => `<div class="rh"><span>${esc(pLabel(x.k))}</span><span class="rh-bar"><i style="width:${Math.min(100, x.share * 100).toFixed(0)}%;background:${x.share > x.exp * 1.3 ? "#DC2626" : "var(--accent)"}"></i></span><b class="num">${pct(x.share, 1)}%</b></div>`).join("")}
+    <div class="small muted">Share of the month's spending in the first 10 days after payday. Even spending would be about ${pct(last.exp, 1)}%.</div></div>`;
+}
+
+/* ---------- 4. habit streaks ---------- */
+function streaks() {
+  const f = firstTxDate(); if (!f) return null;
+  const today = todayStr(), days = daysBetween(f, today), sp = dailySpend(f, today), base = allowAmt();
+  const run = test => { let best = 0, cur = 0; for (const d of days) { if (test(d)) { cur++; best = Math.max(best, cur); } else cur = 0; } return { best, cur }; };
+  const deliv = new Set(S.txns.filter(t => isSpend(t) && DELIVERY_RE.test((t.merchant || "") + " " + (t.raw || ""))).map(t => t.date));
+  const out = { nospend: run(d => !(sp[d] > 0)), nodeliv: run(d => !deliv.has(d)), allowance: base ? run(d => (sp[d] || 0) <= base) : null };
+  const lim = +settings().weekLimit || 0;
+  if (lim) { let best = 0, cur = 0, ws = wkStart(f); const end = wkStart(today); const flags = []; for (; ws < end; ws = addDays(ws, 7)) flags.push(spendBetween(ws, wkEnd(ws)) <= lim); for (const x of flags) { if (x) { cur++; best = Math.max(best, cur); } else cur = 0; } out.weeks = { best, cur }; }
+  return out;
+}
+function streaksCard() {
+  const s = streaks(); if (!s) return "";
+  const row = (ic, l, x, unit) => x ? `<div class="stk"><span class="stk-ic">${ic}</span><span class="stk-l">${l}</span><span class="stk-v"><b class="num">${x.cur}</b> ${x.cur === 1 ? unit.replace(/s$/, "") : unit} now</span><span class="stk-r">🏆 best ${x.best}</span></div>` : "";
+  return `<div class="card stack"><h2>Your streaks</h2>
+    ${row("🚫", "No-spend days in a row", s.nospend, "days")}${row("🛵", "Days without delivery", s.nodeliv, "days")}${row("📅", "Days under your daily allowance", s.allowance, "days")}${row("✅", "Weeks under the weekly limit", s.weeks, "weeks")}</div>`;
+}
+
+/* ---------- 5. spending DNA ---------- */
+function dnaCard() {
+  const since = addDays(todayStr(), -90), tx = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= since && groupOf(t) !== "debt"); if (tx.length < 15) return "";
+  const sum = l => l.reduce((a, t) => a + (+t.amount || 0), 0), total = sum(tx);
+  const shops = {}; for (const t of tx) { const k = shopName(t) || "Other"; shops[k] = (shops[k] || 0) + (+t.amount || 0); }
+  const top = Object.entries(shops).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const wd = Array(7).fill(0); for (const t of tx) wd[wdOf(t.date)] += +t.amount || 0;
+  const hr = Array(24).fill(0); for (const t of tx) { const h = hourOf(t); if (h !== null) hr[h] += +t.amount || 0; }
+  const want = sum(tx.filter(t => groupOf(t) === "want")) / (total || 1), imp = impulseShare(since);
+  const prev = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= addDays(since, -90) && t.date < since && groupOf(t) !== "debt"), chg = prev.length >= 15 && firstTxDate() <= addDays(since, -80) ? pct(total - sum(prev), sum(prev)) : null;
+  const hl = h => `${(h % 12) || 12}${h < 12 ? "am" : "pm"}`, th = hr.indexOf(Math.max(...hr));
+  return `<div class="card stack dna"><div class="row"><h2>Your spending DNA</h2><span class="small muted">last 90 days</span></div>
+    <div class="dna-grid">
+      <div><span>Top shops</span><b>${top.map(x => esc(x[0])).join(", ")}</b></div>
+      <div><span>Busiest day</span><b>${WD[wd.indexOf(Math.max(...wd))]}</b></div>
+      <div><span>Busiest hour</span><b>${hl(th)}–${hl((th + 1) % 24)}</b></div>
+      <div><span>Average purchase</span><b class="num">${money(total / tx.length)}</b></div>
+      <div><span>Wants</span><b>${pct(want, 1)}% of spending</b></div>
+      <div><span>Impulse buys</span><b>${imp.n ? pct(imp.share, 1) + "%" : "—"}</b></div>
+    </div>
+    ${chg !== null ? `<div class="note ${chg <= 0 ? "ok" : ""}">You spend ${chg <= 0 ? -chg + "% less" : chg + "% more"} than in the 90 days before.</div>` : ""}</div>`;
+}
+
+/* ---------- 6. auto-rebalance (10th and 20th day of the month) ---------- */
+function rebalance() {
+  const key = curKey(), day = elapsedDays(key); if (!((day >= 10 && day <= 13) || (day >= 20 && day <= 23))) return null;
+  const d = periodData(key), len = periodLen(key), hot = [], cold = [];
+  for (const c of spendCats()) { const b = +c.budget || 0; if (!b) continue; const s = d.byCat[c.id] || 0, proj = s / day * len; if (proj > b * 1.1) hot.push({ c, need: proj - b }); else if ((c.group || "need") === "want" && proj < b * 0.7 && b - s > 300) cold.push({ c, spare: Math.min(b * 0.7 - proj, b - s - 100) }); }
+  if (!hot.length || !cold.length) return null;
+  hot.sort((a, b) => b.need - a.need); cold.sort((a, b) => b.spare - a.spare);
+  const amt = Math.max(100, Math.floor(Math.min(hot[0].need, cold[0].spare) / 100) * 100);
+  return { from: cold[0].c, to: hot[0].c, amt, tag: key + "_" + (day >= 20 ? 2 : 1) };
+}
+function rebalanceHome() {
+  const r = rebalance(); if (!r || dismissed("rb_" + r.tag)) return "";
+  return `<div class="card stack rebal"><div class="row"><h2>Rebalance your limits?</h2></div>
+    <div class="small">${esc(r.to.name)} is running hot and ${esc(r.from.name)} has room. Move <b>${money(r.amt)}</b> from ${esc(r.from.name)} to ${esc(r.to.name)}? Your total plan stays the same.</div>
+    <div class="btns"><button type="button" class="btn grad" data-rb="${esc(r.tag)}">Move ${money(r.amt)}</button><button type="button" class="btn" data-xk="rb_${esc(r.tag)}">Not now</button></div></div>`;
+}
+
+/* ---------- 7. next month's plan ---------- */
+function nextPlan() {
+  const ms = fullMonths(3); if (!ms.length) return null;
+  const next = shiftMonth(curKey(), 1), sal = +settings().salary || 0, fx = activeFixed(next).reduce((a, f) => a + (+f.amount || 0), 0);
+  const card = cardNow().now > 0 ? (+settings().card.payment || 0) : 0, pots = S.goals.reduce((a, g) => a + (+g.monthly || 0), 0);
+  const yearly = (S.yearly || []).reduce((a, y) => { const due = y.due || y.next; if (!due) return a; const m = Math.max(1, Math.round(daysDiff(todayStr(), due) / 30.4)); return a + Math.max(0, (+y.amount || 0) - (+y.saved || 0)) / m; }, 0);
+  const money4 = sal - fx - card - pots - yearly;
+  let rows = spendCats().map(c => { const a = avg(ms.map(m => m.d.byCat[c.id] || 0)), now = +c.budget || 0; let to = a ? r100(a * 1.05) : now; if ((c.group || "need") === "want" && now && to > now * 1.5) to = r100(now * 1.5); return { c, now, avg: a, to }; });
+  let total = rows.reduce((a, r) => a + r.to, 0);
+  if (total > money4 && money4 > 0) { const wants = rows.filter(r => (r.c.group || "need") === "want"), wt = wants.reduce((a, r) => a + r.to, 0), cut = Math.min(wt * 0.5, total - money4); for (const r of wants) r.to = r100(r.to - cut * (r.to / (wt || 1))); total = rows.reduce((a, r) => a + r.to, 0); }
+  return { next, rows, total, money4, sal, fx, card, pots, yearly, months: ms.length, weekly: Math.floor(total / (periodLen(next) / 7) / 100) * 100 };
+}
+function nextPlanCard() {
+  const p = nextPlan();
+  if (!p) return `<div class="card stack"><h2>Next month's plan</h2><div class="small muted">After your first full month, Masarif writes next month's limits for you here.</div></div>`;
+  const changed = p.rows.filter(r => r.to !== r.now);
+  return `<div class="card stack nplan"><div class="row"><h2>Next month's plan</h2><span class="small muted">${esc(pLabel(p.next))}</span></div>
+    <div class="small muted">From your last ${plural(p.months, "month")}: salary ${fmt(p.sal)} − bills ${fmt(p.fx)} − card ${fmt(p.card)}${p.pots ? ` − savings ${fmt(p.pots)}` : ""}${p.yearly ? ` − yearly ${fmt(p.yearly)}` : ""} = <b>${money(p.money4)}</b> to live on.</div>
+    ${p.rows.filter(r => r.to || r.now).map(r => `<div class="np"><span><i class="sw" style="background:${catColor(r.c)}"></i>${esc(r.c.name)}</span><span class="num muted">${fmt(r.now)}</span><span class="np-arr" aria-hidden="true">→</span><b class="num ${r.to > r.now ? "badtxt" : r.to < r.now ? "goodtxt" : ""}">${fmt(r.to)}</b></div>`).join("")}
+    <div class="np tot"><span>Total</span><span class="num muted">${fmt(p.rows.reduce((a, r) => a + r.now, 0))}</span><span class="np-arr">→</span><b class="num">${fmt(p.total)}</b></div>
+    <div class="note ${p.total <= p.money4 ? "ok" : ""}">${p.total <= p.money4 ? `Fits, with ${money(p.money4 - p.total)} spare. Weekly limit: ${money(p.weekly)}.` : `Still ${money(p.total - p.money4)} over what's left. Wants were already trimmed; consider a smaller card payment for one month.`}</div>
+    ${changed.length ? `<button type="button" class="btn grad" id="npApply">Use this plan (${plural(changed.length, "change")})</button>` : `<div class="small muted">Your limits already match.</div>`}</div>`;
+}
+
+/* ---------- 8. what-if plans ---------- */
+function whatIfPlans() {
+  const st = settings(), cn = cardNow(); if (!(cn.now > 0) || !(+st.salary > 0)) return null;
+  const rate = +st.card.rate || 0, cur = +st.card.payment || 0, fx = activeFixed(curKey()).reduce((a, f) => a + (+f.amount || 0), 0), weeks = 30.4 / 7;
+  const mk = (name, pay, tag) => { pay = Math.max(Math.ceil(cn.now * rate) + 500, r100(pay)); const po = payoff(cn.now, rate, pay); const wk = Math.floor((st.salary - fx - pay) / weeks / 100) * 100; return { name, tag, pay, wk, day: Math.floor(wk / 7 / 10) * 10, po, end: po ? pStart(shiftMonth(curKey(), po.months)) : null }; };
+  return [mk("Relaxed", cur * 0.7, "relaxed"), mk("Balanced", cur, "balanced"), mk("Fast", cur * 1.3, "fast")].filter(p => p.wk > 0);
+}
+function whatIfPlansCard() {
+  const ps = whatIfPlans(); if (!ps || !ps.length) return "";
+  const cur = +settings().card.payment || 0, mon = d => toDate(d).toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+  return `<div class="card stack"><div class="row"><h2>Pick a plan</h2><span class="small muted">card vs everyday</span></div>
+    ${ps.map(p => { const on = Math.abs(p.pay - cur) < 101; return `<div class="pl ${on ? "on" : ""}"><div class="pl-m"><b>${p.name}</b><span>Card <b class="num">${fmt(p.pay)}</b>/mo · week <b class="num">${fmt(p.wk)}</b> · day <b class="num">${fmt(p.day)}</b></span><span>${p.end ? `Card-free <b>${esc(mon(p.end))}</b> · interest ${money(p.po.interest)}` : "Never paid off"}</span></div>${on ? `<em>Current</em>` : `<button type="button" class="btn sm-btn" data-plan="${p.pay}" data-wk="${p.wk}">Choose</button>`}</div>`; }).join("")}
+    <div class="small muted">Choosing sets the card payment and your weekly limit together.</div></div>`;
+}
+
+/* ---------- 9. goal-first planning ---------- */
+function openGoalFirst() {
+  openSheet(`<div class="row"><h2>Plan for a goal</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
+    <form id="gfForm" style="display:flex;flex-direction:column;gap:12px">
+      <label class="field"><span>What for?</span><input type="text" id="gfName" placeholder="e.g. Trip to Dahab"></label>
+      <div class="grid2"><label class="field"><span>Amount</span><div class="affix"><input type="text" inputmode="decimal" id="gfAmt" placeholder="30,000"><span>EGP</span></div></label><label class="field"><span>By</span><input type="month" id="gfBy" value="${esc(shiftMonth(todayStr().slice(0, 7), 6))}"></label></div>
+      <div id="gfOut"></div>
+      <div class="sheet-actions"><button class="btn grad big" type="submit">Create the goal</button></div>
+    </form>`);
+  $("#xClose").onclick = closeSheet;
+  const calc = () => {
+    const amt = numIn($("#gfAmt").value), by = $("#gfBy").value; if (!amt || !by) { $("#gfOut").innerHTML = ""; return null; }
+    const months = Math.max(1, (+by.slice(0, 4) - +todayStr().slice(0, 4)) * 12 + (+by.slice(5, 7) - +todayStr().slice(5, 7))), monthly = Math.ceil(amt / months / 50) * 50;
+    let need = monthly; const trims = [];
+    for (const c of spendCats().filter(c => (c.group || "need") === "want" && +c.budget > 0).sort((a, b) => b.budget - a.budget)) { if (need <= 0) break; const cut = Math.min(r100(c.budget * 0.3), need); if (cut <= 0) continue; trims.push({ c, cut }); need -= cut; }
+    $("#gfOut").innerHTML = `<div class="note">Save <b>${money(monthly)}</b> a month (${money(monthly / (30.4 / 7))} a week) for ${plural(months, "month")}.</div>
+      ${trims.length ? `<div class="small muted">Where it comes from:</div>${trims.map(t => `<div class="ex"><span>${esc(t.c.name)}: ${fmt(t.c.budget)} → ${fmt(t.c.budget - t.cut)}</span><b class="num">−${fmt(t.cut)}</b></div>`).join("")}` : ""}
+      ${need > 0 ? `<div class="small badtxt">Still ${money(need)} a month to find: from what's left each month, or a later date.</div>` : ""}`;
+    return { amt, monthly, trims, months };
+  };
+  sheet.oninput = calc;
+  $("#gfForm").onsubmit = async e => { e.preventDefault(); const r = calc(); if (!r) return; const name = $("#gfName").value.trim() || "My goal";
+    try { await db.collection("goals").doc("g_" + uid()).set({ name, target: r.amt, saved: 0, monthly: r.monthly, color: "#8B5CF6", by: $("#gfBy").value, createdAt: Date.now() }); for (const t of r.trims) await db.collection("categories").doc(t.c.id).update({ budget: t.c.budget - t.cut }); closeSheet(); toast(`${name}: ${money(r.monthly)} a month ✓`); } catch { toast("Couldn't save. Try again."); } };
+}
+
+/* ---------- 10. seasonal forecast + 18. big months ---------- */
+function upcoming() {
+  const today = todayStr(), out = [];
+  for (const p of S.seasons || []) { const d = p.from ? daysDiff(today, p.from) : -1; if (d > 0 && d <= 200 && +p.budget > 0) out.push({ name: p.name, date: p.from, days: d, amt: +p.budget, kind: "season" }); }
+  for (const y of S.yearly || []) { const due = y.due || y.next; if (!due) continue; const d = daysDiff(today, due); if (d > 0 && d <= 200) out.push({ name: y.name, date: due, days: d, amt: Math.max(0, (+y.amount || 0) - (+y.saved || 0)), kind: "yearly" }); }
+  for (const b of S.bigs || []) { const date = b.month + "-01", d = daysDiff(today, date); if (d > -30) out.push({ name: b.name, date, days: d, amt: Math.max(0, (+b.amount || 0) - (+b.saved || 0)), kind: "big", id: b.id }); }
+  const hist = fullMonths(12); if (hist.length >= 6) { const a = avg(hist.map(h => h.d.spend)); for (const h of hist) if (h.d.spend > a * 1.25) { const k = shiftMonth(h.k, 12), d = daysDiff(today, pStart(k)); if (d > 0 && d <= 200) out.push({ name: `${pLabel(k)} (last year +${pct(h.d.spend - a, a)}%)`, date: pStart(k), days: d, amt: h.d.spend - a, kind: "history" }); } }
+  return out.sort((a, b) => a.days - b.days).map(x => Object.assign(x, { perMonth: x.amt ? Math.ceil(x.amt / Math.max(1, Math.floor(x.days / 30.4)) / 50) * 50 : 0 }));
+}
+function seasonalCard() {
+  const u = upcoming();
+  return `<div class="card stack"><div class="row"><h2>Coming up</h2><button type="button" class="link-btn" id="bigAdd">+ Big month</button></div>
+    ${u.length ? u.slice(0, 6).map(x => `<div class="up"><span class="up-d" data-n><b>${x.days > 0 ? x.days : 0}</b><span>days</span></span><span class="up-m"><b>${esc(x.name)}</b><span>${esc(dayLabel(x.date))}${x.amt ? ` · ${money(x.amt)} to cover` : ""}</span></span>${x.perMonth ? `<span class="up-r"><b class="num">${fmt(x.perMonth)}</b><span>a month</span></span>` : ""}${x.kind === "big" ? `<button type="button" class="link-btn" data-bigdel="${esc(x.id)}" aria-label="Remove">×</button>` : ""}</div>`).join("")
+      : `<div class="small muted">Nothing big in the next months. Add a wedding, trip or new phone with "+ Big month" so Masarif spreads the cost before it comes.</div>`}
+    <div class="small muted">From your Ramadan & Eid budgets, yearly costs and big months.</div></div>`;
+}
+function seasonalHome() { const u = upcoming().find(x => x.days <= 42 && x.amt > 0); if (!u || dismissed("up_" + u.name + u.date)) return ""; return `<div class="card mini-alert warn"><span>🔭</span><span><b>${esc(u.name)} in ${plural(u.days, "day")}</b> · start setting aside ${money(u.perMonth || u.amt)}${u.perMonth ? " a month" : ""}</span><button type="button" class="link-btn" data-xk="up_${esc(u.name + u.date)}">OK</button></div>`; }
+function openBigMonth() {
+  openSheet(`<div class="row"><h2>Big month ahead</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
+    <form id="bmForm" style="display:flex;flex-direction:column;gap:12px">
+      <label class="field"><span>What is it?</span><input type="text" id="bmName" placeholder="e.g. Friend's wedding, Sahel trip, new phone"></label>
+      <div class="grid2"><label class="field"><span>Month</span><input type="month" id="bmMonth" value="${esc(shiftMonth(curKey(), 3))}"></label><label class="field"><span>Extra cost</span><div class="affix"><input type="text" inputmode="decimal" id="bmAmt"><span>EGP</span></div></label></div>
+      <div class="sheet-actions"><button class="btn grad big" type="submit">Save</button></div></form>`);
+  $("#xClose").onclick = closeSheet;
+  $("#bmForm").onsubmit = async e => { e.preventDefault(); const amt = numIn($("#bmAmt").value), m = $("#bmMonth").value; if (!amt || !m) return; try { await db.collection("bigs").doc("b_" + uid()).set({ name: $("#bmName").value.trim() || "Big month", month: m, amount: amt, saved: 0 }); closeSheet(); toast("Saved ✓ Masarif spreads it over the months before"); } catch {} };
+}
+
+/* ---------- 11. weekly mission ---------- */
+function weekMission(ws) {
+  const prev = addDays(ws, -7), pe = wkEnd(prev), f = firstTxDate(); if (!f || f > pe) return null;
+  const inW = (t, a, b) => isSpend(t) && t.date >= a && t.date <= b;
+  const deliv = (a, b) => S.txns.filter(t => inW(t, a, b) && t.kind === "expense" && DELIVERY_RE.test((t.merchant || "") + " " + (t.raw || ""))).length;
+  const night = (a, b) => S.txns.filter(t => inW(t, a, b) && t.kind === "expense" && groupOf(t) === "want" && hourOf(t) !== null && (hourOf(t) >= 22 || hourOf(t) < 5)).length;
+  const lim = +settings().weekLimit || 0, goal = Math.max(1, challengeGoal()), pd = deliv(prev, pe), pn = night(prev, pe), pt = spendBetween(prev, pe), pns = noSpendDays(prev, pe).free.length;
+  const opts = [];
+  if (pd >= 2) opts.push({ id: "deliv", score: pd, title: `Max ${pd - 1} delivery order${pd - 1 === 1 ? "" : "s"}`, why: `Last week: ${pd}`, prog: (a, b) => deliv(a, b), target: pd - 1, max: true });
+  if (pn >= 1) opts.push({ id: "night", score: pn * 1.5, title: "No wants after 10 pm", why: `Last week: ${plural(pn, "late buy")}`, prog: (a, b) => night(a, b), target: 0, max: true });
+  if (lim && pt > lim) opts.push({ id: "limit", score: (pt / lim) * 2, title: `Stay under ${money(lim)}`, why: `Last week: ${money(pt)}`, prog: (a, b) => spendBetween(a, b), target: lim, max: true, money: true });
+  opts.push({ id: "nospend", score: 1, title: `${plural(Math.min(7, pns + 1 > goal ? pns + 1 : goal), "no-spend day")}`, why: `Last week: ${pns}`, prog: (a, b) => noSpendDays(a, b).free.length, target: Math.min(7, Math.max(goal, pns + 1)), max: false });
+  return opts.sort((a, b) => b.score - a.score)[0];
+}
+function missionState(ws) {
+  const m = weekMission(ws); if (!m) return null;
+  const end = wkEnd(ws), upto = todayStr() < end ? todayStr() : end, v = m.prog(ws, upto), over = todayStr() > end;
+  const done = m.max ? (over ? v <= m.target : null) : v >= m.target, failed = m.max ? v > m.target : over && v < m.target;
+  return { m, v, done: m.max ? (over && !failed) : done, failed, over };
+}
+function missionCard() {
+  const ws = wkStart(todayStr()), s = missionState(ws); if (!s) return "";
+  const { m, v } = s, pctv = m.max ? (m.target ? Math.min(100, v / m.target * 100) : (v ? 100 : 0)) : Math.min(100, v / m.target * 100);
+  const sub = s.failed ? (wdOf(todayStr()) < 5 ? "Missed. Comeback: one no-spend day before Friday" : "Missed. New mission on Saturday") : m.max ? `${m.money ? money(v) : v} so far${m.money ? "" : " · max " + m.target}` : `${v} of ${m.target} so far`;
+  return `<div class="card mission ${s.failed ? "fail" : ""}"><span class="ms-ic" aria-hidden="true">🎯</span><span class="ms-m"><span class="ms-l">This week's mission</span><b class="ms-t">${esc(m.title)}</b><span class="ms-s">${sub}</span></span><span class="ms-r"><svg viewBox="0 0 36 36" width="38" height="38" aria-hidden="true"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--sunk)" stroke-width="4"/><circle cx="18" cy="18" r="15" fill="none" stroke="${s.failed ? "var(--bad)" : "var(--accent)"}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${(pctv * 0.9425).toFixed(1)} 94.25" transform="rotate(-90 18 18)"/></svg></span></div>`;
+}
+const missionsWon = () => { const out = []; const f = firstTxDate(); if (!f) return out; for (let ws = addDays(wkStart(todayStr()), -7), i = 0; i < 26 && wkEnd(ws) >= f; ws = addDays(ws, -7), i++) { const s = missionState(ws); if (s && s.done) out.push({ id: "mi_" + ws, text: `Mission done: ${s.m.title}` }); } return out; };
+
+/* ---------- 12. you vs last you ---------- */
+function youVsCard() {
+  const ms = fullMonths(6); if (ms.length < 2) return "";
+  const key = curKey(), d = periodData(key), f = periodLen(key) / elapsedDays(key);
+  const best = ms.slice().sort((a, b) => a.d.spend - b.d.spend)[0];
+  const rows = spendCats().map(c => ({ c, now: (d.byCat[c.id] || 0) * f, avg: avg(ms.map(m => m.d.byCat[c.id] || 0)), best: best.d.byCat[c.id] || 0 })).filter(r => r.now || r.avg).sort((a, b) => (b.now - b.best) - (a.now - a.best));
+  const gap = rows[0];
+  return `<div class="card stack"><div class="row"><h2>You vs last you</h2><span class="small muted">at this pace</span></div>
+    <div class="yv h"><span></span><span>Now</span><span>Usual</span><span>Best</span></div>
+    ${rows.slice(0, 6).map(r => `<div class="yv"><span>${esc(r.c.name)}</span><b class="num ${r.now > r.avg * 1.1 ? "badtxt" : ""}">${fmt(r.now)}</b><span class="num">${fmt(r.avg)}</span><span class="num goodtxt">${fmt(r.best)}</span></div>`).join("")}
+    <div class="yv tot"><span>Total</span><b class="num">${fmt(d.spend * f)}</b><span class="num">${fmt(avg(ms.map(m => m.d.spend)))}</span><span class="num goodtxt">${fmt(best.d.spend)}</span></div>
+    ${gap && gap.now > gap.best ? `<div class="note">In your best month (${esc(pLabel(best.k))}) ${esc(gap.c.name)} was ${money(gap.now - gap.best)} lower. That's the biggest difference.</div>` : ""}</div>`;
+}
+
+/* ---------- 13. early warning ---------- */
+function earlyWarnings() {
+  const key = curKey(), day = elapsedDays(key), len = periodLen(key); if (day < 5 || day > len - 3) return [];
+  const d = periodData(key), out = [];
+  for (const c of spendCats()) { const b = +c.budget || 0; if (!b) continue; const s = d.byCat[c.id] || 0; if (s >= b) continue; const proj = s / day * len; if (proj > b * 1.1 && s > 200) out.push({ c, s, b, proj }); }
+  return out.sort((a, b) => (b.proj - b.b) - (a.proj - a.b));
+}
+function earlyHome() {
+  const w = earlyWarnings(); if (!w.length || dismissed("ew_" + curKey() + "_" + w[0].c.id + "_" + Math.floor(elapsedDays(curKey()) / 5))) return "";
+  const x = w[0];
+  return `<div class="card stack early"><div class="row"><h2>Early warning</h2><span class="small muted">day ${elapsedDays(curKey())}</span></div>
+    <div class="small">At this pace <b>${esc(x.c.name)}</b> ends the month at <b class="badtxt">${money(x.proj)}</b> (limit ${money(x.b)}). To stay inside, keep it to <b>${money(Math.max(0, (x.b - x.s) / Math.max(1, periodLen(curKey()) - elapsedDays(curKey())) * 7))}</b> a week from now.</div>
+    ${w.length > 1 ? `<div class="small muted">Also running hot: ${w.slice(1, 3).map(y => esc(y.c.name)).join(", ")}</div>` : ""}
+    <div class="btns"><button type="button" class="btn" data-ecat="${esc(x.c.id)}">Change the limit</button><button type="button" class="btn" data-xk="ew_${esc(curKey() + "_" + x.c.id + "_" + Math.floor(elapsedDays(curKey()) / 5))}">Got it</button></div></div>`;
+}
+function earlyCard() {
+  const w = earlyWarnings(); if (!w.length) return "";
+  return `<div class="card stack"><div class="row"><h2>Heading over</h2><span class="small muted">if you keep this pace</span></div>
+    ${w.map(x => `<div class="gp"><span>${esc(x.c.name)}</span><span class="num">${fmt(x.s)} now → <b class="badtxt">${fmt(x.proj)}</b> <em>limit ${fmt(x.b)}</em></span></div>`).join("")}</div>`;
+}
+
+/* ---------- 14. planned vs impulse  /  15. social spending ---------- */
+function isImpulse(t) {
+  if (t.plan) return t.plan === "impulse";
+  if (groupOf(t) !== "want" || t.recurring || +t.amount >= 3000) return false;
+  const k = nickKey(t.merchant || ""); const n = k ? S.txns.filter(x => x !== t && !x.deleted && nickKey(x.merchant || "") === k && daysDiff(x.date, t.date) >= 0 && daysDiff(x.date, t.date) <= 60).length : 0;
+  return n < 3 || (hourOf(t) !== null && (hourOf(t) >= 21 || hourOf(t) < 5));
+}
+function impulseShare(since) {
+  const tx = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= since && groupOf(t) !== "debt"); const imp = tx.filter(isImpulse);
+  const sum = l => l.reduce((a, t) => a + (+t.amount || 0), 0);
+  return { n: tx.length, share: tx.length ? sum(imp) / (sum(tx) || 1) : 0, cost: sum(imp), count: imp.length, tagged: tx.filter(t => t.plan).length };
+}
+function impulseCard() {
+  const s = impulseShare(pStart(curKey())); if (!s.n) return "";
+  return `<div class="card stack"><div class="row"><h2>Planned vs impulse</h2><span class="small muted">this month</span></div>
+    <div class="stackbar"><i style="width:${(100 - s.share * 100).toFixed(0)}%;background:var(--accent)"></i><i style="width:${(s.share * 100).toFixed(0)}%;background:#F59E0B"></i></div>
+    <div class="row small"><span>🟢 Planned ${pct(1 - s.share, 1)}%</span><span>🟠 Impulse ${pct(s.share, 1)}% · <b class="num">${money(s.cost)}</b></span></div>
+    <div class="small muted">${s.tagged ? `${plural(s.tagged, "purchase")} you marked; the rest is Masarif's guess (new shops, late at night).` : "Masarif guesses from new shops and late-night wants. Mark purchases as Planned or Impulse to make it exact."}</div></div>`;
+}
+function socialCard() {
+  const since = addDays(todayStr(), -60), tx = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= since && groupOf(t) === "want"), soc = tx.filter(t => t.social), alone = tx.filter(t => !t.social);
+  const sum = l => l.reduce((a, t) => a + (+t.amount || 0), 0);
+  if (soc.length < 2) return `<div class="card stack"><h2>With others</h2><div class="small muted">Tick "With others" when you open a purchase (dinners, outings). Masarif then shows what social spending costs vs alone.</div></div>`;
+  return `<div class="card stack"><div class="row"><h2>With others</h2><span class="small muted">last 60 days, wants</span></div>
+    <div class="cmp2"><div><span>With others</span><b class="num">${fmt(sum(soc) / soc.length)}</b><em>${plural(soc.length, "time")} · ${money(sum(soc))}</em></div><div><span>Alone</span><b class="num">${fmt(alone.length ? sum(alone) / alone.length : 0)}</b><em>${plural(alone.length, "time")} · ${money(sum(alone))}</em></div></div>
+    <div class="small muted">Average per purchase.</div></div>`;
+}
+
+/* ---------- 16. payday-to-payday story ---------- */
+const dm = ds => toDate(ds).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+function storyCard(key) {
+  const today = todayStr(), end = pEndStr(key), done = today > end, day = elapsedDays(key); if (!done && day < 20) return "";
+  const lim = +settings().weekLimit || 0, weeks = []; for (let ws = wkStart(pStart(key)); ws <= (done ? end : today); ws = addDays(ws, 7)) { const a = ws < pStart(key) ? pStart(key) : ws, b = wkEnd(ws) > end ? end : wkEnd(ws); weeks.push({ ws, a, b, v: spendBetween(a, b) }); }
+  const full = weeks.filter(w => daysDiff(w.a, w.b) >= 3 && (done || w.b < today)); if (full.length < 2) return "";
+  const best = full.slice().sort((x, y) => x.v - y.v)[0], worst = full.slice().sort((x, y) => y.v - x.v)[0];
+  const big = S.txns.filter(t => isSpend(t) && t.kind === "expense" && inP(t.date, key) && groupOf(t) !== "debt").sort((a, b) => b.amount - a.amount)[0];
+  const d = periodData(key), ns = daysBetween(pStart(key), done ? end : today).filter(x => !S.txns.some(t => isSpend(t) && t.kind === "expense" && t.date === x)).length;
+  const first10 = spendBetween(pStart(key), addDays(pStart(key), 9)) / (d.spend || 1);
+  const lines = [
+    first10 > 0.45 ? `🚀 A strong start: ${pct(first10, 1)}% of the month went in the first 10 days.` : `🌱 A calm start: ${pct(first10, 1)}% in the first 10 days.`,
+    `📈 The busiest week was the week of ${dm(worst.a)}: ${money(worst.v)}${lim ? (worst.v > lim ? `, over the ${money(lim)} limit` : "") : ""}.`,
+    big ? `💥 Biggest purchase: ${esc(shopName(big))}, ${money(big.amount)} on ${dm(big.date)}.` : "",
+    `🏅 Best week: the week of ${dm(best.a)}, only ${money(best.v)}.`,
+    `🚫 ${plural(ns, "no-spend day")}${d.payments ? ` · 💳 ${money(d.payments)} paid to the card` : ""}.`,
+  ].filter(Boolean);
+  return `<div class="card stack story"><div class="row"><h2>${done ? "Your month's story" : "Your month so far"}</h2><span class="small muted">${esc(pLabel(key))}</span></div>${lines.map(l => `<div class="st-l">${l}</div>`).join("")}</div>`;
+}
+
+/* ---------- 17. weak days map ---------- */
+function weakDays() {
+  const ms = fullMonths(3); if (ms.length < 2) return [];
+  const byIdx = {}; for (const { k } of ms) { const s = pStart(k), len = periodLen(k), sp = dailySpend(s, pEndStr(k)); for (let i = 0; i < len; i++) { (byIdx[i] = byIdx[i] || []).push(sp[addDays(s, i)] || 0); } }
+  const all = avg(Object.values(byIdx).flat()) || 1;
+  return Object.entries(byIdx).map(([i, v]) => ({ i: +i, v: avg(v) })).filter(x => x.v > all * 1.6).sort((a, b) => b.v - a.v).slice(0, 3).map(x => Object.assign(x, { r: x.v / all }));
+}
+function weakDaysCard() {
+  const w = weakDays(); if (!w.length) return "";
+  const lab = i => i === 0 ? "Payday" : `Day ${i + 1} of your month`;
+  return `<div class="card stack"><div class="row"><h2>Your weak days</h2><span class="small muted">last ${plural(fullMonths(3).length, "month")}</span></div>
+    ${w.map(x => `<div class="gp"><span>${lab(x.i)} <span class="muted">(${esc(dayLabel(addDays(pStart(curKey()), x.i)))} this month)</span></span><span class="num"><b>${fmt(x.v)}</b> <em>${x.r.toFixed(1)}× usual</em></span></div>`).join("")}
+    <div class="small muted">Masarif reminds you the day before each one.</div></div>`;
+}
+function weakDayHome() {
+  const w = weakDays(), tomorrow = addDays(todayStr(), 1), i = daysDiff(pStart(pKeyOf(tomorrow)), tomorrow), x = w.find(y => y.i === i);
+  if (!x || dismissed("wd_" + tomorrow)) return "";
+  return `<div class="card mini-alert warn"><span>🗓️</span><span><b>Tomorrow is usually expensive</b> · about ${money(x.v)} (${x.r.toFixed(1)}× a normal day). Plan it today.</span><button type="button" class="link-btn" data-xk="wd_${tomorrow}">OK</button></div>`;
+}
+
+/* ---------- 19. levels & XP ---------- */
+const XP_LEVELS = [[0, "Beginner", "🌱"], [200, "Tracker", "📒"], [600, "Saver", "🪙"], [1200, "Planner", "🧭"], [2200, "Budget Boss", "💼"], [3600, "Money Master", "👑"]];
+function xp() {
+  const f = firstTxDate(); if (!f) return { pts: 0, parts: [] };
+  const today = todayStr(), sp = dailySpend(f, addDays(today, -1)), parts = [];
+  const ns = daysBetween(f, addDays(today, -1)).filter(d => !(sp[d] > 0)).length; parts.push(["No-spend days", ns * 10]);
+  const lim = +settings().weekLimit || 0; let wk = 0; if (lim) for (let ws = wkStart(f); wkEnd(ws) < today; ws = addDays(ws, 7)) if (spendBetween(ws, wkEnd(ws)) <= lim) wk++; parts.push(["Weeks under the limit", wk * 50]);
+  parts.push(["Missions done", missionsWon().length * 40]);
+  parts.push(["Card payments", S.txns.filter(t => !t.deleted && t.kind === "payment").length * 30]);
+  parts.push(["Purchases rated", S.txns.filter(t => !t.deleted && t.worth).length * 2]);
+  parts.push(["Mood check-ins", Object.keys(S.moods).length * 2]);
+  parts.push(["Skipped buys", (S.skips || []).length * 15]);
+  return { pts: parts.reduce((a, p) => a + p[1], 0), parts };
+}
+function levelOf(p) { let i = 0; while (i + 1 < XP_LEVELS.length && p >= XP_LEVELS[i + 1][0]) i++; return { i, cur: XP_LEVELS[i], next: XP_LEVELS[i + 1] || null }; }
+function levelCard() {
+  const x = xp(), l = levelOf(x.pts), pc = l.next ? (x.pts - l.cur[0]) / (l.next[0] - l.cur[0]) * 100 : 100;
+  return `<div class="card stack lvl" data-n><div class="row"><h2>${l.cur[2]} Level ${l.i + 1}: ${l.cur[1]}</h2><span class="num small"><b>${x.pts.toLocaleString("en-US")}</b> XP</span></div>
+    <div class="bar"><i style="width:${pc.toFixed(0)}%;background:#8B5CF6"></i></div>
+    <div class="small muted">${l.next ? `${(l.next[0] - x.pts).toLocaleString("en-US")} XP to ${l.next[2]} ${l.next[1]}` : "Top level reached 👑"}</div>
+    <details class="sc-how"><summary>Where your XP came from</summary><div class="xp-p">${x.parts.filter(p => p[1]).map(p => `<span>${esc(p[0])} <b>+${p[1].toLocaleString("en-US")}</b></span>`).join("")}</div>
+    <div class="small muted">No-spend day +10 · week under the limit +50 · mission +40 · card payment +30 · skipped buy +15 · rating or mood +2</div></details></div>`;
+}
+
+/* ---------- 20. saving jar ---------- */
+function jarTotal(year) { return (S.skips || []).filter(s => !year || String(s.date).startsWith(year)).reduce((a, s) => a + (+s.amount || 0), 0); }
+function jarCard() {
+  const y = todayStr().slice(0, 4), tot = jarTotal(y), n = (S.skips || []).filter(s => String(s.date).startsWith(y)).length;
+  const fill = Math.min(100, tot / 10000 * 100);
+  return `<div class="card stack jar-c"><div class="row"><h2>Saving jar</h2><button type="button" class="link-btn" id="jarAdd">+ Add</button></div>
+    <div class="jar-row"><div class="jar" aria-hidden="true"><i style="height:${fill.toFixed(0)}%"></i><span>🪙</span></div><div><b class="big-out num">${money(tot)}</b><div class="small muted">not spent in ${y} · ${plural(n, "skipped buy")}</div>${(S.skips || []).slice(-3).reverse().map(s => `<div class="small">• ${esc(s.name || "Something")} <span class="muted">${money(s.amount)}</span></div>`).join("")}</div></div></div>`;
+}
+function openSkip(preset) {
+  openSheet(`<div class="row"><h2>I skipped a buy 🫙</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
+    <form id="skForm" style="display:flex;flex-direction:column;gap:12px"><label class="field"><span>What did you skip?</span><input type="text" id="skName" value="${esc((preset && preset.name) || "")}" placeholder="e.g. New sneakers"></label>
+    <label class="field"><span>Price</span><div class="affix"><input type="text" inputmode="decimal" id="skAmt" value="${preset && preset.amount ? fmtIn(preset.amount) : ""}"><span>EGP</span></div></label>
+    <div class="sheet-actions"><button class="btn grad big" type="submit">Drop it in the jar</button></div></form>`);
+  $("#xClose").onclick = closeSheet;
+  $("#skForm").onsubmit = async e => { e.preventDefault(); const amt = numIn($("#skAmt").value); if (!amt) return; try { await db.collection("skips").doc("k_" + uid()).set({ date: todayStr(), amount: amt, name: $("#skName").value.trim() }); closeSheet(); coinRain(); toast(`${money(amt)} in the jar 🫙`); } catch {} };
+}
+function coinRain() { if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; const c = document.createElement("div"); c.className = "coins"; c.innerHTML = Array.from({ length: 14 }, (_, i) => `<i style="left:${8 + i * 6}%;animation-delay:${(i % 5) * 0.08}s">🪙</i>`).join(""); document.body.appendChild(c); setTimeout(() => c.remove(), 1600); }
+
+/* ---------- 21. before / after ---------- */
+function beforeAfterCard() {
+  const ms = fullMonths(12); if (ms.length < 2) return "";
+  const first = ms[ms.length - 1], last = ms[0], c = settings().card || {}, cn = cardNow(), peak = Math.max(+c.peak || 0, +c.balance || 0, cn.now);
+  const ws = m => m.d.spend ? (m.d.byGroup.want || 0) / m.d.spend : 0;
+  return `<div class="card stack"><div class="row"><h2>Since you started</h2><span class="small muted">vs ${esc(pLabel(first.k))}</span></div>
+    <div class="cmp2"><div><span>Spending</span><b class="num">${fmt(last.d.spend)}</b><em>${pct(last.d.spend - first.d.spend, first.d.spend) <= 0 ? "▼ " + -pct(last.d.spend - first.d.spend, first.d.spend) : "▲ " + pct(last.d.spend - first.d.spend, first.d.spend)}% vs ${fmt(first.d.spend)}</em></div>
+    <div><span>Wants share</span><b>${pct(ws(last), 1)}%</b><em>was ${pct(ws(first), 1)}%</em></div></div>
+    ${peak > cn.now ? `<div class="note ok">The card is ${money(peak - cn.now)} lower than its highest point. Keep going! 💪</div>` : ""}</div>`;
+}
+
+/* ---------- 23. shopping list ---------- */
+function openShopList() {
+  const list = Object.assign({ items: [] }, S.lists.shop || {}), key = curKey(), d = periodData(key), g = S.cats.find(c => /grocer/i.test(c.name)) || null;
+  const left = g ? Math.max(0, (+g.budget || 0) - (d.byCat[g.id] || 0)) : null;
+  const draw = () => {
+    const tot = list.items.reduce((a, x) => a + (+x.p || 0), 0);
+    openSheet(`<div class="row"><h2>Shopping list</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
+      <div class="sl-items">${list.items.map((x, i) => `<div class="sl"><button type="button" class="sl-t" data-sli="${i}" role="checkbox" aria-checked="${!!x.done}"><i aria-hidden="true">${x.done ? "✓" : ""}</i><span class="${x.done ? "done" : ""}">${esc(x.n)}</span></button><span class="num">${x.p ? fmt(x.p) : ""}</span><button type="button" class="link-btn" data-sld="${i}" aria-label="Remove">×</button></div>`).join("") || `<div class="small muted">Add what you need, with a rough price.</div>`}</div>
+      <form id="slForm" class="sl-add"><input type="text" id="slN" placeholder="Item" aria-label="Item"><input type="text" inputmode="decimal" id="slP" placeholder="Price" aria-label="Price"><button class="btn" type="submit">Add</button></form>
+      <div class="note ${left !== null && tot > left ? "" : "ok"}">List total <b>${money(tot)}</b>${left !== null ? ` · ${g.name} left this month <b>${money(left)}</b>${tot > left ? ` → ${money(tot - left)} over` : " ✓ fits"}` : ""}</div>
+      ${list.items.length ? `<div class="sheet-actions"><button type="button" class="btn" id="slClear">Clear list</button><button type="button" class="btn grad big" id="slPaid">I paid…</button></div>` : ""}`);
+    $("#xClose").onclick = closeSheet;
+    const save = () => db.doc("lists/shop").set(list).catch(() => {});
+    $("#slForm").onsubmit = e => { e.preventDefault(); const n = $("#slN").value.trim(); if (!n) return; list.items.push({ n, p: numIn($("#slP").value) || 0, done: false }); save(); draw(); setTimeout(() => $("#slN") && $("#slN").focus(), 50); };
+    sheet.onclick = e => { const t = e.target.closest("[data-sli]"); if (t) { const it = list.items[+t.dataset.sli]; it.done = !it.done; save(); draw(); return; } const b = e.target.closest("[data-sld]"); if (b) { list.items.splice(+b.dataset.sld, 1); save(); draw(); } };
+    const cl = $("#slClear"); if (cl) cl.onclick = () => { list.items = []; save(); draw(); };
+    const pd = $("#slPaid"); if (pd) pd.onclick = () => { closeSheet(); openTx(null, { amount: "", merchant: "", categoryId: g ? g.id : "", note: `Shopping list (estimated ${fmt(tot)})` }); };
+  };
+  draw();
+}
+
+/* ---------- 24. receipt photo → items (read by Claude) ---------- */
+/* pick a photo (camera or library), shrink it to ~1400px JPEG, hand back base64 */
+function choosePhoto(cb) {
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    try {
+      const img = await createImageBitmap(f), s = Math.min(1, 1400 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL("image/jpeg", 0.8).split(",")[1]);
+    } catch { toast("Couldn't read that photo. Try another one."); }
+  };
+  inp.click();
+}
+async function uploadPhoto(txId, b64v, t) {
+  try {
+    toast("Sending receipt…");
+    const api = localStorage.getItem("masarif.api"), token = localStorage.getItem("masarif.token");
+    const r = await fetch(api, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ token, photo: b64v, txId, amount: (t && t.amount) || 0, shop: (t && t.merchant) || "", date: (t && t.date) || todayStr() }) });
+    const j = await r.json().catch(() => ({}));
+    if (!j || j.ok !== true) throw new Error((j && j.error) || "failed");
+    await db.collection("transactions").doc(txId).update({ receiptPhoto: todayStr() });
+    toast("Receipt sent 🧾 Claude lists the items within a few hours");
+  } catch (e) { toast("Couldn't send the photo. Check your connection and try again."); }
+}
+function receiptSplit(t) {
+  const r = S.receipts && S.receipts[t.id]; if (!r || !Array.isArray(r.items)) return null;
+  const by = {}; for (const it of r.items) { const c = it.cat && catById(it.cat) ? it.cat : t.categoryId; if (!c) continue; by[c] = (by[c] || 0) + (+it.price || 0); }
+  const parts = Object.entries(by).filter(([, v]) => v > 0); if (parts.length < 2) return null;
+  const sum = parts.reduce((a, [, v]) => a + v, 0), f = (+t.amount || 0) / (sum || 1);
+  const out = parts.map(([categoryId, v]) => ({ categoryId, amount: Math.round(v * f * 100) / 100 }));
+  out[out.length - 1].amount = Math.round(((+t.amount || 0) - out.slice(0, -1).reduce((a, x) => a + x.amount, 0)) * 100) / 100;
+  return out;
+}
+
+/* ---------- 25. salary day shift ---------- */
+function salaryDay() {
+  const sal = S.txns.filter(t => isSalary(t) && t.date >= addDays(todayStr(), -200)).sort((a, b) => b.date.localeCompare(a.date)); if (!sal.length) return null;
+  const days = [...new Set(sal.map(t => t.date))].map(d => toDate(d).getDate());
+  const cnt = new Map(); for (const d of days) cnt.set(d, (cnt.get(d) || 0) + 1); const day = [...cnt.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  return { day: Math.min(28, day), n: days.length };
+}
+function salaryShiftCard() {
+  const s = salaryDay(), sd = startDay(); if (!s || Math.abs(s.day - sd) < 2) return "";
+  return `<div class="card stack"><div class="row"><h2>Your salary comes on the ${s.day}${["th", "st", "nd", "rd"][s.day % 10 > 3 || [11, 12, 13].includes(s.day) ? 0 : s.day % 10]}</h2></div>
+    <div class="small">Your Masarif month starts on the ${sd}${["th", "st", "nd", "rd"][sd % 10 > 3 || [11, 12, 13].includes(sd) ? 0 : sd % 10]}, but your salary arrived around the ${s.day} (${plural(s.n, "time")}). Starting the month on payday makes "safe per day", the payday routine and month totals match when the money really arrives.</div>
+    <div class="btns"><button type="button" class="btn grad" data-sday="${s.day}">Start my month on the ${s.day}</button><button type="button" class="btn" data-xk="sd_${s.day}">Keep the ${sd}</button></div></div>`;
+}
+
+/* ---------- 26. hidden categories ---------- */
+const HIDDEN_NAMES = [[/starbucks|costa|cilantro|coffee|cafe|tbs|dunkin|beanos/i, "Coffee", "want"], [/pharm|seif|ezaby|19011/i, "Pharmacy", "need"], [/uber|careem|indrive|didi/i, "Rides", "need"], [/talabat|elmenus|mrsool|otlob/i, "Delivery", "want"], [/netflix|spotify|shahid|apple|google|icloud|osn|watch it/i, "Subscriptions", "want"], [/parking|car wash|garage/i, "Car extras", "need"]];
+function hiddenCats() {
+  const since = addDays(todayStr(), -60), g = {};
+  for (const t of S.txns) { if (!isSpend(t) || t.kind !== "expense" || t.date < since) continue; const k = nickKey(t.merchant || ""); if (!k) continue; (g[k] = g[k] || []).push(t); }
+  const out = [], names = new Set(S.cats.map(c => c.name.toLowerCase()));
+  for (const [k, list] of Object.entries(g)) {
+    if (list.length < 4) continue; const sample = list[0], hit = HIDDEN_NAMES.find(([re]) => re.test(sample.merchant || ""));
+    if (!hit || [...names].some(n => n.includes(hit[1].toLowerCase()))) continue; const c = catById(sample.categoryId);
+    const ex = out.find(o => o.name === hit[1]); const v = list.reduce((a, t) => a + (+t.amount || 0), 0);
+    if (ex) { if (!ex.shops.some(x => x.toLowerCase().startsWith(shopName(sample).toLowerCase().split(" ")[0]))) ex.shops.push(shopName(sample)); ex.n += list.length; ex.v += v; ex.keys.push(k); } else out.push({ name: hit[1], group: hit[2], shops: [shopName(sample)], n: list.length, v, from: c ? c.name : "No category", catId: c ? c.id : null, keys: [k] });
+  }
+  /* only worth a category when it's a part of a bigger one (not already most of it) */
+  const catTot = {}; for (const t of S.txns) if (isSpend(t) && t.kind === "expense" && t.date >= since) catTot[t.categoryId] = (catTot[t.categoryId] || 0) + (+t.amount || 0);
+  return out.filter(o => o.n >= 4 && !(o.catId && o.v >= (catTot[o.catId] || 0) * 0.7)).sort((a, b) => b.v - a.v);
+}
+function hiddenCatsCard() {
+  const h = hiddenCats(); if (!h.length) return "";
+  return `<div class="card stack"><div class="row"><h2>Hidden categories</h2><span class="small muted">last 60 days</span></div>
+    ${h.slice(0, 3).map((x, i) => `<div class="si"><div class="si-top"><span><b>${esc(x.name)}</b><span>${esc(x.shops.slice(0, 3).join(", "))} · ${plural(x.n, "purchase")} · ${money(x.v)}, now inside ${esc(x.from)}</span></span></div><div class="si-btns"><button type="button" class="btn sm-btn" data-hcat="${i}">Track it separately</button></div></div>`).join("")}</div>`;
+}
+
+/* ---------- 27. need / want re-check ---------- */
+function needCheckDue() { const k = curKey(); return (settings().needCheck || "") !== k && elapsedDays(k) >= 15 && needShops().length; }
+function needShops() {
+  const key = curKey(), g = {};
+  for (const t of S.txns) { if (!isSpend(t) || t.kind !== "expense" || !inP(t.date, key) || groupOf(t) !== "need") continue; const k = nickKey(t.merchant || ""); if (!k) continue; g[k] = g[k] || { t, v: 0, n: 0 }; g[k].v += +t.amount || 0; g[k].n++; }
+  return Object.entries(g).sort((a, b) => b[1].v - a[1].v).slice(0, 5).map(([k, x]) => ({ k, name: shopName(x.t), v: x.v, n: x.n, cat: catById(x.t.categoryId) }));
+}
+function openNeedCheck() {
+  const shops = needShops(), wants = S.cats.filter(c => c.group === "want");
+  openSheet(`<div class="row"><h2>Need or want?</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
+    <div class="small muted">Your biggest "need" shops this month. Be honest 🙂</div>
+    ${shops.map((s, i) => `<div class="si"><div class="si-top"><span><b>${esc(s.name)}</b><span>${esc(s.cat ? s.cat.name : "")} · ${money(s.v)} · ${plural(s.n, "time")}</span></span></div>
+      <div class="si-btns nw-btns"><button type="button" class="btn sm-btn" data-nk="${i}" data-nv="need">✓ Need</button><select data-nw="${i}" aria-label="Move to a want category"><option value="">It's a want →</option>${wants.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select></div></div>`).join("")}
+    <div class="sheet-actions"><button type="button" class="btn grad big" id="ncDone">Done</button></div>`);
+  $("#xClose").onclick = closeSheet;
+  sheet.onclick = e => { const b = e.target.closest("[data-nk]"); if (b) { b.closest(".si").classList.add("done"); b.textContent = "✓ Need, kept"; } if (e.target.closest("#ncDone")) { patchSettings({ needCheck: curKey() }).catch(() => {}); closeSheet(); toast("Thanks! Checked again next month"); } };
+  sheet.onchange = async e => {
+    const s = e.target.closest("[data-nw]"); if (!s || !s.value) return; const shop = shops[+s.dataset.nw], cat = s.value;
+    try { const learned = Object.assign({}, settings().learned || {}); learned[shop.k] = { cat, n: 2 }; await patchSettings({ learned });
+      for (const t of S.txns.filter(t => !t.deleted && nickKey(t.merchant || "") === shop.k && inP(t.date, curKey()))) await db.collection("transactions").doc(t.id).update({ categoryId: cat, splits: null });
+      s.closest(".si").classList.add("done"); toast(`${shop.name} is now a want ✓`); } catch {}
+  };
+}
+function needCheckHome() { if (!needCheckDue() || dismissed("nc_" + curKey())) return ""; return `<button type="button" class="act" id="ncOpen"><span class="act-ic" aria-hidden="true">🤔</span><span><b>Need or want? 1-minute check</b><span>Your top "need" shops this month</span></span><span class="chev" aria-hidden="true">›</span></button>`; }
+
+/* ---------- 28. spending speed-o-meter ---------- */
+function speed() {
+  const today = todayStr(), ws = wkStart(today), n = daysDiff(ws, today) + 1, now = spendBetween(ws, today) / n;
+  const from = addDays(ws, -56), f = firstTxDate(); if (!f || f > addDays(ws, -14)) return null;
+  const usual = spendBetween(f > from ? f : from, addDays(ws, -1)) / Math.max(1, daysDiff(f > from ? f : from, ws)); if (!usual) return null;
+  const r = now / usual; return { r, now, usual, label: r < 0.85 ? "Slow" : r <= 1.15 ? "Normal" : "Fast" };
+}
+function speedGauge() {
+  const s = speed(); if (!s) return "";
+  const a = Math.max(0, Math.min(1, s.r / 2)) * 180 - 90, col = s.label === "Fast" ? "#DC2626" : s.label === "Slow" ? "#10B981" : "#F59E0B";
+  return `<div class="card speed"><svg viewBox="0 0 120 70" width="96" height="56" aria-hidden="true"><path d="M10 62a50 50 0 0 1 100 0" fill="none" stroke="var(--sunk)" stroke-width="10" stroke-linecap="round"/><path d="M10 62a50 50 0 0 1 33-47" fill="none" stroke="#10B981" stroke-width="10" stroke-linecap="round"/><path d="M45 14a50 50 0 0 1 30 0" fill="none" stroke="#F59E0B" stroke-width="10"/><path d="M77 15a50 50 0 0 1 33 47" fill="none" stroke="#DC2626" stroke-width="10" stroke-linecap="round"/><line x1="60" y1="62" x2="60" y2="22" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" transform="rotate(${a.toFixed(0)} 60 62)"/><circle cx="60" cy="62" r="6" fill="var(--ink)"/></svg>
+    <div><span class="small muted">Spending speed this week</span><b style="color:${col}">${s.label}</b><span class="small muted">${money(s.now)} a day vs your usual ${money(s.usual)}</span></div></div>`;
+}
+
+/* ---------- 29. round number goals ---------- */
+function roundGoalHome() {
+  const cn = cardNow(); const out = [];
+  if (cn.now > 0) { const step = cn.now > 50000 ? 10000 : 5000, below = Math.floor(cn.now / step) * step, gap = cn.now - below; if (below > 0 && gap > 0 && gap <= step * 0.2) out.push({ k: "card_" + below, t: `${money(gap)} more and the card goes under ${fmt(below)} 🎯` }); }
+  for (const g of S.goals) { const s = +g.saved || 0, step = 10000, next = (Math.floor(s / step) + 1) * step, gap = next - s; if (s > 0 && gap <= 2000 && next <= (+g.target || Infinity)) out.push({ k: "pot_" + g.id + next, t: `${money(gap)} more and ${g.name} reaches ${fmt(next)} 🎯` }); }
+  const x = out.find(o => !dismissed("rg_" + o.k)); if (!x) return "";
+  return `<div class="card mini-alert good"><span>🎯</span><span><b>${esc(x.t)}</b></span><button type="button" class="link-btn" data-xk="rg_${esc(x.k)}">OK</button></div>`;
+}
+
+/* ---------- 30. year in numbers ---------- */
+function yearNumbersCard() {
+  const y = todayStr().slice(0, 4), tx = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date.startsWith(y) && groupOf(t) !== "debt"); if (tx.length < 10) return "";
+  const sum = l => l.reduce((a, t) => a + (+t.amount || 0), 0), shops = {}; for (const t of tx) { const k = shopName(t) || "Other"; shops[k] = (shops[k] || 0) + 1; }
+  const top = Object.entries(shops).sort((a, b) => b[1] - a[1])[0];
+  const coffee = tx.filter(t => /starbucks|costa|cilantro|coffee|cafe|tbs|dunkin/i.test(t.merchant || "")).length, deliv = tx.filter(t => DELIVERY_RE.test((t.merchant || "") + " " + (t.raw || ""))).length;
+  const ms = fullMonths(12).filter(m => m.k.startsWith(y)), cheap = ms.slice().sort((a, b) => a.d.spend - b.d.spend)[0];
+  const st = streaks(), saved = S.goals.reduce((a, g) => a + (+g.saved || 0), 0) + jarTotal(y);
+  const tiles = [["💸", "Spent", money(sum(tx))], ["🧾", "Purchases", fmt(tx.length)], ["🏪", "Top shop", top ? `${top[0]} (${top[1]}×)` : "—"], ["☕", "Coffees", fmt(coffee)], ["🛵", "Delivery orders", fmt(deliv)], ["📉", "Cheapest month", cheap ? pLabel(cheap.k) : "—"], ["🔥", "Longest no-spend streak", st ? plural(st.nospend.best, "day") : "—"], ["🏦", "Saved", money(saved)]];
+  return `<div class="card stack ynum"><div class="row"><h2>${y} in numbers</h2><span class="small muted">${todayStr().slice(5, 7) === "12" ? "your year" : "so far"}</span></div>
+    <div class="yn-grid">${tiles.map(([e, l, v]) => `<div><span>${e}</span><b>${esc(String(v))}</b><em>${l}</em></div>`).join("")}</div></div>`;
+}
+function yearHome() { const t = todayStr(); if (t.slice(5, 7) !== "12" || dismissed("yn_" + t.slice(0, 4))) return ""; return `<a class="card mini-alert good" href="#insights" data-xkn="yn_${t.slice(0, 4)}"><span>🎆</span><span><b>Your ${t.slice(0, 4)} in numbers is ready</b> · Insights → Progress</span><span class="chev" aria-hidden="true">›</span></a>`; }
+
+/* a receipt with item categories can split the purchase in one tap */
+{ const base = openTx; openTx = function (id, preset) { base(id, preset); const t = id ? S.txns.find(x => x.id === id) : null; const sp = t && !(t.splits && t.splits.length > 1) && receiptSplit(t); if (!sp) return;
+  const b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.textContent = `Split by receipt: ${sp.map(p => (catById(p.categoryId) || {}).name).join(" + ")}`;
+  b.onclick = async () => { try { await db.collection("transactions").doc(t.id).update({ splits: sp, categoryId: sp[0].categoryId }); closeSheet(); toast("Split by the receipt ✓"); } catch {} };
+  const r = sheet.querySelector(".receipt"); if (r) r.after(b); }; }
+
+/* ---------- 22. morning money brief (Home, until noon) ---------- */
+function morningBrief() {
+  const h = +nowHM().slice(0, 2); if (h < 5 || h >= 12 || !loaded() || dismissed("mb_" + todayStr())) return "";
+  const hp = healthOf(), key = curKey(), today = todayStr(), soon = billsFor(key).filter(b => !b.paid && b.date >= today && daysDiff(today, b.date) <= 3);
+  const ms = missionState(wkStart(today)), coach = S.notes.coach, wd = weakDays().find(x => x.i === daysDiff(pStart(key), today));
+  const lines = [
+    hp.an.set ? `💵 Safe to spend today: <b class="num">${money(hp.perDay)}</b>` : "",
+    soon.length ? `🧾 ${soon.map(b => `${esc(b.name)} ${money(b.amount)} ${b.date === today ? "today" : "on " + esc(dayLabel(b.date))}`).join(", ")}` : "",
+    ms && !ms.failed ? `🎯 Mission: ${esc(ms.m.title)}` : "",
+    wd ? `🗓️ Today is usually expensive (${wd.r.toFixed(1)}× a normal day). Plan it.` : "",
+    coach && coach.text ? `💡 ${esc(String(coach.text).slice(0, 160))}` : "",
+  ].filter(Boolean);
+  if (!lines.length) return "";
+  return `<div class="card stack brief"><div class="row"><h2>Good morning</h2><button type="button" class="link-btn" data-xk="mb_${today}">Got it</button></div>${lines.map(l => `<div class="st-l">${l}</div>`).join("")}</div>`;
+}
+
+/* ---------- clicks ---------- */
+main.addEventListener("click", async e => {
+  const el = s => e.target.closest(s); let b;
+  if ((b = el("[data-mood]"))) { try { await db.collection("moods").doc("d_" + todayStr()).set({ m: b.dataset.mood, at: nowHM() }); toast(b.dataset.mood === "bad" ? "Hang in there 💚 Take it easy on spending today." : "Noted ✓"); } catch {} return; }
+  if ((b = el("[data-rb]"))) { const r = rebalance(); if (!r) return; try { await db.collection("categories").doc(r.from.id).update({ budget: (+r.from.budget || 0) - r.amt }); await db.collection("categories").doc(r.to.id).update({ budget: (+r.to.budget || 0) + r.amt }); dismiss("rb_" + r.tag); toast(`Moved ${money(r.amt)} to ${r.to.name} ✓`); } catch {} return; }
+  if (el("#npApply")) { const p = nextPlan(); if (!p) return; try { for (const r of p.rows) if (r.to !== r.now) await db.collection("categories").doc(r.c.id).update({ budget: r.to }); if (p.weekly > 0) await patchSettings({ weekLimit: p.weekly }); toast("Next month's plan is set ✓"); } catch {} return; }
+  if ((b = el("[data-plan]"))) { try { await patchSettings({ card: Object.assign({}, settings().card, { payment: +b.dataset.plan }), weekLimit: +b.dataset.wk }); toast("Plan changed ✓"); render(true); } catch {} return; }
+  if (el("#gfOpen")) { openGoalFirst(); return; }
+  if (el("#bigAdd")) { openBigMonth(); return; }
+  if ((b = el("[data-bigdel]"))) { try { await db.collection("bigs").doc(b.dataset.bigdel).delete(); } catch {} return; }
+  if (el("#jarAdd")) { openSkip(); return; }
+  if (el("#slOpen")) { openShopList(); return; }
+  if (el("#rcOpen")) { choosePhoto(b => openTx(null, { photo: b, categoryId: (S.cats.find(c => /grocer/i.test(c.name)) || {}).id || "" })); return; }
+  if ((b = el("[data-sday]"))) { try { await patchSettings({ startDay: +b.dataset.sday }); toast(`Your month now starts on the ${b.dataset.sday} ✓`); render(true); } catch {} return; }
+  if ((b = el("[data-hcat]"))) { const h = hiddenCats()[+b.dataset.hcat]; if (!h) return; try { const id = "c_" + uid(), bud = r100(h.v / 2), par = catById(h.catId); await db.collection("categories").doc(id).set({ name: h.name, group: h.group, budget: bud, keywords: h.shops.join(", ").toLowerCase(), order: S.cats.length });
+    if (par && +par.budget > 0) await db.collection("categories").doc(par.id).update({ budget: Math.max(0, +par.budget - bud) });
+    const learned = Object.assign({}, settings().learned || {}); for (const k of h.keys) learned[k] = { cat: id, n: 2 }; await patchSettings({ learned }); for (const t of S.txns.filter(t => !t.deleted && h.keys.includes(nickKey(t.merchant || "")))) await db.collection("transactions").doc(t.id).update({ categoryId: id, splits: null }); toast(`${h.name} is now its own category ✓`); } catch {} return; }
+  if (el("#ncOpen")) { openNeedCheck(); return; }
+  if ((b = el("[data-xkn]"))) { dismiss(b.dataset.xkn); return; }
+});
+
 /* ---------- routing & boot ---------- */
 const VIEWS = ["home", "txns", "plan", "insights", "more", "cats", "import", "setup"];
 function route() { const h = location.hash.slice(1); S.view = VIEWS.includes(h) ? h : "home"; }
@@ -4867,6 +5559,10 @@ function start() {
   coll("receipts", snap => { S.receipts = Object.fromEntries(snap.docs.map(d => [d.id, d.data()])); });
   coll("seasons", snap => { S.seasons = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); });
   coll("recurring", snap => { S.recurring = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); S.recurLoaded = !snap.metadata.fromCache; if (S.recurLoaded && S.ready.t) runRecurring(); });
+  coll("moods", snap => { S.moods = Object.fromEntries(snap.docs.filter(d => /^d_\d{4}-\d{2}-\d{2}$/.test(d.id)).map(d => [d.id.slice(2), d.data()])); });
+  coll("skips", snap => { S.skips = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => String(a.date).localeCompare(String(b.date))); });
+  coll("bigs", snap => { S.bigs = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); });
+  coll("lists", snap => { S.lists = Object.fromEntries(snap.docs.map(d => [d.id, d.data()])); });
   coll("yearly", snap => { S.yearly = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); });
   coll("checks", snap => { S.checks = Object.fromEntries(snap.docs.filter(d => /^m_\d{4}-\d{2}$/.test(d.id)).map(d => [d.id.slice(2), d.data()])); });
   db.doc("settings/main").onSnapshot(snap => {
