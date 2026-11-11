@@ -992,7 +992,8 @@ const catColor = c => c ? (c.color || PALETTE[(S.cats.indexOf(c) + PALETTE.lengt
 /* ---------- payment methods ---------- */
 const CASH = { id: "cash", name: "Cash", type: "cash", color: "#65A30D" };
 const TYPE_COLOR = { credit: "#7C3AED", debit: "#0EA5E9", cash: "#65A30D" };
-const TYPE_NAME = { credit: "Credit card", debit: "Debit card", cash: "Cash" };
+/* the debit card takes money straight from the bank account, so Masarif shows them as one: "Bank account" */
+const TYPE_NAME = { credit: "Credit card", debit: "Bank account", cash: "Cash" };
 const numsOf = c => String((c && c.last4) || "").split(/\D+/).filter(x => x.length >= 3);
 const cards = () => (settings().cards || []).filter(c => c && c.id).map(c => Object.assign({}, c, { nums: numsOf(c), last4: numsOf(c)[0] || "" }));
 const payMethods = () => cards().concat([CASH]);
@@ -2115,6 +2116,7 @@ function renderTxList() {
   if (S.scope === "all" && !q && S.filter !== "review") { const keep = new Set(Array.from({ length: S.txMonths || 2 }, (_, i) => shiftMonth(curKey(), -i))); const before = tx.length; tx = tx.filter(t => keep.has(pKeyOf(t.date)) || pKeyOf(t.date) > curKey()); hiddenOlder = before - tx.length; }
   if (S.filter === "review") tx = tx.filter(needsReview);
   else if (S.filter !== "all") tx = tx.filter(t => !isFlow(t) && groupOf(t) === S.filter);
+  if (S.cardF !== "all" && debitIdSet().has(S.cardF)) S.cardF = "account";
   if (!ACCT_VIEWS().some(([k]) => k === S.cardF)) S.cardF = "all";
   if (S.cardF !== "all") tx = tx.filter(t => inView(t, S.cardF));
   const ah = $("#acctH"); if (ah) ah.innerHTML = acctHeader(S.cardF);
@@ -2406,10 +2408,10 @@ function renderSetup() {
       </button>
       ${open ? `<div class="cfg-edit">
         <div class="seg" role="radiogroup" aria-label="Card type">
-          <label><input type="radio" name="ctype${i}" value="debit" data-ci="${i}" data-ck="type" ${c.type !== "credit" ? "checked" : ""}>Debit</label>
+          <label><input type="radio" name="ctype${i}" value="debit" data-ci="${i}" data-ck="type" ${c.type !== "credit" ? "checked" : ""}>Bank account (debit)</label>
           <label><input type="radio" name="ctype${i}" value="credit" data-ci="${i}" data-ck="type" ${c.type === "credit" ? "checked" : ""}>Credit</label>
         </div>
-        <label class="field"><span>Name</span><input type="text" data-ci="${i}" data-ck="name" value="${esc(c.name || "")}" placeholder="e.g. CIB Debit"></label>
+        <label class="field"><span>Name</span><input type="text" data-ci="${i}" data-ck="name" value="${esc(c.name || "")}" placeholder="e.g. CIB account"></label>
         <label class="field"><span>Last 4 digits of the card, then of the account</span><input type="text" inputmode="numeric" data-ci="${i}" data-ck="last4" value="${esc(c.last4 || "")}" placeholder="1234, 9683" autocomplete="off"></label>
         ${c.type === "credit" ? `<label class="field"><span>Credit limit</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" data-ci="${i}" data-ck="limit" value="${c.limit ? fmtIn(c.limit) : ""}"><span>EGP</span></div></label>` : ""}
         <div class="btns" style="justify-content:space-between"><button type="button" class="btn danger" data-cdel="${i}">Remove card</button><button type="button" class="btn primary" data-cdone>Done</button></div>
@@ -2518,7 +2520,7 @@ function openTx(id, preset) {
   const catChips = `<label class="chip" style="--c:${NONE_COLOR}"><input type="radio" name="tcat" value="" ${!v.categoryId ? "checked" : ""}><span class="dot"></span>None</label>` +
     S.cats.map(c => `<label class="chip" style="--c:${catColor(c)}"><input type="radio" name="tcat" value="${esc(c.id)}" ${c.id === v.categoryId ? "checked" : ""}><span class="dot"></span>${esc(c.name)}</label>`).join("");
   const payChips = payMethods().map(c => `<label class="paychip" style="--c:${cardColor(c)}"><input type="radio" name="tpay" value="${esc(c.id)}" ${c.id === v.cardId ? "checked" : ""}>
-      <span class="pc-type">${c.type === "cash" ? "Cash" : c.type === "credit" ? "Credit" : "Debit"}</span><b>${c.type === "cash" ? "Cash" : c.last4 ? "•• " + esc(c.last4) : esc(c.name)}</b></label>`).join("");
+      <span class="pc-type">${c.type === "cash" ? "Cash" : c.type === "credit" ? "Credit" : "Bank"}</span><b>${c.type === "cash" ? "Cash" : c.last4 ? "•• " + esc(c.last4) : esc(c.name)}</b></label>`).join("");
   openSheet(`<div class="row"><h2>${t ? (t.kind === "payment" ? "Edit card payment" : "Edit purchase") : v.kind === "payment" ? "Record a card payment" : "Add a purchase"}</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
     <form id="txForm" class="txf">
       <div class="kinds" role="radiogroup" aria-label="Type">${KINDS.map(([k, label, ic]) => `<label class="kind k-${k}"><input type="radio" name="kind" value="${k}" ${(v.kind || "expense") === k ? "checked" : ""}><span class="k-ic" aria-hidden="true">${ic}</span><span>${label}</span></label>`).join("")}</div>
@@ -2928,7 +2930,7 @@ function openAfford() {
     <div class="txf">
       <label class="amt-box"><span class="sr">Price in EGP</span><span class="amt-cur">EGP</span><input type="text" inputmode="decimal" id="afAmt" placeholder="0" autocomplete="off"></label>
       <div class="field"><span>What is it?</span><div class="chips" id="afCats">${S.cats.filter(c => (c.group || "need") !== "debt").map(c => `<label class="chip" style="--c:${catColor(c)}"><input type="radio" name="afcat" value="${esc(c.id)}"><span class="dot"></span>${esc(c.name)}</label>`).join("")}</div></div>
-      <div class="field"><span>Paying with</span><div class="paychips">${payMethods().map(c => `<label class="paychip" style="--c:${cardColor(c)}"><input type="radio" name="afpay" value="${esc(c.id)}" ${c.id === fc ? "checked" : ""}><span class="pc-type">${c.type === "cash" ? "Cash" : c.type === "credit" ? "Credit" : "Debit"}</span><b>${c.type === "cash" ? "Cash" : c.last4 ? "•• " + esc(c.last4) : esc(c.name)}</b></label>`).join("")}</div></div>
+      <div class="field"><span>Paying with</span><div class="paychips">${payMethods().map(c => `<label class="paychip" style="--c:${cardColor(c)}"><input type="radio" name="afpay" value="${esc(c.id)}" ${c.id === fc ? "checked" : ""}><span class="pc-type">${c.type === "cash" ? "Cash" : c.type === "credit" ? "Credit" : "Bank"}</span><b>${c.type === "cash" ? "Cash" : c.last4 ? "•• " + esc(c.last4) : esc(c.name)}</b></label>`).join("")}</div></div>
       <div id="afOut"></div>
     </div>`);
   $("#xClose").onclick = closeSheet;
@@ -4749,8 +4751,9 @@ function wireFaceId() {
 /* ---------- separate lists: credit card, debit card, bank account, cash ---------- */
 const ACCT_VIEWS = () => {
   const out = [["all", "All"]];
-  for (const c of cards()) out.push([c.id, (c.type === "credit" ? "Credit card" : "Debit card") + (c.last4 ? " ••" + c.last4 : "")]);
-  out.push(["account", "Bank account"], [CASH.id, "Cash"]);
+  for (const c of cards()) if (c.type === "credit") out.push([c.id, "Credit card" + (c.last4 ? " ••" + c.last4 : "")]);
+  const d = cards().find(c => c.type !== "credit");
+  out.push(["account", "Bank account" + (d && d.last4 ? " ••" + d.last4 : "")], [CASH.id, "Cash"]);
   return out;
 };
 const debitIdSet = () => new Set(cards().filter(c => c.type !== "credit").map(c => c.id));
@@ -4792,7 +4795,7 @@ function acctHeader(v) {
       <div class="ah-kpis"><span>Bought <b class="num">${fmt(sum("expense") - sum("refund"))}</b></span><span>Paid <b class="num goodtxt">${fmt(sum("payment"))}</b></span><span class="muted">${per}</span></div></div>`;
   }
   return `<div class="card acct-h"><div class="ah-top"><span>${c && c.type === "cash" ? "Cash" : "Debit card ••" + esc((c && c.last4) || "")}</span><span class="small muted">${per}</span></div>
-    <b class="ah-big num">${money(sum("expense") - sum("refund"))}</b><div class="ah-kpis"><span>${plural(list.filter(t => t.kind === "expense").length, "purchase")}</span>${c && c.type !== "cash" ? `<span class="muted">Transfers and money in are under Bank account</span>` : ""}</div></div>`;
+    <b class="ah-big num">${money(sum("expense") - sum("refund"))}</b><div class="ah-kpis"><span>${plural(list.filter(t => t.kind === "expense").length, "purchase")}</span>${c && c.type !== "cash" ? `<span class="muted"></span>` : ""}</div></div>`;
 }
 
 /* ---------- routing & boot ---------- */
