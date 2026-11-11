@@ -796,6 +796,21 @@ main h2{font-weight:700;letter-spacing:-.01em}
 /* chips inside any sheet: white with a coloured dot, coloured only when picked */
 #sheet .chip{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important;padding:8px 12px!important;font-size:14px!important;font-weight:600!important;min-height:40px}
 #sheet .chip:has(input:checked){background:color-mix(in srgb,var(--c) 12%,#fff)!important;border-color:var(--c)!important;font-weight:700!important;box-shadow:0 0 0 1px var(--c)}
+/* Face ID lock */
+#lock{position:fixed;inset:0;z-index:100;background:var(--bg,#F6F7FB);display:grid;place-items:center;padding:24px}
+#lock .lk-box{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;max-width:320px;width:100%}
+#lock img{border-radius:18px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+#lock b{font:700 22px var(--f-display);margin-top:6px}#lock span{color:var(--muted);font-size:14px}
+#lock .btn{width:100%;margin-top:14px;display:flex;gap:8px;justify-content:center;align-items:center;min-height:52px}
+body.locked main,body.locked nav.tabs,body.locked header.top{visibility:hidden}
+/* per-account lists */
+.acct-chips button[aria-pressed=true]{background:var(--accent)!important}
+.acct-h{display:flex;flex-direction:column;gap:6px;padding:14px 16px;margin-top:4px}
+.acct-h.credit{background:linear-gradient(135deg,#F5F3FF,#fff)}
+.ah-top{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px}
+.ah-big{font:700 26px var(--f-display);letter-spacing:-.01em}
+.ah-kpis{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}.ah-kpis b{color:var(--ink);font-weight:700}
+.bal-after{display:block;font-size:11.5px;font-weight:600;color:var(--muted);text-align:right;margin-top:2px}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
 .link-btn,a.link{min-width:40px;justify-content:center}
@@ -2053,7 +2068,7 @@ function renderHome() {
 }
 
 const txSort = (a, b) => (b.date + (b.time || "")).localeCompare(a.date + (a.time || "")) || (b.createdAt || 0) - (a.createdAt || 0);
-function txRow(t) {
+function txRow(t, bal) {
   const c = catById(t.categoryId);
   const name = shopName(t) || (c ? c.name : "Purchase");
   const pm = cardById(t.cardId), isPay = t.kind === "payment", isIn = t.kind === "income";
@@ -2063,7 +2078,7 @@ function txRow(t) {
   return `<button type="button" class="tx" data-id="${esc(t.id)}" style="--c:${isPay ? "var(--debt)" : isIn ? "var(--good)" : catColor(c)}">
     <span class="ic" aria-hidden="true">${isPay ? "↓" : isIn ? "↑" : esc((name.trim()[0] || "?").toUpperCase())}</span>
     <span class="mid"><b>${esc(nm)}</b><span>${esc(meta)}${!isPay && !isIn && cards().length ? `<span class="pay-dot" style="--p:${cardColor(pm)}"><i></i>${esc(pm ? (pm.type === "cash" ? "Cash" : pm.last4 ? "••" + String(pm.last4).split(",")[0].trim() : pm.type === "credit" ? "Credit" : "Debit") : "No card")}</span>` : ""}</span></span>
-    ${needsReview(t) ? `<span class="rv-tag">Review</span>` : ""}<span class="amt num ${t.kind === "refund" || isIn ? "refund" : isPay ? "paid" : ""}">${t.kind === "refund" || isIn ? "+" : isPay ? "−" : ""}${fmt(t.amount)}</span>
+    ${needsReview(t) ? `<span class="rv-tag">Review</span>` : ""}<span class="amt num ${t.kind === "refund" || isIn ? "refund" : isPay ? "paid" : ""}">${t.kind === "refund" || isIn ? "+" : isPay ? "−" : ""}${fmt(t.amount)}${bal && bal[t.id] != null ? `<small class="bal-after">bal ${fmt(bal[t.id])}</small>` : ""}</span>
   </button>`;
 }
 function renderTxns() {
@@ -2071,6 +2086,7 @@ function renderTxns() {
     ${statusNote()}
     <div class="toolbar">
       <input type="search" id="q" placeholder="Search shop, note or amount" value="${esc(S.q)}" aria-label="Search purchases">
+      ${cards().length ? `<div class="chips acct-chips" id="cardChips" role="group" aria-label="Which account">${ACCT_VIEWS().map(([k, l]) => `<button type="button" data-cf="${esc(k)}" aria-pressed="${S.cardF === k}">${esc(l)}</button>`).join("")}</div>` : ""}
       <div class="seg" id="scope" role="group" aria-label="Which purchases">
         <button type="button" data-s="all" aria-pressed="${S.scope === "all"}">All purchases</button>
         <button type="button" data-s="period" aria-pressed="${S.scope === "period"}">One month</button>
@@ -2078,9 +2094,7 @@ function renderTxns() {
       <div class="chips" id="chips">
         ${reviewCount() ? `<button type="button" data-f="review" aria-pressed="${S.filter === "review"}" style="--c:var(--warn-ink)">To review (${reviewCount()})</button>` : ""}${[["all", "All", ""], ["need", "Need", "var(--need)"], ["want", "Want", "var(--want)"], ["debt", "Debt", "var(--debt)"], ["none", "No category", NONE_COLOR]].map(([k, l, c]) => `<button type="button" data-f="${k}" aria-pressed="${S.filter === k}" ${c ? `style="--c:${c}"` : ""}>${l}</button>`).join("")}
       </div>
-      ${cards().length ? `<div class="chips" id="cardChips">
-        ${[["all", "All cards", ""]].concat(payMethods().map(c => [c.id, c.type === "cash" ? "Cash" : (c.type === "credit" ? "Credit" : "Debit") + (c.last4 ? " ••" + c.last4 : ""), cardColor(c)])).concat(S.txns.some(t => !t.deleted && t.kind === "payment") ? [["pay", "Card payments", "var(--debt)"]] : []).concat(S.txns.some(t => !t.deleted && !isFlow(t) && !t.cardId) ? [["_none", "Card not set", NONE_COLOR]] : []).map(([k, l, c]) => `<button type="button" data-cf="${esc(k)}" aria-pressed="${S.cardF === k}" ${c ? `style="--c:${c}"` : ""}>${esc(l)}</button>`).join("")}
-      </div>` : ""}
+      <div id="acctH"></div>
       <div class="small muted" id="txCount"></div>
     </div>
     <div id="txList"></div>
@@ -2101,19 +2115,20 @@ function renderTxList() {
   if (S.scope === "all" && !q && S.filter !== "review") { const keep = new Set(Array.from({ length: S.txMonths || 2 }, (_, i) => shiftMonth(curKey(), -i))); const before = tx.length; tx = tx.filter(t => keep.has(pKeyOf(t.date)) || pKeyOf(t.date) > curKey()); hiddenOlder = before - tx.length; }
   if (S.filter === "review") tx = tx.filter(needsReview);
   else if (S.filter !== "all") tx = tx.filter(t => !isFlow(t) && groupOf(t) === S.filter);
-  if (S.cardF === "pay") tx = tx.filter(t => t.kind === "payment");
-  else if (S.cardF === "_none") tx = tx.filter(t => !isFlow(t) && !cardById(t.cardId));
-  else if (S.cardF !== "all") tx = tx.filter(t => !isFlow(t) && t.cardId === S.cardF);
+  if (!ACCT_VIEWS().some(([k]) => k === S.cardF)) S.cardF = "all";
+  if (S.cardF !== "all") tx = tx.filter(t => inView(t, S.cardF));
+  const ah = $("#acctH"); if (ah) ah.innerHTML = acctHeader(S.cardF);
+  const balMap = S.cardF === "account" ? accountBalances() : null;
   if (q) tx = tx.filter(t => [t.merchant, t.note, String(t.amount), (catById(t.categoryId) || {}).name].join(" ").toLowerCase().includes(q));
   tx.sort(txSort);
   const total = tx.reduce((a, t) => a + signed(t), 0);
-  $("#txCount").textContent = tx.length ? `${tx.length} purchase${tx.length === 1 ? "" : "s"} · ${money(total)}` : "";
+  $("#txCount").textContent = tx.length ? (S.cardF === "account" || (cardById(S.cardF) || {}).type === "credit" ? plural(tx.length, "transaction") : `${tx.length} purchase${tx.length === 1 ? "" : "s"} · ${money(total)}`) : "";
   if (!tx.length) {
     box.innerHTML = `<div class="card empty"><b>${loaded() ? "No purchases here" : "Loading…"}</b>${loaded() ? (S.txns.length ? "Try another filter or month." : "Import what your shortcut saved from the Import tab, or tap + Add for a cash purchase.") : ""}</div>`;
     return;
   }
   let html = "", curP = null, curD = null, dayList = [];
-  const flushDay = () => { if (!dayList.length) return; const tot = dayList.reduce((a, t) => a + signed(t), 0); html += `<div class="day"><h3><span>${esc(dayLabel(curD))}</span><span class="num">${fmt(tot)}</span></h3>${dayList.map(txRow).join("")}</div>`; dayList = []; };
+  const flushDay = () => { if (!dayList.length) return; const tot = dayList.reduce((a, t) => a + signed(t), 0); html += `<div class="day"><h3><span>${esc(dayLabel(curD))}</span><span class="num">${fmt(tot)}</span></h3>${dayList.map(t => txRow(t, balMap)).join("")}</div>`; dayList = []; };
   for (const t of tx) {
     const pk = pKeyOf(t.date);
     if (S.scope === "all" && pk !== curP) {
@@ -3467,6 +3482,7 @@ function renderMore() {
       ${row("", "≡", "Check card statement", "Compare the bank's total with Masarif", "mStmt")}
       ${row("", "+", "Quick add buttons", quickList().map(q => q.label).join(", ") || "None", "mQuick")}
     </div>
+    ${faceIdCard()}
     <div class="card stack">
       <div class="row"><h2>Bank statement check</h2></div>
       <div class="small muted">Every <b>Friday</b>, download the last 7 days' statement from the CIB app as a PDF and save it to the Google Drive folder <b>Masarif statements</b> (Home shows the steps on Friday and reminds you until Monday). The next morning Claude compares every line with Masarif and shows any difference on Home.</div>
@@ -3508,6 +3524,7 @@ function renderMore() {
       <div class="seg" id="nsGoal">${[0, 1, 2, 3, 4].map(n => `<button type="button" data-n="${n}" aria-pressed="${goal === n}">${n === 0 ? "Off" : n}</button>`).join("")}</div>
     </div>
   </section>`;
+  wireFaceId();
   $("#alOn").onclick = async () => { try { await patchSettings({ allowance: Object.assign({}, allowCfg(), { on: !allowCfg().on }) }); render(true); toast(allowCfg().on ? "Daily allowance on: see it on Home" : "Daily allowance off"); } catch {} };
   $("#alAmt").onchange = async e => { try { await patchSettings({ allowance: Object.assign({}, allowCfg(), { amount: numIn(e.target.value) }) }); render(true); } catch {} };
   $("#apOnly").onclick = async () => { try { await patchSettings({ applePayOnly: settings().applePayOnly === false }); render(true); } catch {} };
@@ -4661,6 +4678,120 @@ function cardMini() {
     <span class="cm-amt"><b class="num">${money(cn.now)}</b><span>${lim ? used.toFixed(0) + "% of limit" : "owed"}</span></span>
   </a>`;
 }
+/* ====================================================================
+   Round 6: Face ID lock + separate lists per card / bank account
+   ==================================================================== */
+
+/* ---------- Face ID lock (a passkey on this iPhone, checked with Face ID) ---------- */
+const LOCK_KEY = "masarif.lock";
+const lockCfg = () => { try { return JSON.parse(localStorage.getItem(LOCK_KEY) || "null"); } catch { return null; } };
+const saveLock = v => { try { v ? localStorage.setItem(LOCK_KEY, JSON.stringify(v)) : localStorage.removeItem(LOCK_KEY); } catch {} };
+const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const rnd = n => crypto.getRandomValues(new Uint8Array(n));
+const faceIdSupported = () => !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+async function faceIdAvailable() { try { return faceIdSupported() && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); } catch { return false; } }
+async function setupFaceId() {
+  const cred = await navigator.credentials.create({ publicKey: {
+    challenge: rnd(32), rp: { name: "Masarif", id: location.hostname },
+    user: { id: rnd(16), name: "Masarif", displayName: "Masarif" },
+    pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+    authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "preferred" }, timeout: 60000 } });
+  saveLock({ id: b64(cred.rawId), after: (lockCfg() || {}).after ?? 60 });
+}
+async function checkFaceId() {
+  const c = lockCfg(); if (!c) return true;
+  await navigator.credentials.get({ publicKey: { challenge: rnd(32), rpId: location.hostname, allowCredentials: [{ type: "public-key", id: unb64(c.id), transports: ["internal", "hybrid"] }], userVerification: "required", timeout: 60000 } });
+  return true;
+}
+const lockEl = document.createElement("div");
+lockEl.id = "lock"; lockEl.hidden = true;
+lockEl.innerHTML = `<div class="lk-box"><img src="icon-192.png" alt="" width="72" height="72"><b>Masarif is locked</b><span id="lkMsg">Your money stays private.</span><button type="button" class="btn grad big" id="lkGo"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1M15 9v1M12 9v4h-1M9 16c1.7 1.3 4.3 1.3 6 0"/></svg>Unlock with Face ID</button></div>`;
+document.body.appendChild(lockEl);
+function lockNow() { if (!lockCfg()) return; lockEl.hidden = false; document.body.classList.add("locked"); try { closeSheet(); } catch {} }
+let unlocking = false;
+lockEl.querySelector("#lkGo").onclick = async () => {
+  if (unlocking) return; unlocking = true; const msg = lockEl.querySelector("#lkMsg");
+  try { await checkFaceId(); lockEl.hidden = true; document.body.classList.remove("locked"); msg.textContent = "Your money stays private."; }
+  catch (e) { msg.textContent = "Didn't work. Tap to try again (your iPhone passcode works too)."; }
+  unlocking = false;
+};
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => {
+  const c = lockCfg(); if (!c) return;
+  if (document.visibilityState === "hidden") hiddenAt = Date.now();
+  else if (hiddenAt && Date.now() - hiddenAt >= (c.after || 0) * 1000) lockNow();
+});
+if (lockCfg()) lockNow();
+function faceIdCard() {
+  const c = lockCfg();
+  return `<div class="card stack">
+    <div class="row"><h2>Face ID lock</h2><button type="button" class="tgl" id="fidOn" role="switch" aria-checked="${!!c}" aria-label="Face ID lock"><i></i></button></div>
+    <div class="small muted">Masarif asks for Face ID when you open it. Your iPhone saves a passkey for Masarif to do this. If Face ID fails, your iPhone passcode works.</div>
+    ${c ? `<div class="field"><span>Lock again after leaving the app for</span><div class="seg" id="fidAfter">${[[0, "Right away"], [60, "1 min"], [300, "5 min"]].map(([s, l]) => `<button type="button" data-s="${s}" aria-pressed="${(c.after ?? 60) === s}">${l}</button>`).join("")}</div></div>` : ""}
+    <div class="small muted" id="fidMsg"></div>
+  </div>`;
+}
+function wireFaceId() {
+  const t = $("#fidOn"); if (!t) return;
+  t.onclick = async () => {
+    const m = $("#fidMsg");
+    if (lockCfg()) { try { await checkFaceId(); saveLock(null); toast("Face ID lock off"); render(true); } catch { m.textContent = "Face ID didn't confirm, so the lock stays on."; } return; }
+    if (!(await faceIdAvailable())) { m.textContent = "This browser can't use Face ID. Open Masarif from its Home Screen icon (iOS 16 or later)."; return; }
+    try { await setupFaceId(); toast("Face ID lock on 🔒"); render(true); } catch (e) { m.textContent = "Face ID setup was cancelled. Tap the switch to try again."; }
+  };
+  const a = $("#fidAfter"); if (a) a.onclick = e => { const b = e.target.closest("button[data-s]"); if (!b) return; saveLock(Object.assign({}, lockCfg(), { after: +b.dataset.s })); render(true); };
+}
+
+/* ---------- separate lists: credit card, debit card, bank account, cash ---------- */
+const ACCT_VIEWS = () => {
+  const out = [["all", "All"]];
+  for (const c of cards()) out.push([c.id, (c.type === "credit" ? "Credit card" : "Debit card") + (c.last4 ? " ••" + c.last4 : "")]);
+  out.push(["account", "Bank account"], [CASH.id, "Cash"]);
+  return out;
+};
+const debitIdSet = () => new Set(cards().filter(c => c.type !== "credit").map(c => c.id));
+function inView(t, v) {
+  if (v === "all") return true;
+  if (v === "account") return t.kind === "income" || t.kind === "payment" || (debitIdSet().has(t.cardId) && (t.kind === "expense" || t.kind === "refund"));
+  const c = cardById(v); if (!c) return false;
+  if (c.type === "credit") return t.cardId === v ? t.kind !== "income" : t.kind === "payment" && (!t.cardId || !cardById(t.cardId) || cardById(t.cardId).type === "credit");
+  return t.cardId === v && (t.kind === "expense" || t.kind === "refund");
+}
+/* bank balance after each transaction, worked out from your last balance update */
+function accountBalances() {
+  const a = settings().account || {}; if (!a.asOf) return null;
+  const dset = debitIdSet(), eff = t => t.kind === "income" || (t.kind === "refund" && dset.has(t.cardId)) ? +t.amount || 0 : t.kind === "payment" || (t.kind === "expense" && dset.has(t.cardId)) ? -(+t.amount || 0) : 0;
+  const list = S.txns.filter(t => !t.deleted && t.date && inView(t, "account")).sort((x, y) => -txSort(x, y));
+  const after = list.filter(t => afterSnap(t, a.asOf, a.asOfTime)), before = list.filter(t => !afterSnap(t, a.asOf, a.asOfTime));
+  const map = {}; let run = +a.balance || 0;
+  for (const t of after) { run += eff(t); map[t.id] = run; }
+  run = +a.balance || 0;
+  for (let i = before.length - 1; i >= 0; i--) { map[before[i].id] = run; run -= eff(before[i]); }
+  return map;
+}
+function acctHeader(v) {
+  if (v === "all") return "";
+  const key = S.scope === "period" ? S.month : curKey(), inK = t => inP(t.date, key) && !t.deleted;
+  const list = S.txns.filter(t => inK(t) && inView(t, v)), sum = k => list.filter(t => t.kind === k).reduce((a, t) => a + (+t.amount || 0), 0);
+  const per = esc(pLabel(key));
+  if (v === "account") {
+    const an = accountNow(), a = settings().account || {};
+    return `<div class="card acct-h"><div class="ah-top"><span>Bank account</span><span class="small muted">${a.asOf ? "from your balance on " + esc(dayLabel(a.asOf)) : ""}</span></div>
+      <b class="ah-big num">${a.asOf ? money(an.now) : "Add your balance"}</b>
+      <div class="ah-kpis"><span>In <b class="num goodtxt">+${fmt(sum("income") + list.filter(t => t.kind === "refund").reduce((x, t) => x + (+t.amount || 0), 0))}</b></span><span>Out <b class="num">−${fmt(sum("expense") + sum("payment"))}</b></span><span class="muted">${per}</span></div></div>`;
+  }
+  const c = cardById(v);
+  if (c && c.type === "credit") {
+    const cn = cardNow(), lim = +c.limit || 0;
+    return `<div class="card acct-h credit"><div class="ah-top"><span>Credit card ••${esc(c.last4 || "")}</span><span class="small muted">owed now</span></div>
+      <b class="ah-big num">${money(cn.now)}</b>${lim ? `<div class="cm-bar"><i style="width:${Math.min(100, cn.now / lim * 100).toFixed(1)}%"></i></div>` : ""}
+      <div class="ah-kpis"><span>Bought <b class="num">${fmt(sum("expense") - sum("refund"))}</b></span><span>Paid <b class="num goodtxt">${fmt(sum("payment"))}</b></span><span class="muted">${per}</span></div></div>`;
+  }
+  return `<div class="card acct-h"><div class="ah-top"><span>${c && c.type === "cash" ? "Cash" : "Debit card ••" + esc((c && c.last4) || "")}</span><span class="small muted">${per}</span></div>
+    <b class="ah-big num">${money(sum("expense") - sum("refund"))}</b><div class="ah-kpis"><span>${plural(list.filter(t => t.kind === "expense").length, "purchase")}</span>${c && c.type !== "cash" ? `<span class="muted">Transfers and money in are under Bank account</span>` : ""}</div></div>`;
+}
+
 /* ---------- routing & boot ---------- */
 const VIEWS = ["home", "txns", "plan", "insights", "more", "cats", "import", "setup"];
 function route() { const h = location.hash.slice(1); S.view = VIEWS.includes(h) ? h : "home"; }
