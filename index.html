@@ -867,6 +867,7 @@ section.view{gap:12px}
 .ms-ic{font-size:22px}.ms-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.ms-l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .mission .ms-t{font-size:15px;font-weight:800}.ms-s{font-size:13px;color:var(--muted)}.mission.fail .ms-s{color:var(--bad-ink)}.mission.fail .ms-t{text-decoration:none;color:var(--ink)}
 .sc-how{margin-top:4px}.sc-how summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--accent-ink);min-height:40px;display:flex;align-items:center;list-style:none}.sc-how summary::-webkit-details-marker{display:none}.sc-how summary::after{content:"›";margin-left:6px;transition:transform .2s}.sc-how[open] summary::after{transform:rotate(90deg)}.sc-how[open]>*:not(summary){margin-top:6px}
+.card-d{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}.stack>.card-d{margin-top:-8px}.card:not(.stack)>.card-d{margin-top:2px;margin-bottom:10px}
 .ask{padding:12px}.ask .chips{margin-top:8px}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
@@ -1517,6 +1518,7 @@ function render(force) {
   if (keep) queueMicrotask(() => { const el = document.getElementById(keep.id); if (!el || el === ae) return; el.value = keep.v; try { el.focus({ preventScroll: true }); el.setSelectionRange(keep.a, keep.b); } catch {} });
   queueMicrotask(() => { if (["cats", "import", "setup"].includes(S.view) && !main.querySelector(".back")) { const sec = main.querySelector("section.view"); if (sec) sec.insertAdjacentHTML("afterbegin", `<a class="back" href="#more">‹ Settings & tools</a>`); } });
   ({ home: renderHome, txns: renderTxns, plan: renderPlan, insights: renderInsights, more: renderMore, cats: renderCats, import: renderImport, setup: renderSetup }[S.view] || renderHome)();
+  if (typeof addDescs === "function") addDescs();
 }
 
 function donut(rows, total) {
@@ -5467,6 +5469,73 @@ function morningBrief() {
   ].filter(Boolean);
   if (!lines.length) return "";
   return `<div class="card stack brief"><div class="row"><h2>Good morning</h2><button type="button" class="link-btn" data-xk="mb_${today}">Got it</button></div>${lines.map(l => `<div class="st-l">${l}</div>`).join("")}</div>`;
+}
+
+/* ---------- one short line under each card title, saying what it is for ---------- */
+const DESCS = [
+  ["This week", "Saturday to Friday, against your weekly limit."],
+  ["Quick add", "One tap to log cash you pay often."],
+  ["Today's allowance", "Today's amount. Unused money rolls into tomorrow."],
+  ["Bills this month", "Your fixed payments. Ticked by themselves when the bank text arrives."],
+  ["Early warning", "Caught early, while there's still time to fix it."],
+  ["Pick a plan", "Three ways to split money between the card and everyday life."],
+  ["Next month's plan", "Next month's limits, based on what you really spend."],
+  ["What if…", "See how spending less on one thing clears the card sooner."],
+  ["Savings pots", "Money set aside for goals. Add to it any time."],
+  ["Round-ups", "Small change from rounding each purchase, ready to save."],
+  ["Coming up", "Big costs ahead, spread into small monthly amounts."],
+  ["Yearly costs", "Once-a-year bills, saved for month by month."],
+  ["Fixed costs", "How much of your salary is gone before you spend anything."],
+  ["Subscriptions", "Monthly charges Masarif found. Keep or cancel each one."],
+  ["Car service", "When your next service is due, from your odometer."],
+  ["Fuel", "What you spend on fuel and what each km costs."],
+  ["Money owed to you", "Money you lent, so you remember to collect it."],
+  ["From Claude", "Weekly tip and month review, written by Claude."],
+  ["Until payday", "Where your balance is heading at this pace."],
+  ["Where it went", "This month's spending by category."],
+  ["Category limits", "Each category against its monthly limit. Tap one to change it."],
+  [/^Your month/, "The month so far in a few short lines."],
+  ["How this month adds up", "Salary in, then bills, card and spending out."],
+  ["Smart limit check", "Limits that don't match how you really spend."],
+  ["This month vs last month", "The same days of both months, side by side."],
+  ["Spending calendar", "What you spent each day. Tap a day to see it."],
+  ["Delivery", "Delivery orders and what they cost you."],
+  ["What to watch", "Quick notes on what stands out this month."],
+  ["Where did it go?", "Your real bank balance vs what Masarif recorded."],
+  ["Your rhythm", "Which days of the week cost you most."],
+  ["Your typical week", "What a normal week of spending looks like."],
+  ["Time of day", "When in the day your money goes."],
+  ["Prices that went up", "Regular shops that now charge you more."],
+  ["Grocery prices", "What your usual grocery shop costs over time."],
+  ["Price tracker", "The price of things you buy often."],
+  ["People & transfers", "Money sent to and received from people."],
+  [/^Last (6|12) months$/, "Your monthly spending over time."],
+  ["By card", "Spending on each card and in cash."],
+  ["Your spending style", "What kind of spender you are right now."],
+  ["Your triggers", "Situations that make you spend more than usual."],
+  ["You vs last you", "This month at this pace vs your usual and best month."],
+  ["Your spending DNA", "Your habits in six numbers."],
+  ["Payday effect", "How fast money goes right after payday."],
+  ["Your weak days", "Days of the month that usually cost the most."],
+  ["Planned vs impulse", "How much of your spending you planned."],
+  ["With others", "Going out with people vs spending alone."],
+  ["Hidden categories", "Regular spending hiding inside a bigger category."],
+  [/Level \d+:/, "Points for good money habits. They add up to levels."],
+  ["Your streaks", "Good habits in a row. Don't break the chain."],
+  ["Saving jar", "Money you kept by skipping a buy."],
+  ["Treat jar", "Earn a guilt-free treat every 3 wins."],
+  ["Since you started", "Your first full month vs your latest."],
+  ["Badges", "Milestones you've reached so far."],
+  [/ in numbers$/, "Your year at a glance."],
+  ["Safety checks", "Alerts that keep your cards safe."],
+];
+function addDescs() {
+  for (const h of main.querySelectorAll(".card h2")) {
+    const t = h.textContent.trim(), d = DESCS.find(([k]) => typeof k === "string" ? k === t : k.test(t)); if (!d) continue;
+    const head = h.parentElement.classList.contains("row") ? h.parentElement : h, next = head.nextElementSibling;
+    if (next && (next.classList.contains("card-d") || (next.classList.contains("small") && next.classList.contains("muted")))) continue;
+    head.insertAdjacentHTML("afterend", `<p class="card-d">${d[1]}</p>`);
+  }
 }
 
 /* ---------- clicks ---------- */
