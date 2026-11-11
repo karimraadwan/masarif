@@ -985,6 +985,36 @@ section.view{gap:16px!important}
 @keyframes heroSheen{0%,70%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .card .row>h2{white-space:nowrap;flex:0 1 auto;min-width:0}.card .row>h2+.small,.card .row>h2+span.small{text-align:right;min-width:0;flex:1 1 0}
 .q-ic svg{width:20px;height:20px}
+/* ranked lists + year card */
+.donut-solo{display:grid;place-items:center;padding:4px 0 2px}
+.donut-solo .donut{width:190px;height:190px}
+.rk-list{display:flex;flex-direction:column;gap:14px}
+.rk{display:flex;align-items:center;gap:12px;min-width:0}
+.rk-ic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--c);background:color-mix(in srgb,var(--c) 13%,#fff)}
+.rk-ic svg{width:19px;height:19px}.rk-letter{font:800 15px var(--f-display);color:var(--c)}
+.rk-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.rk-t{display:flex;justify-content:space-between;align-items:baseline;gap:10px;min-width:0}
+.rk-t b{font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.rk-t em{font-style:normal;font-weight:800;font-size:14.5px;flex:none}
+.rk-b{display:flex;align-items:center;gap:10px}.rk-b small{font-size:12px;color:var(--muted);width:34px;text-align:right;flex:none}
+.rk-bar{flex:1;height:6px;border-radius:999px;background:var(--sunk);overflow:hidden}.rk-bar i{display:block;height:100%;width:var(--w);border-radius:999px;background:var(--c)}
+.rk-more{display:flex;flex-direction:column}.rk-more[open]{gap:14px}
+.rk-more summary{list-style:none;cursor:pointer;min-height:40px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--accent-ink);background:var(--soft);border-radius:12px}
+.rk-more summary::-webkit-details-marker{display:none}.rk-more summary span::after{content:" ⌄"}.rk-more[open] summary span::after{content:" ⌃"}
+.rk-more[open] summary{order:99}.rk-more[open] summary span{font-size:0}.rk-more[open] summary span::after{font-size:14px;content:"Show less"}
+.rk-more[open]>.rk:first-of-type{margin-top:0}
+.yr2-top{display:flex;flex-direction:column;gap:2px}
+.yr2-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.yr2-stats>div{background:var(--soft);border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.yr2-stats b{font:800 17px var(--f-display);white-space:nowrap}.yr2-stats em{font-style:normal;font-size:12px;color:var(--muted);line-height:1.25}
+.yr2-ic{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;color:var(--accent);background:#fff;margin-bottom:4px}.yr2-ic svg{width:16px;height:16px}
+.yr2-h{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:4px}
+@media (prefers-reduced-motion:no-preference){
+  section.view.v-in .rk-bar i,.rk-more[open] .rk-bar i{animation:grow .8s cubic-bezier(.3,.8,.3,1) both;animation-delay:calc(.25s + var(--i) * .06s);transform-origin:left}
+  section.view.v-in .rk-ic{animation:icPop .45s cubic-bezier(.2,.9,.3,1.5) both;animation-delay:calc(.2s + var(--i) * .06s)}
+  .rk-more[open]>.rk{animation:vin .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * .05s)}
+  section.view.v-in .yr2-stats>div{animation:vin .45s cubic-bezier(.2,.8,.2,1) both}.yr2-stats>div:nth-child(2){animation-delay:.06s!important}.yr2-stats>div:nth-child(3){animation-delay:.12s!important}
+}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
 .link-btn,a.link{min-width:40px;justify-content:center}
@@ -2286,6 +2316,16 @@ const QUICK_ICONS = [
 const quickIcon = q => { const l = String(q.label || ""); const m = QUICK_ICONS.find(([re]) => re.test(l)); if (m) return m[1]; const c = catById(q.categoryId); return c ? catIcon(c) : esc((l.trim()[0] || "+").toUpperCase()); };
 const catIco = (c, cls = "") => `<span class="cico ${cls}" style="--c:${c ? catColor(c) : "var(--none)"}">${catIcon(c)}</span>`;
 
+/* ranked list: icon, name on one line, amount, share bar. Shows the top few; the rest fold away */
+function rankList(rows, n = 4) {
+  if (!rows.length) return "";
+  const max = Math.max(...rows.map(r => r.v), 1), tot = rows.reduce((a, r) => a + r.v, 0) || 1;
+  const row = (r, i) => `<div class="rk" style="--c:${r.color};--w:${Math.max(2, r.v / max * 100).toFixed(1)}%;--i:${Math.min(i, 8)}"><span class="rk-ic" aria-hidden="true">${r.icon}</span><span class="rk-m"><span class="rk-t"><b>${esc(r.name)}</b><em class="num">${fmt(r.v)}</em></span><span class="rk-b"><span class="rk-bar"><i></i></span><small class="num">${Math.round(r.v / tot * 100)}%</small></span></span></div>`;
+  const rest = rows.slice(n);
+  return `<div class="rk-list">${rows.slice(0, n).map(row).join("")}${rest.length ? `<details class="rk-more"><summary><span>Show ${rest.length} more</span></summary>${rest.map((r, i) => row(r, i)).join("")}</details>` : ""}</div>`;
+}
+const shopIcon = name => `<b class="rk-letter">${esc((String(name).trim()[0] || "?").toUpperCase())}</b>`;
+
 function txRow(t, bal) {
   const c = catById(t.categoryId);
   const name = shopName(t) || (c ? c.name : "Purchase");
@@ -3444,25 +3484,28 @@ function openStatementCheck() {
 
 /* ---------- year in review ---------- */
 function yearCard() {
-  const y = String(new Date().getFullYear()), tx = S.txns.filter(t => isSpend(t) && t.date.startsWith(y));
+  const y = todayStr().slice(0, 4), tx = S.txns.filter(t => isSpend(t) && t.date.startsWith(y));
   if (!tx.length) return "";
   const byCat = {}, byShop = {}; let total = 0;
-  for (const t of tx) { for (const p of catParts(t)) { const c = catById(p.categoryId); if (c && (c.group || "need") === "debt") continue; const n = c ? c.name : "No category"; byCat[n] = (byCat[n] || 0) + p.v; total += p.v; } if (t.merchant && t.kind === "expense") byShop[t.merchant] = (byShop[t.merchant] || 0) + (+t.amount || 0); }
-  const months = new Set(tx.map(t => t.date.slice(0, 7))).size;
-  const first = tx.map(t => t.date).sort()[0], days = daysDiff(first, todayStr()) + 1;
-  const spentDays = new Set(tx.filter(t => t.kind !== "refund").map(t => t.date)).size;
-  const topC = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 3), topS = Object.entries(byShop).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  const f = cardFreeInfo();
-  return `<div class="card year">
-    <div class="label">Your ${y} so far</div>
-    <div class="yr-big num"><small>EGP</small>${fmt(total)}</div>
-    <div class="small" style="opacity:.85">spent since ${esc(dayLabel(first))}, about ${money(total / Math.max(1, months))} a month</div>
-    <div class="yr-grid">
-      <div><span>Top categories</span>${topC.map(([n, v]) => `<b>${esc(n)} <em class="num">${fmt(v)}</em></b>`).join("")}</div>
-      <div><span>Top shops</span>${topS.map(([n, v]) => `<b>${esc(n)} <em class="num">${fmt(v)}</em></b>`).join("")}</div>
-      <div><span>No-spend days</span><b class="num">${days - spentDays} of ${days}</b></div>
-      <div><span>Credit card</span><b class="num">${f.done ? "Paid off ✓" : f.peak ? `${fmt(f.peak)} → ${fmt(f.now || 0)}` : "—"}</b></div>
+  for (const t of tx) { for (const p of catParts(t)) { const c = catById(p.categoryId); if (c && (c.group || "need") === "debt") continue; const k = c ? c.id : "_none"; byCat[k] = (byCat[k] || 0) + p.v; total += p.v; }
+    if (t.kind === "expense" && groupOf(t) !== "debt") { const k = shopName(t) || t.merchant; if (k) { byShop[k] = byShop[k] || { v: 0, c: catById(t.categoryId) }; byShop[k].v += +t.amount || 0; } } }
+  const first = tx.map(t => t.date).sort()[0], days = daysDiff(first, todayStr()) + 1, months = Math.max(1, days / 30.4);
+  const spentDays = new Set(tx.filter(t => t.kind === "expense").map(t => t.date)).size, n = tx.filter(t => t.kind === "expense").length;
+  const f = cardFreeInfo(), cardDown = f.peak && f.now !== undefined ? f.peak - (f.now || 0) : 0;
+  const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]).map(([k, v]) => { const c = catById(k); return { name: c ? c.name : "No category", v, color: c ? catColor(c) : NONE_COLOR, icon: c ? catIcon(c) : CAT_DEFAULT }; });
+  const shops = Object.entries(byShop).sort((a, b) => b[1].v - a[1].v).map(([k, x]) => ({ name: k, v: x.v, color: x.c ? catColor(x.c) : NONE_COLOR, icon: shopIcon(k) }));
+  return `<div class="card stack yr2">
+    <div class="row"><h2>Your ${y}</h2><span class="small muted">since ${esc(dm(first))}</span></div>
+    <div class="yr2-top"><div class="big-out num">${money(total)}</div><span class="small muted">about ${money(total / Math.max(1, Math.round(months)))} a month</span></div>
+    <div class="yr2-stats">
+      <div><span class="yr2-ic" aria-hidden="true">${CI('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>')}</span><b class="num">${n}</b><em>purchases</em></div>
+      <div><span class="yr2-ic" aria-hidden="true">${CI('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>')}</span><b class="num">${days - spentDays}</b><em>no-spend days</em></div>
+      <div><span class="yr2-ic" aria-hidden="true">${CI('<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19"/>')}</span><b class="num ${cardDown > 0 ? "goodtxt" : ""}">${f.done ? "Paid ✓" : cardDown > 0 ? "↓ " + fmt(cardDown) : "—"}</b><em>card paid down</em></div>
     </div>
+    <div class="yr2-h">Top categories</div>
+    ${rankList(cats, 3)}
+    <div class="yr2-h">Top shops</div>
+    ${rankList(shops, 3)}
   </div>`;
 }
 
@@ -3620,8 +3663,8 @@ function whereItWentCard(d) {
   const groups = ["need", "want", "debt", "none"].map(g => ({ g, v: Math.max(0, d.byGroup[g]) })), gsum = groups.reduce((a, p) => a + p.v, 0) || 1;
   return `<div class="card stack">
       <div class="row"><h2>Where it went</h2><a class="link" href="#txns">All purchases</a></div>
-      ${donutRows.length ? `<div class="donut-wrap">${donut(donutRows, d.total)}
-        <div class="leg">${donutRows.slice(0, 7).map(r => `<div style="--c:${r.c}"><span class="sw"></span><span>${esc(r.name)}</span><b class="num">${fmt(r.v)}</b></div>`).join("")}${donutRows.length > 7 ? `<div class="muted small">+${donutRows.length - 7} more</div>` : ""}</div></div>`
+      ${donutRows.length ? `<div class="donut-solo">${donut(donutRows, d.total)}</div>
+        ${rankList(catRows.map(r => ({ name: r.c.name, v: r.s, color: catColor(r.c), icon: catIcon(r.c) })).concat((d.byCat._none || 0) > 0 ? [{ name: "No category", v: d.byCat._none, color: NONE_COLOR, icon: CAT_DEFAULT }] : []), 5)}`
       : `<div class="empty"><b>Nothing spent yet</b>Your bank texts fill this chart.</div>`}
       <div class="split">${groups.filter(p => p.v > 0).map(p => `<i style="width:${(p.v / gsum * 100).toFixed(2)}%;background:${GROUP_COLOR[p.g]}"></i>`).join("")}</div>
       <div class="legend num">${groups.filter(p => p.g !== "none" || p.v > 0).map(p => `<span style="--c:${GROUP_COLOR[p.g]}"><span class="dot"></span>${p.g === "none" ? "No category" : GROUPS[p.g]} <b>${fmt(p.v)}</b></span>`).join("")}</div>
@@ -3666,7 +3709,7 @@ function renderInsights() {
       ${levelCard()}
       ${streaksCard()}
       ${jarCard()}
-      ${sec("g-more", "More progress", "Treats, badges, year, inflation", () => `${treatProgressCard()}${countdownStrip()}${orSoon(beforeAfterCard(), "Since you started", "Your first full month vs your latest.", "Needs 2 full months.")}${todayStr().slice(5, 7) === "12" ? "" : orSoon(yearNumbersCard(), "Your year in numbers", "Your year at a glance.", "Shows after 10 purchases this year.")}${badgesCard()}${yearCard()}${inflationCard()}`)}`;
+      ${sec("g-more", "More progress", "Treats, badges, year, inflation", () => `${treatProgressCard()}${countdownStrip()}${orSoon(beforeAfterCard(), "Since you started", "Your first full month vs your latest.", "Needs 2 full months.")}${badgesCard()}${yearCard()}${inflationCard()}`)}`;
   main.innerHTML = `<section class="view">${statusNote()}${askCard()}${seg}${body}</section>`;
   wireAsk();
   $("#insSeg").onclick = e => { const b = e.target.closest("button[data-t]"); if (!b) return; try { localStorage.setItem("masarif.insTab", b.dataset.t); } catch {} render(true); };
