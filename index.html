@@ -934,6 +934,57 @@ section.view{gap:12px}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 @keyframes dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.6);opacity:.5}}
 @keyframes sheen{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+/* ==========  design v2: grouped iOS look, more air, visuals  ========== */
+:root{--page:#F2F4F8;--r:22px}
+html,body{background:var(--page)}
+.top{background:color-mix(in srgb,var(--page) 90%,transparent)!important}
+section.view{gap:16px!important}
+.card{border:0!important;border-radius:var(--r);padding:20px!important;box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 20px rgba(16,24,40,.045)!important}
+.card.stack{gap:14px}
+.card h2{display:flex;align-items:center;gap:10px;font-size:17px;letter-spacing:-.01em}
+.h-ic{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 11%,#fff)}
+.h-ic svg{width:17px;height:17px}
+.stack>.card-d{margin-top:-10px!important}
+.card-d{font-size:13.5px}
+.sec{border:0!important;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 20px rgba(16,24,40,.045)}
+.sec.open{background:none;box-shadow:none}.sec.open>.sec-h{border:0!important;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.sec-h{padding:16px 18px;min-height:72px}
+.tx{border:0!important;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.04);padding:12px 14px!important;border-radius:18px!important}
+.card .tx{box-shadow:none;background:var(--soft)}
+.tx .ic{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;color:var(--c);background:color-mix(in srgb,var(--c) 13%,#fff);flex:none;font-weight:800}
+.tx .ic svg{width:21px;height:21px}
+.cico{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:9px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,#fff);flex:none;margin-right:8px;vertical-align:middle}
+.cico svg{width:16px;height:16px}
+.cat-line .row b,.cmp-row .nm{display:flex;align-items:center}
+.cat-line .bar{margin-left:36px}
+/* hero payday track */
+.hero-track{position:relative;height:30px;margin:2px 0 0}
+.hero-track::before{content:"";position:absolute;left:0;right:0;top:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.28)}
+.hero-track i{position:absolute;left:0;top:6px;height:6px;border-radius:999px;background:#fff}
+.hero-track b{position:absolute;top:2px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.3)}
+.hero-track span{position:absolute;top:16px;font-size:12px;font-weight:700;opacity:.9}.ht-a{left:0}.ht-b{right:0}
+/* charts animate in */
+@media (prefers-reduced-motion:no-preference){
+  section.view.v-in .donut circle+circle{animation:dash 1s cubic-bezier(.3,.8,.3,1) both .25s}
+  section.view.v-in .score-ring{animation:ringIn 1s cubic-bezier(.3,.8,.3,1) both .2s}
+  section.view.v-in .hero-track i{animation:grow 1.1s cubic-bezier(.3,.8,.3,1) both .3s;transform-origin:left}
+  section.view.v-in .hero-track b{animation:slideIn 1.1s cubic-bezier(.3,.8,.3,1) both .3s}
+  .hero-track b{animation:pulseDot 2.6s ease-in-out infinite 1.4s}
+  section.view.v-in .h-ic{animation:icPop .5s cubic-bezier(.2,.9,.3,1.5) both .2s}
+  section.view.v-in .tx .ic,section.view.v-in .cico{animation:icPop .45s cubic-bezier(.2,.9,.3,1.5) both .25s}
+  section.view.v-in .chart rect,section.view.v-in .chart .bar-c{animation:barUp .8s cubic-bezier(.3,.8,.3,1) both .25s;transform-box:fill-box;transform-origin:bottom}
+  section.view.v-in .hours span{animation:barUp .7s cubic-bezier(.3,.8,.3,1) both .2s;transform-origin:bottom}
+  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.14) 45%,transparent 60%);transform:translateX(-100%);animation:heroSheen 6s ease-in-out infinite 1.5s;pointer-events:none}
+}
+@keyframes dash{from{stroke-dasharray:0 400}}
+@keyframes ringIn{from{transform:rotate(-90deg) scale(.85);opacity:0}}
+@keyframes slideIn{from{left:0;opacity:0}}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 0 4px rgba(255,255,255,.3)}50%{box-shadow:0 0 0 8px rgba(255,255,255,.12)}}
+@keyframes icPop{from{transform:scale(.4);opacity:0}}
+@keyframes barUp{from{transform:scaleY(0)}}
+@keyframes heroSheen{0%,70%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.card .row>h2{white-space:nowrap;flex:0 1 auto;min-width:0}.card .row>h2+.small,.card .row>h2+span.small{text-align:right;min-width:0;flex:1 1 0}
+.q-ic svg{width:20px;height:20px}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
 .link-btn,a.link{min-width:40px;justify-content:center}
@@ -1392,7 +1443,7 @@ function weekCard() {
   const catRows = S.cats.filter(c => +c.weekly > 0).map(c => ({ c, s: w.byCat[c.id] || 0, lim: +c.weekly })).filter(r => r.s >= r.lim * 0.6);
   const range = toDate(ws).toLocaleDateString("en-GB", { weekday: "short", day: "numeric" }) + " – " + toDate(wkEnd(ws)).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
   return `<div class="card stack">
-    <div class="row"><h2>This week</h2><span class="small muted">${esc(range)} · ${daysLeft} day${daysLeft === 1 ? "" : "s"} left</span></div>
+    <div class="row"><h2>This week</h2><span class="small muted" title="${esc(range)}">${daysLeft === 1 ? "Last day" : daysLeft + " days left"}</span></div>
     ${lim ? `<div class="row"><div><div class="big-out num ${left < 0 ? "badtxt" : ""}">${money(Math.abs(left))}</div><button type="button" class="link-btn small" data-ewk>${left < 0 ? "over your " + money(lim) + " limit" : "left of " + money(lim)} ✎</button></div>
       <div style="text-align:right"><div class="small muted">Safe per day</div><b class="num" style="font:800 17px var(--f-display)">${left > 0 ? fmt(left / daysLeft) : "Essentials only"}</b></div></div>
       <div class="bar" style="--c:var(--accent);height:11px"><i class="${left < 0 ? "over" : ""}" style="width:${pct.toFixed(1)}%"></i></div>`
@@ -1402,7 +1453,7 @@ function weekCard() {
       return `<div class="nsd">${ns.days.map(x => `<span class="${ns.spent.has(x) ? "" : "free"}${x === today ? " today" : ""}" title="${esc(x)}">${toDate(x).toLocaleDateString("en-GB", { weekday: "narrow" })}</span>`).join("")}
         <b class="small">${goal ? `${Math.min(ns.free.length, goal)} of ${goal} no-spend days${hit ? " ✓" : ""}` : plural(ns.free.length, "no-spend day")}</b>${streak ? `<span class="streak">🔥 ${streak}</span>` : ""}</div>`; })()}
     ${catRows.length ? `<div class="cat-list">${catRows.map(r => `<button type="button" class="cat-line lim-row" data-ecat="${esc(r.c.id)}" style="--c:${catColor(r.c)}">
-        <div class="row"><b><span class="sw"></span>${esc(r.c.name)}</b><span class="num small">${r.s > r.lim ? `<span class="over-tag">${fmt(r.s)}</span>` : fmt(r.s)} <span class="muted">/ ${fmt(r.lim)} a week</span></span></div>
+        <div class="row"><b>${catIco(r.c, "sm")}${esc(r.c.name)}</b><span class="num small">${r.s > r.lim ? `<span class="over-tag">${fmt(r.s)}</span>` : fmt(r.s)} <span class="muted">/ ${fmt(r.lim)} a week</span></span></div>
         <div class="bar"><i class="${r.s > r.lim ? "over" : ""}" style="width:${Math.min(100, r.s / r.lim * 100).toFixed(1)}%"></i></div></button>`).join("")}</div>` : ""}
   </div>`;
 }
@@ -1451,7 +1502,7 @@ function compareCard(key, d) {
     </div>
     ${isCur ? `<div class="small muted">Last month in full: ${money(p.spend)}. ${d.spend <= prevSame ? `You're ${money(prevSame - d.spend)} below last month's pace.` : `You're ${money(d.spend - prevSame)} above last month's pace.`}</div>` : ""}
     ${rows.length ? `<div class="cmp-rows">${rows.map(r => `<div class="cmp-row" style="--c:${catColor(r.c)}">
-      <span class="nm"><span class="sw"></span><span>${esc(r.c.name)}</span></span>
+      <span class="nm">${catIco(r.c, "sm")}<span>${esc(r.c.name)}</span></span>
       <span class="num small muted">${fmt(r.b)} → <b style="color:var(--ink)">${fmt(r.a)}</b></span>${deltaChip(r.a, r.b)}</div>`).join("")}</div>`
     : `<div class="small muted">Once you have purchases in both months, the biggest changes by category show here.</div>`}
   </div>`;
@@ -1588,7 +1639,7 @@ function render(force) {
   if (typeof addDescs === "function") addDescs();
   let tab = ""; try { tab = S.view === "insights" ? localStorage.getItem("masarif.insTab") || "" : ""; } catch {}
   const k = S.view + "/" + tab, sv = main.querySelector("section.view");
-  if (sv && k !== lastAnimKey) { sv.classList.add("v-in"); setTimeout(() => sv.classList.remove("v-in"), 1200); }
+  if (sv && k !== lastAnimKey) { sv.classList.add("v-in"); setTimeout(() => sv.classList.remove("v-in"), 1200); countUp(sv); }
   lastAnimKey = k;
 }
 let lastAnimKey = "";
@@ -2203,6 +2254,38 @@ function renderHome() {
 }
 
 const txSort = (a, b) => (b.date + (b.time || "")).localeCompare(a.date + (a.time || "")) || (b.createdAt || 0) - (a.createdAt || 0);
+/* ---------- category icons: a small line drawing for each kind of spending ---------- */
+const CI = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const CAT_ICONS = [
+  [/grocer|supermarket|food at home/i, CI('<path d="M3 4h2l2.2 11h10.6L20 8H6.2"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>')],
+  [/dining|restaurant|delivery|food|eat/i, CI('<path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10"/><path d="M17 21V3c-2 1.5-3 4-3 7h3"/>')],
+  [/coffee|cafe/i, CI('<path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3c0 1.5 1 1.5 1 3M12 3c0 1.5 1 1.5 1 3"/>')],
+  [/fuel|petrol|gas/i, CI('<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h14M7 8h6"/><path d="M15 9h2a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V8l-3-3"/>')],
+  [/transport|car|ride|uber|taxi/i, CI('<path d="M5 17H3.5a1 1 0 0 1-1-1v-3.5a2 2 0 0 1 .6-1.4L5.5 8.5A3 3 0 0 1 7.6 7.5h8.2a3 3 0 0 1 2.3 1.1l2.3 2.8a2 2 0 0 1 .6 1.4V16a1 1 0 0 1-1 1H19"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6"/>')],
+  [/bill|utilit|electric|internet|mobile|phone/i, CI('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>')],
+  [/health|pharm|medic|doctor/i, CI('<path d="M20.4 6.6a5 5 0 0 0-8.4-2 5 5 0 0 0-8.4 2C2.4 10.4 6 14 12 20c6-6 9.6-9.6 8.4-13.4z"/><path d="M9 11h6M12 8v6"/>')],
+  [/shop|cloth|amazon|noon/i, CI('<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>')],
+  [/fun|subscri|entertain|movie|netflix|game/i, CI('<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/>')],
+  [/fitness|gym|sport/i, CI('<path d="M6 8v8M18 8v8M3.5 10v4M20.5 10v4M6 12h12"/>')],
+  [/home|rent|house/i, CI('<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>')],
+  [/educat|course|school|book/i, CI('<path d="M3 7l9-4 9 4-9 4z"/><path d="M7 9v5c0 1.5 2.2 3 5 3s5-1.5 5-3V9"/>')],
+  [/gift|charity|donat/i, CI('<rect x="3.5" y="9" width="17" height="11" rx="1.5"/><path d="M2.5 9h19v-3h-19zM12 6v14"/><path d="M12 6c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1"/>')],
+  [/travel|trip|flight|hotel/i, CI('<path d="M10.5 13.5L4 11l1.5-1.5 7 1 4-4a2.1 2.1 0 0 1 3 3l-4 4 1 7L17 22l-2.5-6.5-3.5 3.5v2.5L9.5 23 8 19l-4-1.5L5.5 16H8z"/>')],
+  [/debt|loan|card|saving/i, CI('<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6.5 15h4"/>')],
+  [/kid|child|baby|family/i, CI('<circle cx="12" cy="7" r="3.5"/><path d="M5 21c.8-4 3.6-6.5 7-6.5s6.2 2.5 7 6.5"/>')],
+  [/pet/i, CI('<circle cx="6" cy="10" r="1.8"/><circle cx="18" cy="10" r="1.8"/><circle cx="9.5" cy="5.5" r="1.8"/><circle cx="14.5" cy="5.5" r="1.8"/><path d="M12 12c-3 0-5 3.5-5 5.5S9 20 12 20s5-.5 5-2.5S15 12 12 12z"/>')],
+];
+const CAT_DEFAULT = CI('<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.4"/>');
+const catIcon = c => { const n = c ? c.name + " " + (c.id || "") : ""; return (CAT_ICONS.find(([re]) => re.test(n)) || [0, CAT_DEFAULT])[1]; };
+const QUICK_ICONS = [
+  [/park/i, CI('<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M10 17V7h3a3 3 0 0 1 0 6h-3"/>')],
+  [/coffee|cafe|tea/i, CI('<path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3c0 1.5 1 1.5 1 3M12 3c0 1.5 1 1.5 1 3"/>')],
+  [/tip/i, CI('<circle cx="12" cy="12" r="8.5"/><path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.6 0-2.7.8-2.7 2s1.2 1.6 2.7 2 2.7.9 2.7 2.1-1.2 2-2.7 2c-1.2 0-2.2-.5-2.7-1.4M12 6.5v1.5M12 16v1.5"/>')],
+  [/wash/i, CI('<path d="M12 3c3 4 5 6.5 5 9a5 5 0 0 1-10 0c0-2.5 2-5 5-9z"/><path d="M9.5 13a2.5 2.5 0 0 0 2.5 2.5"/>')],
+];
+const quickIcon = q => { const l = String(q.label || ""); const m = QUICK_ICONS.find(([re]) => re.test(l)); if (m) return m[1]; const c = catById(q.categoryId); return c ? catIcon(c) : esc((l.trim()[0] || "+").toUpperCase()); };
+const catIco = (c, cls = "") => `<span class="cico ${cls}" style="--c:${c ? catColor(c) : "var(--none)"}">${catIcon(c)}</span>`;
+
 function txRow(t, bal) {
   const c = catById(t.categoryId);
   const name = shopName(t) || (c ? c.name : "Purchase");
@@ -2211,7 +2294,7 @@ function txRow(t, bal) {
   const meta = isPay ? ["Payment to credit card", t.time].filter(Boolean).join(" · ") : isIn ? ["Money in", t.time].filter(Boolean).join(" · ") : [sp ? (c ? c.name : "Split") + " + " + (t.splits.length - 1) + " more" : c ? c.name : "No category", t.time].filter(Boolean).join(" · ");
   const nm = (isPay ? (t.merchant || "Credit card payment") : isIn ? (shopName(t) || "Money received") : name) + (S.receipts && S.receipts[t.id] ? " 🧾" : "") + (t.worth === "no" ? " 👎" : "");
   return `<button type="button" class="tx" data-id="${esc(t.id)}" style="--c:${isPay ? "var(--debt)" : isIn ? "var(--good)" : catColor(c)}">
-    <span class="ic" aria-hidden="true">${isPay ? "↓" : isIn ? "↑" : esc((name.trim()[0] || "?").toUpperCase())}</span>
+    <span class="ic" aria-hidden="true">${isPay ? CI('<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M12 13v4M10 15l2 2 2-2"/>') : isIn ? CI('<path d="M12 19V5M6 11l6-6 6 6"/>') : c ? catIcon(c) : esc((name.trim()[0] || "?").toUpperCase())}</span>
     <span class="mid"><b>${esc(nm)}</b><span>${esc(meta)}${!isPay && !isIn && cards().length ? `<span class="pay-dot" style="--p:${cardColor(pm)}"><i></i>${esc(pm ? (pm.type === "cash" ? "Cash" : pm.last4 ? "••" + String(pm.last4).split(",")[0].trim() : pm.type === "credit" ? "Credit" : "Debit") : "No card")}</span>` : ""}</span></span>
     ${needsReview(t) ? `<span class="rv-tag">Review</span>` : ""}<span class="amt num ${t.kind === "refund" || isIn ? "refund" : isPay ? "paid" : ""}">${t.kind === "refund" || isIn ? "+" : isPay ? "−" : ""}${fmt(t.amount)}${bal && bal[t.id] != null ? `<small class="bal-after">bal ${fmt(bal[t.id])}</small>` : ""}</span>
   </button>`;
@@ -2985,6 +3068,7 @@ function healthHero() {
         <div class="pill"><div>Safe per day</div><div class="num${h.perDay < 1 ? " word" : ""}">${h.perDay < 1 ? "Essentials only" : fmt(h.perDay)}</div></div>
         <div class="pill"><div>Bills before payday</div><div class="num">${fmt(h.toPay)}</div></div>
       </div>
+      <div class="hero-track" aria-hidden="true"><i style="width:${Math.min(100, Math.max(3, (1 - h.days / Math.max(1, daysDiff(pStart(key), pNext(key)))) * 100)).toFixed(0)}%"></i><b style="left:${Math.min(100, Math.max(3, (1 - h.days / Math.max(1, daysDiff(pStart(key), pNext(key)))) * 100)).toFixed(0)}%"></b><span class="ht-a">${esc(toDate(pStart(key)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span><span class="ht-b">💰 ${esc(payday)}</span></div>
       <div class="hero-foot"><span>${balanceStale() >= 7 ? `<b class="stale">Updated ${balanceStale()} days ago. Please update.</b>` : esc(snapLabel(st.account.asOf, st.account.asOfTime))} · payday ${esc(payday)}, in ${plural(h.days, "day")}</span><button type="button" class="hero-btn sm" data-bal aria-label="Edit bank balance">✎ Edit</button></div>
       ${h.level === "bad" && !emergencyOn() ? `<button type="button" class="hero-em" data-emerg="on"><span>Money tight? Try emergency mode</span><span aria-hidden="true">›</span></button>` : ""}
     </div>`;
@@ -3004,7 +3088,7 @@ function quickCard() {
   return `<div class="card qa">
     <div class="row"><h2>Quick add</h2><button type="button" class="link-btn" data-act="quickEdit">Edit</button></div>
     ${list.length ? `<div class="qgrid${list.length > 4 ? " scroll" : ""}">${list.map((q, i) => { const c = catColor(catById(q.categoryId)); return `<button type="button" class="qtile" data-quick="${i}" style="--c:${c}" ${S.dbOk ? "" : "disabled"}>
-        <span class="q-ic" aria-hidden="true">${esc(QA_ICONS[String(q.label).toLowerCase()] || String(q.label).trim()[0] || "+").toUpperCase()}</span>
+        <span class="q-ic" aria-hidden="true">${quickIcon(q)}</span>
         <b>${esc(q.label)}</b><span class="num">${fmt(q.amount)}</span></button>`; }).join("")}</div>` : `<div class="small muted">Add buttons for cash you pay often, like parking or coffee.</div>`}
     <div class="qtools"><button type="button" data-act="afford"><span aria-hidden="true">🤔</span>Afford it?</button><button type="button" id="slOpen"><span aria-hidden="true">🛒</span>List</button><button type="button" id="rcOpen"><span aria-hidden="true">🧾</span>Receipt</button><button type="button" id="jarAdd"><span aria-hidden="true">🫙</span>Skipped</button></div>
   </div>`;
@@ -3548,7 +3632,7 @@ function catLimitsCard(d) {
   return `<div class="card stack">
       <div class="row"><h2>Category limits</h2><a class="link" href="#cats">Set limits</a></div>
       ${rows.length ? `<div class="cat-list">${rows.map(({ c, s }) => { const b = +c.budget || 0, p = b ? Math.min(100, s / b * 100) : 0;
-        return `<button type="button" class="cat-line lim-row" data-ecat="${esc(c.id)}" style="--c:${catColor(c)}"><div class="row"><b><span class="sw"></span>${esc(c.name)}</b><span class="num small">${s > b && b ? `<span class="over-tag">${fmt(s)}</span>` : fmt(s)}${b ? ` <span class="muted">/ ${fmt(b)}</span>` : ""}</span></div>
+        return `<button type="button" class="cat-line lim-row" data-ecat="${esc(c.id)}" style="--c:${catColor(c)}"><div class="row"><b>${catIco(c, "sm")}${esc(c.name)}</b><span class="num small">${s > b && b ? `<span class="over-tag">${fmt(s)}</span>` : fmt(s)}${b ? ` <span class="muted">/ ${fmt(b)}</span>` : ""}</span></div>
           ${b ? `<div class="bar"><i class="${s > b ? "over" : ""}" style="width:${p.toFixed(1)}%"></i></div>` : ""}</button>`; }).join("")}</div>` : `<div class="empty">No categories yet.</div>`}
     </div>`;
 }
@@ -5655,7 +5739,51 @@ const DESCS = [
   [/ in numbers$/, "Your year at a glance."],
   ["Safety checks", "Alerts that keep your cards safe."],
 ];
+const H = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const CARD_IC = [
+  [/^This week$/, H('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>')],
+  [/^Quick add$/, H('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>')],
+  [/^Latest purchases$/, H('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>')],
+  [/^Bills/, H('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h4"/>')],
+  [/^Today's allowance$/, H('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')],
+  [/^Where it went$/, H('<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/>')],
+  [/^Category limits$/, H('<path d="M4 20h16M7 16V9M12 16V5M17 16v-4"/>')],
+  [/^Until payday$/, H('<path d="M3 17l5-6 4 3 6-8 3 3"/>')],
+  [/^From Claude$/, H('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>')],
+  [/^Your triggers$/, H('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>')],
+  [/^You vs last you$/, H('<circle cx="8" cy="12" r="4"/><circle cx="16" cy="12" r="4"/>')],
+  [/^Your spending style$/, H('<circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-4 3.9-6 7.5-6s6.7 2 7.5 6"/>')],
+  [/^Your spending DNA$/, H('<path d="M7 3c0 6 10 6 10 12s-10 6-10 6M17 3c0 6-10 6-10 12"/><path d="M8.5 7h7M8.5 17h7"/>')],
+  [/^Your streaks$/, H('<path d="M12 22c4 0 7-2.7 7-6.5 0-3.7-3-6-4-9.5-2 1.5-3 3.5-3 5.5C10.5 10 9.5 9 9.5 7 7 9 5 11.5 5 15.5 5 19.3 8 22 12 22z"/>')],
+  [/^Saving jar$/, H('<path d="M7 7h10M8 7l-1.5 2.5V19a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V9.5L16 7"/><path d="M9 4h6v3H9z"/>')],
+  [/^Your rhythm$|^Time of day$|^Your typical week$/, H('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')],
+  [/^Last (6|12) months$/, H('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>')],
+  [/^Savings pots$/, H('<path d="M7 7h10M8 7l-1.5 2.5V19a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V9.5L16 7"/><path d="M9 4h6v3H9z"/>')],
+  [/^Pick a plan$|^Next month's plan$/, H('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>')],
+  [/^Coming up$/, H('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>')],
+];
+function decorate() {
+  for (const h of main.querySelectorAll(".card h2")) {
+    if (h.querySelector(".h-ic") || h.closest(".soon")) continue;
+    const t = h.textContent.trim(), m = CARD_IC.find(([re]) => re.test(t)); if (!m) continue;
+    h.insertAdjacentHTML("afterbegin", `<span class="h-ic" aria-hidden="true">${m[1]}</span>`);
+  }
+}
+/* big numbers count up when a screen opens */
+function countUp(root) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || document.body.classList.contains("hide-amts")) return;
+  for (const el of root.querySelectorAll(".hero .big, .big-out, .ah-big, .donut .mid b, .score-ring b")) {
+    const tn = [...el.childNodes].find(n => n.nodeType === 3 && /\d/.test(n.textContent)); if (!tn) continue;
+    const txt = tn.textContent, m = txt.match(/-?[\d,]+(\.\d+)?/); if (!m) continue;
+    const target = parseFloat(m[0].replace(/,/g, "")); if (!isFinite(target) || Math.abs(target) < 10) continue;
+    const dec = (m[1] || "").length - 1, t0 = performance.now(), dur = 750;
+    const step = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3), v = target * e;
+      tn.textContent = txt.replace(m[0], v.toLocaleString("en-US", { minimumFractionDigits: Math.max(0, dec), maximumFractionDigits: Math.max(0, dec) })); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+}
 function addDescs() {
+  decorate();
   for (const h of main.querySelectorAll(".card h2")) {
     const t = h.textContent.trim(), d = DESCS.find(([k]) => typeof k === "string" ? k === t : k.test(t)); if (!d) continue;
     const head = h.parentElement.classList.contains("row") ? h.parentElement : h, next = head.nextElementSibling;
