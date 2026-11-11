@@ -4710,19 +4710,22 @@ lockEl.innerHTML = `<div class="lk-box"><img src="icon-192.png" alt="" width="72
 document.body.appendChild(lockEl);
 function lockNow() { if (!lockCfg()) return; lockEl.hidden = false; document.body.classList.add("locked"); try { closeSheet(); } catch {} }
 let unlocking = false;
-lockEl.querySelector("#lkGo").onclick = async () => {
+async function doUnlock(auto) {
   if (unlocking) return; unlocking = true; const msg = lockEl.querySelector("#lkMsg");
   try { await checkFaceId(); lockEl.hidden = true; document.body.classList.remove("locked"); msg.textContent = "Your money stays private."; }
-  catch (e) { msg.textContent = "Didn't work. Tap to try again (your iPhone passcode works too)."; }
+  catch (e) { msg.textContent = auto ? "Tap to unlock with Face ID." : "Didn't work. Tap to try again (your iPhone passcode works too)."; }
   unlocking = false;
-};
+}
+lockEl.querySelector("#lkGo").onclick = () => doUnlock(false);
+/* start Face ID straight away when the app opens; iPhone only shows the button if it doesn't allow that */
+const autoUnlock = () => { if (!lockEl.hidden && document.visibilityState === "visible") setTimeout(() => doUnlock(true), 150); };
 let hiddenAt = 0;
 document.addEventListener("visibilitychange", () => {
   const c = lockCfg(); if (!c) return;
   if (document.visibilityState === "hidden") hiddenAt = Date.now();
-  else if (hiddenAt && Date.now() - hiddenAt >= (c.after || 0) * 1000) lockNow();
+  else if (hiddenAt && Date.now() - hiddenAt >= (c.after || 0) * 1000) { lockNow(); autoUnlock(); }
 });
-if (lockCfg()) lockNow();
+if (lockCfg()) { lockNow(); autoUnlock(); }
 function faceIdCard() {
   const c = lockCfg();
   return `<div class="card stack">
