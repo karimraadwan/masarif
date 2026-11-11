@@ -904,6 +904,36 @@ section.view{gap:12px}
 .soon{gap:8px}.soon h2{color:var(--muted)}.soon-tag{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--sunk);border-radius:999px;padding:3px 9px}
 .soon-w{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink);background:var(--soft);border-radius:12px;padding:9px 12px}.soon .card-d{margin-top:-4px}
 .ask{padding:12px}.ask .chips{margin-top:8px}
+/* ---------- motion & vectors ---------- */
+.sec-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,#fff)}
+.sec.open .sec-ic{background:#fff}
+.soon-ic{flex:none;color:var(--muted);margin-top:1px}
+.empty::before{content:"";display:block;width:56px;height:56px;margin:0 auto 8px;border-radius:18px;background:color-mix(in srgb,var(--accent) 10%,#fff) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A8060' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h12v18l-3-2-3 2-3-2-3 2z'/%3E%3Cpath d='M9 8h6M9 12h6'/%3E%3C/svg%3E") center/28px no-repeat}
+.btn,.qtile,.qtools button,.sec-h,.m-row,.act,.more-link,.nav-add,.tx,.cmini,.chip-q,.hero-btn,.seg button,.mood button,.w-b{transition:transform .14s ease,background-color .2s ease,box-shadow .2s ease}
+.seg button{transition:background-color .25s ease,color .25s ease,box-shadow .25s ease}
+@media (prefers-reduced-motion:no-preference){
+  .btn:active,.qtile:active,.qtools button:active,.sec-h:active,.m-row:active,.act:active,.more-link:active,.tx:active,.cmini:active,.chip-q:active,.hero-btn:active,.seg button:active,.w-b:active{transform:scale(.97)}
+  .nav-add:active{transform:scale(.9) rotate(90deg)}
+  section.view.v-in>*{animation:vin .45s cubic-bezier(.2,.8,.2,1) both}
+  section.view.v-in>*:nth-child(2){animation-delay:.04s}section.view.v-in>*:nth-child(3){animation-delay:.08s}section.view.v-in>*:nth-child(4){animation-delay:.12s}section.view.v-in>*:nth-child(5){animation-delay:.16s}section.view.v-in>*:nth-child(6){animation-delay:.2s}section.view.v-in>*:nth-child(7){animation-delay:.24s}section.view.v-in>*:nth-child(n+8){animation-delay:.28s}
+  section.view.v-in .bar i,section.view.v-in .cm-bar i,section.view.v-in .rh-bar i,section.view.v-in .sc-bar i,section.view.v-in .stackbar i,section.view.v-in .cd-bar i{animation:grow .9s cubic-bezier(.3,.8,.3,1) both .2s;transform-origin:left center}
+  section.view.v-in .hero .big,section.view.v-in .hero .bal-amt{animation:vin .6s cubic-bezier(.2,.8,.2,1) both .1s}
+  .sec.open .sec-b>*{animation:vin .35s cubic-bezier(.2,.8,.2,1) both}.sec.open .sec-b>*:nth-child(2){animation-delay:.05s}.sec.open .sec-b>*:nth-child(n+3){animation-delay:.1s}
+  .sec-c{transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+  nav.tabs a[aria-current=page] svg{animation:navpop .4s cubic-bezier(.2,.8,.3,1.4)}
+  .soon-ic{animation:hg 3s ease-in-out infinite}
+  .sec-h:hover .sec-ic,.sec-h:active .sec-ic{transform:rotate(-6deg)}.sec-ic{transition:transform .2s ease}
+  .empty::before{animation:floaty 3.5s ease-in-out infinite}
+  .nudge-more .nm-dots i{animation:dot 1.6s ease-in-out infinite}.nudge-more .nm-dots i:nth-child(2){animation-delay:.2s}.nudge-more .nm-dots i:nth-child(3){animation-delay:.4s}
+  .sheet .sheet-actions .btn.grad{background-size:200% 100%;animation:sheen 4s ease-in-out infinite}
+}
+@keyframes vin{from{opacity:0;transform:translateY(14px)}}
+@keyframes grow{from{transform:scaleX(0)}}
+@keyframes navpop{0%{transform:scale(.8)}50%{transform:translateY(-3px) scale(1.15)}100%{transform:none}}
+@keyframes hg{0%,70%{transform:rotate(0)}85%,100%{transform:rotate(180deg)}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.6);opacity:.5}}
+@keyframes sheen{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
 .link-btn,a.link{min-width:40px;justify-content:center}
@@ -1358,7 +1388,8 @@ function weekCard() {
   const daysLeft = daysDiff(today, wkEnd(ws)) + 1;
   const left = lim - w.total, pct = lim ? Math.min(100, w.total / lim * 100) : 0;
   const prev = weekData(wkStart(addDays(ws, -1)));
-  const catRows = S.cats.filter(c => +c.weekly > 0).map(c => ({ c, s: w.byCat[c.id] || 0, lim: +c.weekly }));
+  /* weekly category limits only show once they're 60% used, to keep the card calm */
+  const catRows = S.cats.filter(c => +c.weekly > 0).map(c => ({ c, s: w.byCat[c.id] || 0, lim: +c.weekly })).filter(r => r.s >= r.lim * 0.6);
   const range = toDate(ws).toLocaleDateString("en-GB", { weekday: "short", day: "numeric" }) + " – " + toDate(wkEnd(ws)).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
   return `<div class="card stack">
     <div class="row"><h2>This week</h2><span class="small muted">${esc(range)} · ${daysLeft} day${daysLeft === 1 ? "" : "s"} left</span></div>
@@ -1555,7 +1586,12 @@ function render(force) {
   queueMicrotask(() => { if (["cats", "import", "setup"].includes(S.view) && !main.querySelector(".back")) { const sec = main.querySelector("section.view"); if (sec) sec.insertAdjacentHTML("afterbegin", `<a class="back" href="#more">‹ Settings & tools</a>`); } });
   ({ home: renderHome, txns: renderTxns, plan: renderPlan, insights: renderInsights, more: renderMore, cats: renderCats, import: renderImport, setup: renderSetup }[S.view] || renderHome)();
   if (typeof addDescs === "function") addDescs();
+  let tab = ""; try { tab = S.view === "insights" ? localStorage.getItem("masarif.insTab") || "" : ""; } catch {}
+  const k = S.view + "/" + tab, sv = main.querySelector("section.view");
+  if (sv && k !== lastAnimKey) { sv.classList.add("v-in"); setTimeout(() => sv.classList.remove("v-in"), 1200); }
+  lastAnimKey = k;
 }
+let lastAnimKey = "";
 
 function donut(rows, total) {
   const r = 52, C = 2 * Math.PI * r;
@@ -4926,7 +4962,7 @@ const periodLen = key => daysDiff(pStart(key), pNext(key));
 
 /* a feature that needs more data still shows where it lives, and when it starts */
 function soonCard(title, desc, when) {
-  return `<div class="card stack soon"><div class="row"><h2>${title}</h2><span class="soon-tag">Soon</span></div><p class="card-d">${desc}</p><div class="soon-w"><span aria-hidden="true">⏳</span><span>${when}</span></div></div>`;
+  return `<div class="card stack soon"><div class="row"><h2>${title}</h2><span class="soon-tag">Soon</span></div><p class="card-d">${desc}</p><div class="soon-w"><svg class="soon-ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9"/><path d="M9.5 18.5h5" stroke-width="2.6"/></svg><span>${when}</span></div></div>`;
 }
 const orSoon = (html, title, desc, when) => String(html || "").trim() ? html : soonCard(title, desc, when);
 
@@ -4935,11 +4971,27 @@ const orSoon = (html, title, desc, when) => String(html || "").trim() ? html : s
    ==================================================================== */
 const SEC_KEY = "masarif.sec";
 const secState = () => { try { return JSON.parse(localStorage.getItem(SEC_KEY) || "{}"); } catch { return {}; } };
+const IC = (d, extra = "") => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const SEC_IC = {
+  plans: IC('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
+  goals: IC('<path d="M7 7h10M8 7l-1.5 2.5V19a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V9.5L16 7"/><path d="M9 4h6v3H9z"/><path d="M10 14h4"/>'),
+  coming: IC('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.4" fill="currentColor"/>'),
+  regular: IC('<path d="M4 12a8 8 0 0 1 13.7-5.6L20 9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15"/><path d="M4 20v-5h5"/>'),
+  car: IC('<path d="M5 17H3.5a1 1 0 0 1-1-1v-3.5a2 2 0 0 1 .6-1.4L5.5 8.5A3 3 0 0 1 7.6 7.5h8.2a3 3 0 0 1 2.3 1.1l2.3 2.8a2 2 0 0 1 .6 1.4V16a1 1 0 0 1-1 1H19"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6M6 11.5h12"/>'),
+  owed: IC('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><path d="M16 6.5h5M18.5 4v5"/>'),
+  "m-more": IC('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/><path d="M9 8h6"/>'),
+  "p-more": IC('<path d="M3 17l5-6 4 3 6-8 3 3"/><path d="M3 21h18"/>'),
+  "y-more": IC('<circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-4 3.9-6 7.5-6s6.7 2 7.5 6"/>'),
+  "g-more": IC('<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8.5 21h7M10 17h4v4h-4z"/>'),
+  "s-help": IC('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6"/>'),
+  "s-safe": IC('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>'),
+  "s-bank": IC('<path d="M3 9l9-5 9 5"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>'),
+};
 function sec(id, title, sub, body, defOpen) {
   const st = secState(), open = st[id] === undefined ? !!defOpen : !!st[id];
   const inner = open ? (typeof body === "function" ? body() : body) : "";
   if (open && !String(inner).trim()) return "";
-  return `<div class="sec${open ? " open" : ""}"><button type="button" class="sec-h" data-sect="${id}" aria-expanded="${open}"><span class="sec-t"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</span><span class="sec-c" aria-hidden="true">›</span></button>${open ? `<div class="sec-b">${inner}</div>` : ""}</div>`;
+  return `<div class="sec${open ? " open" : ""}"><button type="button" class="sec-h" data-sect="${id}" aria-expanded="${open}">${SEC_IC[id] ? `<span class="sec-ic">${SEC_IC[id]}</span>` : ""}<span class="sec-t"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</span><span class="sec-c" aria-hidden="true">›</span></button>${open ? `<div class="sec-b">${inner}</div>` : ""}</div>`;
 }
 main.addEventListener("click", e => { const b = e.target.closest("[data-sect]"); if (!b) return; const st = secState(); st[b.dataset.sect] = b.getAttribute("aria-expanded") !== "true"; try { localStorage.setItem(SEC_KEY, JSON.stringify(st)); } catch {} render(true); });
 
