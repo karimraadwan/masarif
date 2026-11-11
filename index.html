@@ -731,7 +731,7 @@ nav.tabs a[aria-current=page]{color:var(--accent);background:color-mix(in srgb,v
 .loc-sug{display:block;width:100%;text-align:left;border:1px dashed #93C5FD;background:#EFF6FF;color:inherit;border-radius:12px;padding:10px 12px;font-size:14px;min-height:44px}
 .persona .pe{display:flex;gap:12px;align-items:center}.pe-ic{font-size:34px}.pe div{display:flex;flex-direction:column;gap:2px}.pe b{font:800 18px var(--f-display)}.pe div span{font-size:14px;color:var(--muted)}
 .stackbar{display:flex;height:12px;border-radius:999px;background:var(--sunk);overflow:hidden}.stackbar i{display:block;height:100%}
-.pdplan .pd-list{display:flex;flex-direction:column;gap:4px}.pd{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 12px;border-radius:12px;background:var(--soft);font-size:14px}.pd.now{background:#ECFDF5;border:1px solid #A7F3D0}.pd em{grid-column:1/-1;font-style:normal;font-size:12px;color:var(--muted)}
+.pdplan .pdd-list{display:flex;flex-direction:column;gap:4px}.pdd{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 12px;border-radius:12px;background:var(--soft);font-size:14px}.pdd.now{background:#ECFDF5;border:1px solid #A7F3D0}.pdd em{grid-column:1/-1;font-style:normal;font-size:12px;color:var(--muted)}
 .ptr{opacity:0;position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:40;transform:translateY(-60px);margin-left:-130px;width:260px;display:flex;gap:8px;align-items:center;justify-content:center;padding:10px 14px;border-radius:999px;background:#0F172A;color:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.2);transition:transform .15s;pointer-events:none}
 .ptr.ready .ptr-ic{transform:rotate(180deg)}.ptr.busy .ptr-ic{animation:spin 1s linear infinite}.ptr .ptr-ic{display:inline-block;transition:transform .15s}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -784,6 +784,18 @@ main h2{font-weight:700;letter-spacing:-.01em}
 .quote{border-color:var(--line)!important;background:var(--bg)!important}
 .quote::before{display:none!important}
 .cm-amt b{font-size:16px!important;white-space:nowrap}
+/* category rows: name on one line, chevron right after it */
+.cat-line .row b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto}
+.cat-line .row>.num{flex:0 0 auto;white-space:nowrap}
+/* savings pot footer */
+.g-foot{display:flex;flex-direction:column;gap:10px}
+.g-foot .mini-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g-foot .mini-btns button{width:100%}
+/* payday routine: steps always one column, button full width */
+.pd .pd-step{grid-template-columns:30px minmax(0,1fr)}
+/* chips inside any sheet: white with a coloured dot, coloured only when picked */
+#sheet .chip{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important;padding:8px 12px!important;font-size:14px!important;font-weight:600!important;min-height:40px}
+#sheet .chip:has(input:checked){background:color-mix(in srgb,var(--c) 12%,#fff)!important;border-color:var(--c)!important;font-weight:700!important;box-shadow:0 0 0 1px var(--c)}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
 .link-btn,a.link{min-width:40px;justify-content:center}
@@ -1585,7 +1597,7 @@ function goalsCard() {
       return `<div class="goal" style="--c:${g.color || "#10B981"}">
         <div class="row"><b><span class="sw"></span> ${esc(g.name)}</b><span class="num small"><b>${fmt(sv)}</b> <span class="muted">/ ${fmt(tgt)}</span></span></div>
         <div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>
-        <div class="row small"><span class="muted">${esc(eta)}${mo ? ` · ${money(mo)} a month` : ""}</span><span class="mini-btns"><button type="button" data-gadd="${esc(g.id)}">+ Add money</button><button type="button" data-gedit="${esc(g.id)}">Edit</button></span></div>
+        <div class="g-foot small"><span class="muted">${esc(eta)}${mo ? ` · ${money(mo)} a month` : ""}</span><span class="mini-btns"><button type="button" data-gadd="${esc(g.id)}">+ Add money</button><button type="button" data-gedit="${esc(g.id)}">Edit</button></span></div>
       </div>`; }).join("")
     : `<div class="goal-empty">
         <span class="ge-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
@@ -1753,7 +1765,7 @@ function openGoal(id, preset) {
       </div>
       <label class="field"><span>Put aside each month</span><div class="affix"><input type="text" inputmode="decimal" id="gMo" value="${v.monthly ? fmtIn(v.monthly) : ""}"><span>EGP</span></div></label>
       <div class="field"><span>Color</span><div class="swatches">${PALETTE.map(p => `<label style="--c:${p}"><input type="radio" name="gcol" value="${p}" ${p === v.color ? "checked" : ""} aria-label="${p}"></label>`).join("")}</div></div>
-      <div class="btns"><button class="btn grad" type="submit">Save</button>${g ? `<button class="btn danger" type="button" id="gDel">Delete</button>` : ""}</div>
+      <div class="sheet-actions">${g ? `<button class="btn danger" type="button" id="gDel">Delete</button>` : ""}<button class="btn grad big" type="submit">Save</button></div>
       <div class="small muted" id="gMsg"></div>
     </form>`);
   $("#xClose").onclick = closeSheet;
@@ -1773,7 +1785,7 @@ function openGoalAdd(id) {
     <form id="gaForm" style="display:flex;flex-direction:column;gap:12px">
       <label class="field"><span>Amount</span><div class="affix"><input type="text" inputmode="decimal" id="gaAmt" value="${g.monthly ? fmtIn(g.monthly) : ""}" required><span>EGP</span></div></label>
       <div class="seg"><label><input type="radio" name="gadir" value="1" checked>Add</label><label><input type="radio" name="gadir" value="-1">Take out</label></div>
-      <div class="btns"><button class="btn grad" type="submit">Save</button></div>
+      <div class="sheet-actions"><button class="btn grad big" type="submit">Save</button></div>
     </form>`);
   $("#xClose").onclick = closeSheet;
   $("#gaForm").onsubmit = async e => {
@@ -1795,7 +1807,7 @@ function openOwed(id) {
         <label class="field"><span>Amount</span><div class="affix"><input type="text" inputmode="decimal" id="oAmt" value="${v.amount ? fmtIn(v.amount) : ""}" required><span>EGP</span></div></label>
         <label class="field"><span>Since</span><input type="date" id="oDate" value="${esc(v.date || "")}"></label>
       </div>
-      <div class="btns"><button class="btn grad" type="submit">Save</button>${o ? `<button class="btn danger" type="button" id="oDel">Delete</button>` : ""}</div>
+      <div class="sheet-actions">${o ? `<button class="btn danger" type="button" id="oDel">Delete</button>` : ""}<button class="btn grad big" type="submit">Save</button></div>
       <div class="small muted" id="oMsg"></div>
     </form>`);
   $("#xClose").onclick = closeSheet;
@@ -1960,7 +1972,7 @@ function openBalances() {
         <label class="field"><span>Credit limit</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="bLim" value="${cc && cc.limit ? fmtIn(cc.limit) : ""}" autocomplete="off"><span>EGP</span></div></label>
         <label class="field"><span>Due date</span><input type="date" id="bDue" value="${esc(st.card.dueDate || "")}"></label>
       </div>
-      <div class="btns"><button class="btn grad" type="submit">Save</button></div>
+      <div class="sheet-actions"><button class="btn grad big" type="submit">Save</button></div>
       <div class="small muted" id="bMsg"></div>
     </form>`);
   $("#xClose").onclick = closeSheet;
@@ -2625,7 +2637,7 @@ function openCat(id) {
       </div>
       <label class="field"><span>Keywords, separated by commas</span><textarea id="cKw" placeholder="carrefour, spinneys, seoudi">${esc(v.keywords || "")}</textarea></label>
       ${c ? `<label class="check"><input type="checkbox" id="cRe"><span>Also move uncategorized purchases that match these keywords</span></label>` : ""}
-      <div class="btns"><button class="btn grad" type="submit" ${S.dbOk ? "" : "disabled"}>Save</button>${c ? `<button class="btn danger" type="button" id="cDel">Delete</button>` : ""}</div>
+      <div class="sheet-actions">${c ? `<button class="btn danger" type="button" id="cDel">Delete</button>` : ""}<button class="btn grad big" type="submit" ${S.dbOk ? "" : "disabled"}>Save</button></div>
       <div class="small muted" id="cMsg"></div>
     </form>`);
   $("#xClose").onclick = closeSheet;
@@ -4570,10 +4582,10 @@ function paydayPlanCard() {
   const per = Math.max(0, h.free) / days, spentToday = spendBetween(today, today);
   const next = billsFor(pKeyOf(pay)).filter(b => b.date === pay);
   const card = cardNow().now > 0 ? +settings().card.payment || 0 : 0;
-  const rows = []; for (let i = 0; i < days; i++) { const d = addDays(today, i); rows.push(`<div class="pd ${i === 0 ? "now" : ""}"><span>${i === 0 ? "Today" : esc(shortDay(d))}</span><b class="num">${money(per)}</b>${i === 0 ? `<em>${spentToday ? "spent " + fmt(spentToday) : "nothing spent yet"}</em>` : ""}</div>`); }
+  const rows = []; for (let i = 0; i < days; i++) { const d = addDays(today, i); rows.push(`<div class="pdd ${i === 0 ? "now" : ""}"><span>${i === 0 ? "Today" : esc(shortDay(d))}</span><b class="num">${money(per)}</b>${i === 0 ? `<em>${spentToday ? "spent " + fmt(spentToday) : "nothing spent yet"}</em>` : ""}</div>`); }
   return `<div class="card stack pdplan">
     <div class="row"><h2>⏳ ${plural(days, "day")} to payday</h2><span class="small muted">${esc(shortDay(pay))}</span></div>
-    <div class="pd-list">${rows.join("")}</div>
+    <div class="pdd-list">${rows.join("")}</div>
     <div class="small muted">On payday: salary in ${money(+settings().salary || 0)}${next.length || card ? `, then ${next.map(b => `${esc(b.name)} ${fmt(b.amount)}`).join(", ")}${card ? `${next.length ? ", " : ""}card ${fmt(card)}` : ""}` : ""}.</div>
   </div>`;
 }
