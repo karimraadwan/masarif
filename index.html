@@ -748,6 +748,42 @@ main h2{font-weight:700;letter-spacing:-.01em}
 .nudge-more{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;border:1px dashed var(--line);background:var(--soft);border-radius:16px;padding:10px 14px;font:700 14px var(--f-body);color:var(--ink);text-align:left}
 .nudge-more .chev{margin-left:auto;color:var(--muted);font-size:20px}
 .nm-dots{display:flex}.nm-dots i{width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--soft);margin-right:-4px}.nm-dots i:nth-child(2){background:#F59E0B}.nm-dots i:nth-child(3){background:#6366F1}
+/* ---- design polish (round 6) ---- */
+/* coloured stripe: a short inner bar instead of a thick curved border */
+.treat,.allow,.checks,.smart,.season,.stmt-due,.extra,.persona,.quote,.gap.warn,.treat-p{border-left-width:1px!important;border-left-color:var(--line)!important;position:relative}
+.treat::before,.allow::before,.checks::before,.smart::before,.season::before,.stmt-due::before,.extra::before,.persona::before,.quote::before,.gap.warn::before,.treat-p::before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:3px;border-radius:0 3px 3px 0;background:var(--stripe,var(--accent))}
+.treat{--stripe:#EC4899}.allow{--stripe:#0EA5E9}.allow.over{--stripe:#DC2626}.checks{--stripe:#DC2626}.smart{--stripe:#6366F1}.season{--stripe:#7C3AED}.stmt-due{--stripe:#3B82F6}.extra{--stripe:#10B981}.quote{--stripe:#22C55E}.gap.warn{--stripe:#F59E0B}.persona,.treat-p{--stripe:#F59E0B}
+.quote{padding:14px 16px 14px 18px!important;gap:4px}
+.q-mark{position:static!important;font:700 34px/0.6 Georgia,serif!important;color:#86EFAC;height:16px}
+.q-txt{font-size:15px;font-weight:600;line-height:1.5}
+.q-more{font-size:12px;font-weight:600;color:var(--muted)}
+/* add-purchase sheet: calmer, consistent */
+.kind{font-size:12px!important;padding:10px 2px 9px!important;gap:5px!important}
+.kind>span:last-child{white-space:normal;line-height:1.15}
+.k-ic{width:30px!important;height:30px!important}
+.k-ic svg{display:block}
+.hrs:empty{display:none}
+.txf .chip{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line)!important;padding:8px 12px!important;font-size:14px!important;font-weight:600!important;min-height:40px}
+.txf .chip:has(input:checked){background:color-mix(in srgb,var(--c) 12%,#fff)!important;border-color:var(--c)!important;font-weight:700!important;box-shadow:0 0 0 1px var(--c)}
+.paychip{background:#fff!important;color:var(--ink)!important;border:1px solid var(--line);padding:10px 12px 10px 14px!important;opacity:1!important}
+.paychip::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 3px 3px 0;background:var(--c)}
+.paychip .pc-type{color:var(--muted);opacity:1!important;font-size:11px!important}
+.paychip b{font-size:16px!important;color:var(--ink)}
+.paychip:has(input:checked){background:color-mix(in srgb,var(--c) 10%,#fff)!important;border-color:var(--c);box-shadow:0 0 0 1px var(--c)!important}
+/* spending: filters in one swipeable row each */
+.toolbar .chips{flex-wrap:nowrap;overflow-x:auto;margin:0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));padding:0 max(16px, env(safe-area-inset-left, 0px)) 2px;scroll-padding:16px}
+.toolbar .chips button{flex:0 0 auto}
+/* small credit card summary */
+.cmini{display:flex;align-items:center;gap:12px;padding:12px 14px;color:inherit;text-decoration:none}
+.cm-ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#F3E8FF;color:#7C3AED;flex:0 0 auto}
+.cm-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.cm-t{font-weight:700;font-size:15px}.cm-s{font-size:12.5px;color:var(--muted);line-height:1.35}
+.cm-bar{height:5px;border-radius:999px;background:var(--sunk);overflow:hidden;margin-top:2px}.cm-bar i{display:block;height:100%;background:#8B5CF6;border-radius:999px}
+.cm-amt{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:0 0 auto}.cm-amt b{font:700 17px var(--f-display)}.cm-amt span{font-size:12px;color:var(--muted)}
+.pay-dot{white-space:nowrap}
+.quote{border-color:var(--line)!important;background:var(--bg)!important}
+.quote::before{display:none!important}
+.cm-amt b{font-size:16px!important;white-space:nowrap}
 /* touch targets: every tappable thing is at least 40px tall (kept last so it wins) */
 .link-btn,a.link,.bill-tg,.chips button,.chips .chip,.chip-q,.seg button,.ins-tabs button,.month button,main .chips a,.mini-btns button,.pc-steps button,.hero-btn.sm,.cat-line{min-height:40px}
 .link-btn,a.link{min-width:40px;justify-content:center}
@@ -1419,14 +1455,16 @@ function syncText() {
   if (t) return `Synced ${new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}${S.sync.added ? ` · ${S.sync.added} new purchase${S.sync.added === 1 ? "" : "s"} added` : " · up to date"}${Store.pendingCount() ? ` · ${Store.pendingCount()} change${Store.pendingCount() === 1 ? "" : "s"} waiting to save` : ""}`;
   return "Not synced yet.";
 }
+/* the same bank text sent twice (e.g. by two automations, or run by hand later) has the same date, minute, amount and type */
+const textKey = r => r && r.raw && r.time && r.date ? [r.date, r.time, (+r.amount || 0).toFixed(2), r.kind || "expense"].join("|") : null;
 async function processInbox() {
   if (!db) return;
   const have = new Set(S.txns.map(t => t.id));
-  for (const t of S.txns) if (t.smsId) have.add(t.smsId);
+  for (const t of S.txns) { if (t.smsId) have.add(t.smsId); const k = textKey(t); if (k) have.add(k); }
   let rows = [];
   for (const r of Store.inbox()) { const line = String((r && r[1]) || "").trim(); if (line) rows = rows.concat(parseShortcutFile(line)); }
   const seen = new Set();
-  rows = rows.filter(r => !have.has(r.id) && !seen.has(r.id) && seen.add(r.id));
+  rows = rows.filter(r => { const k = textKey(r); if (have.has(r.id) || seen.has(r.id) || (k && (have.has(k) || seen.has(k)))) return false; seen.add(r.id); if (k) seen.add(k); return true; });
   const defCard = settings().defaultCardId || null, cc = creditCard();
   for (const r of rows) {
     const cardId = r.kind === "payment" ? (cc ? cc.id : null) : (r.cardId || defCard);
@@ -1962,6 +2000,7 @@ function renderHome() {
     ${emergencyOn() ? emergencyHero() : healthHero()}
     ${checkCard()}
     ${homeNudges(d)}
+    ${cardMini()}
     ${allowanceCard()}
     ${paydayPlanCard()}
     ${quickCard()}
@@ -2011,7 +2050,7 @@ function txRow(t) {
   const nm = (isPay ? (t.merchant || "Credit card payment") : isIn ? (shopName(t) || "Money received") : name) + (S.receipts && S.receipts[t.id] ? " 🧾" : "") + (t.worth === "no" ? " 👎" : "");
   return `<button type="button" class="tx" data-id="${esc(t.id)}" style="--c:${isPay ? "var(--debt)" : isIn ? "var(--good)" : catColor(c)}">
     <span class="ic" aria-hidden="true">${isPay ? "↓" : isIn ? "↑" : esc((name.trim()[0] || "?").toUpperCase())}</span>
-    <span class="mid"><b>${esc(nm)}</b><span>${esc(meta)}${!isPay && !isIn && cards().length ? ` · <span class="pay-dot" style="--p:${cardColor(pm)}"><i></i>${esc(pm ? (pm.type === "cash" ? "Cash" : (pm.type === "credit" ? "Credit" : "Debit") + (pm.last4 ? " " + pm.last4 : "")) : "Card not set")}</span>` : ""}</span></span>
+    <span class="mid"><b>${esc(nm)}</b><span>${esc(meta)}${!isPay && !isIn && cards().length ? `<span class="pay-dot" style="--p:${cardColor(pm)}"><i></i>${esc(pm ? (pm.type === "cash" ? "Cash" : pm.last4 ? "••" + String(pm.last4).split(",")[0].trim() : pm.type === "credit" ? "Credit" : "Debit") : "No card")}</span>` : ""}</span></span>
     ${needsReview(t) ? `<span class="rv-tag">Review</span>` : ""}<span class="amt num ${t.kind === "refund" || isIn ? "refund" : isPay ? "paid" : ""}">${t.kind === "refund" || isIn ? "+" : isPay ? "−" : ""}${fmt(t.amount)}</span>
   </button>`;
 }
@@ -2028,7 +2067,7 @@ function renderTxns() {
         ${reviewCount() ? `<button type="button" data-f="review" aria-pressed="${S.filter === "review"}" style="--c:var(--warn-ink)">To review (${reviewCount()})</button>` : ""}${[["all", "All", ""], ["need", "Need", "var(--need)"], ["want", "Want", "var(--want)"], ["debt", "Debt", "var(--debt)"], ["none", "No category", NONE_COLOR]].map(([k, l, c]) => `<button type="button" data-f="${k}" aria-pressed="${S.filter === k}" ${c ? `style="--c:${c}"` : ""}>${l}</button>`).join("")}
       </div>
       ${cards().length ? `<div class="chips" id="cardChips">
-        ${[["all", "All cards", ""]].concat(payMethods().map(c => [c.id, c.type === "cash" ? "Cash" : (c.type === "credit" ? "Credit" : "Debit") + (c.last4 ? " ••" + c.last4 : ""), cardColor(c)])).concat([["pay", "Card payments", "var(--debt)"], ["_none", "Card not set", NONE_COLOR]]).map(([k, l, c]) => `<button type="button" data-cf="${esc(k)}" aria-pressed="${S.cardF === k}" ${c ? `style="--c:${c}"` : ""}>${esc(l)}</button>`).join("")}
+        ${[["all", "All cards", ""]].concat(payMethods().map(c => [c.id, c.type === "cash" ? "Cash" : (c.type === "credit" ? "Credit" : "Debit") + (c.last4 ? " ••" + c.last4 : ""), cardColor(c)])).concat(S.txns.some(t => !t.deleted && t.kind === "payment") ? [["pay", "Card payments", "var(--debt)"]] : []).concat(S.txns.some(t => !t.deleted && !isFlow(t) && !t.cardId) ? [["_none", "Card not set", NONE_COLOR]] : []).map(([k, l, c]) => `<button type="button" data-cf="${esc(k)}" aria-pressed="${S.cardF === k}" ${c ? `style="--c:${c}"` : ""}>${esc(l)}</button>`).join("")}
       </div>` : ""}
       <div class="small muted" id="txCount"></div>
     </div>
@@ -2447,7 +2486,8 @@ function openTx(id, preset) {
   if (id && !t) return;
   const defDate = S.month === curKey() ? todayStr() : pStart(S.month);
   const v = t || Object.assign({ date: defDate, time: "", amount: "", kind: "expense", merchant: "", note: "", categoryId: "", cardId: settings().defaultCardId || "" }, preset || {});
-  const KINDS = [["expense", "Spent", "−"], ["refund", "Refund", "↩"], ["payment", "Card payment", "▤"], ["income", "Money in", "+"]];
+  const ico = d => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const KINDS = [["expense", "Spent", ico('<path d="M6 12h12"/>')], ["refund", "Refund", ico('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>')], ["payment", "Card payment", ico('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>')], ["income", "Money in", ico('<path d="M12 6v12M6 12h12"/>')]];
   const catChips = `<label class="chip" style="--c:${NONE_COLOR}"><input type="radio" name="tcat" value="" ${!v.categoryId ? "checked" : ""}><span class="dot"></span>None</label>` +
     S.cats.map(c => `<label class="chip" style="--c:${catColor(c)}"><input type="radio" name="tcat" value="${esc(c.id)}" ${c.id === v.categoryId ? "checked" : ""}><span class="dot"></span>${esc(c.name)}</label>`).join("");
   const payChips = payMethods().map(c => `<label class="paychip" style="--c:${cardColor(c)}"><input type="radio" name="tpay" value="${esc(c.id)}" ${c.id === v.cardId ? "checked" : ""}>
@@ -4595,6 +4635,20 @@ function homeNudges(d) {
     : `<button type="button" class="nudge-more" data-nudges="more"><span class="nm-dots" aria-hidden="true">${rest.slice(0, 3).map(() => "<i></i>").join("")}</span>${plural(rest.length, "more thing")} for you<span class="chev" aria-hidden="true">›</span></button>`);
 }
 main.addEventListener("click", e => { const b = e.target.closest("[data-nudges]"); if (!b) return; showAllNudges = b.dataset.nudges === "more"; render(true); });
+
+/* ---------- Home: small credit card summary ---------- */
+function cardMini() {
+  const st = settings(), c = st.card || {}, cc = creditCard(); if (!cc || !(+c.balance > 0) && !c.asOf) return "";
+  const cn = cardNow(); if (!(cn.now > 0)) return "";
+  const lim = +cc.limit || 0, used = lim ? Math.min(100, cn.now / lim * 100) : 0, due = c.dueDate ? dayLabel(c.dueDate) : "", cf = cardFreeInfo();
+  return `<a class="card cmini" href="#plan" aria-label="Credit card details">
+    <span class="cm-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg></span>
+    <span class="cm-mid"><span class="cm-t">Credit card${cc.last4 ? " ••" + esc(cc.last4) : ""}</span>
+      <span class="cm-s">${c.dueDate ? `Due ${esc(toDate(c.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}` : "Owed now"}${cf && cf.end ? ` · free by ${esc(toDate(cf.end).toLocaleDateString("en-GB", { month: "short", year: "numeric" }))}` : ""}</span>
+      ${lim ? `<span class="cm-bar" title="${used.toFixed(0)}% of your limit"><i style="width:${used.toFixed(1)}%"></i></span>` : ""}</span>
+    <span class="cm-amt"><b class="num">${money(cn.now)}</b><span>${lim ? used.toFixed(0) + "% of limit" : "owed"}</span></span>
+  </a>`;
+}
 /* ---------- routing & boot ---------- */
 const VIEWS = ["home", "txns", "plan", "insights", "more", "cats", "import", "setup"];
 function route() { const h = location.hash.slice(1); S.view = VIEWS.includes(h) ? h : "home"; }
