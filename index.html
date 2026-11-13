@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-DI0S8q/B3jBYgVo+YmqzAGdZ+7eWRw2IgOMSpxw45CI='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-otYsZXYW2j8D1UV8YaIaBmF6wLXhMYEYgjP1qDAM638='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -51,6 +51,8 @@
   --r:18px;
 }
 html{font-size:17px}
+html{overflow-x:hidden;overscroll-behavior-x:none}
+@supports (overflow-x:clip){html,body{overflow-x:clip}}
 @supports (font:-apple-system-body){html{font:-apple-system-body}}
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
@@ -532,7 +534,7 @@ h2{font:700 1.1765rem/1.2 var(--f-display);margin:0;text-wrap:balance}
 .btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .field{display:flex;flex-direction:column;gap:5px}
 .field > span{font-size:0.7647rem;font-weight:700;color:var(--muted)}
-input[type=text],input[type=number],input[type=date],input[type=time],input[type=month],input[type=search],select,textarea{
+input[type=text],input[type=number],input[type=date],input[type=time],input[type=month],input[type=search],input[type=password],input[type=url],select,textarea{
   width:100%;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:1rem;min-width:0}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;background:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 textarea{resize:vertical;min-height:90px}
@@ -1857,6 +1859,7 @@ function render(force) {
   try { return render_(force); } finally { IN_RENDER = false; }
 }
 function render_(force) {
+  if (document.body.classList.contains("authing")) return;   /* a sign-in screen is showing: don't draw the app over it */
   if (!S.month) S.month = curKey();
   setChrome();
   if (S.view === "setup" && S.setupDirty && !force) return;
