@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-zlk2Vd5K00LQHVChnnCKUFf2gujkojPbS5SDw4BQtSc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-iHqJiD2hRi6WiV9FrO7hatNAyd9QDnQmQX4LFb62sL4='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1570,13 +1570,17 @@ function shopFor(m, kind, fallback) {
   if (/تحويل|transfer|instapay/i.test(m)) return "InstaPay transfer";
   return fallback || "";
 }
+const REF_RE = /(?:برقم مرجعي|رقم مرجعي|الرقم المرجعي|رقم العملية|\bref(?:erence)?(?:\s*(?:no\.?|number|#))?\s*:?)\s*[A-Za-z0-9\-]+/gi;
+const TRANSFER_RE = /تحويل|instapay|انستاباي|إنستاباي|\btransfer\b|\bipn\b/i;
 function merchantIn(m) {
+  m = String(m || "").replace(REF_RE, " ");
   let x = m.match(/\b(?:at|from|to)\s+([A-Za-z][A-Za-z0-9 .&'*\-]{1,40}?)(?=\s+(?:on|at|with|using|for|via)\b|[,;\n]|\.\s|$)/i);
   if (x) return x[1].trim();
   x = m.match(/(?:لدى|عند|من|في)\s+([A-Za-z][A-Za-z0-9 .&'*\-]{1,40})/);
   if (x) return x[1].trim();
   x = m.match(/\b(?!EGP\b|Apple\b|Pay\b|CIB\b|Card\b)[A-Za-z][A-Za-z0-9 .&'*\-]*?(?=\W*[^\x00-\x7F])/);
-  return x ? x[0].trim() : "";
+  /* a code like b9177911 is a reference number, not a shop */
+  return x && !/\d{4,}/.test(x[0]) && /[A-Za-z]{2}/.test(x[0]) ? x[0].trim() : "";
 }
 function parseSms(text) {
   let msgs = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
@@ -5268,6 +5272,8 @@ function cnpFlag(t) {
   if (!t || t.deleted || t.kind !== "expense" || !t.raw || t.cnpOk) return false;
   const c = cardById(t.cardId); if (!c || c.type === "cash") return false;
   if (APPLE_PAY_RE.test(t.raw)) return false;
+  /* InstaPay and other transfers leave your account directly: there is no card, so "paid with Apple Pay" doesn't apply */
+  if (TRANSFER_RE.test(t.raw) || /instapay|transfer/i.test(t.merchant || "")) return false;
   if (FOREIGN_RE.test(t.raw) || ONLINE_RE.test(t.raw)) return true;
   return settings().applePayOnly !== false;
 }
