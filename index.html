@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-iHqJiD2hRi6WiV9FrO7hatNAyd9QDnQmQX4LFb62sL4='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-VmlBdWp5akbgfwXY1cwEiliMHKhyUAVpd2yKhETnSCE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1212,6 +1212,14 @@ nav.tabs a{font-size:clamp(12px,0.75rem,13px)!important}
 #tCats .chip.sug{outline:2px dashed var(--accent);outline-offset:2px}
 #tCats .chip.sug::after{content:"Suggested";font-size:.6471rem;font-weight:800;color:var(--accent);margin-left:6px}
 
+.cs-list{display:flex;flex-direction:column;max-height:46vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.cs-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);min-height:44px}
+.cs-row:first-child{border-top:0}
+.cs-row input{width:20px;height:20px;flex:0 0 auto;accent-color:var(--accent,#10B981)}
+.cs-row .mid{flex:1;min-width:0;display:flex;flex-direction:column}
+.cs-row .mid b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-row .mid span{font-size:0.7647rem;color:var(--muted)}
+.cs-row .amt{font-weight:700}
 /* ---------- dark theme (follows the iPhone setting, or Settings → Appearance) ---------- */
 html[data-theme=dark]{color-scheme:dark;--ck0:#153727;--bg:#171A21;--soft:#1C2029;--sunk:#252A35;--ink:#ECEEF3;--muted:#A1AABB;--line:#2C323E;--page:#0B0E13;
   --accent:#14A37A;--accent-ink:#5EE0B5;--bad-ink:#FF8A8E;--good-ink:#4ADE9C;--warn-ink:#FBBF4D;--none:#7C8597;
@@ -3425,10 +3433,12 @@ function openCat(id) {
       </div>
       <label class="field"><span>Keywords, separated by commas</span><textarea id="cKw" placeholder="carrefour, spinneys, seoudi">${esc(v.keywords || "")}</textarea></label>
       ${c ? `<label class="check"><input type="checkbox" id="cRe"><span>Also move uncategorized purchases that match these keywords</span></label>` : ""}
+      ${c && S.txns.some(t => !t.deleted && catParts(t).some(p => p.categoryId === c.id)) ? `<button type="button" class="btn" id="cSplit" style="align-self:flex-start" ${S.dbOk ? "" : "disabled"}>Split into two categories…</button>` : ""}
       <div class="sheet-actions">${c ? `<button class="btn danger" type="button" id="cDel">Delete</button>` : ""}<button class="btn grad big" type="submit" ${S.dbOk ? "" : "disabled"}>Save</button></div>
       <div class="small muted" id="cMsg"></div>
     </form>`);
   $("#xClose").onclick = closeSheet;
+  if ($("#cSplit")) $("#cSplit").onclick = () => openSplit(c.id);
   $("#catForm").onsubmit = async e => {
     e.preventDefault();
     const colEl = sheet.querySelector("input[name=col]:checked");
@@ -3460,6 +3470,144 @@ function openCat(id) {
     }
     catch { $("#cMsg").textContent = "Couldn't delete. Try again."; }
   });
+}
+
+/* ---------- split a category in two (e.g. Transportation & car → Transportation + Fuel & car services) ---------- */
+/* used only to pre-tick shops; broad on purpose because only this category's purchases are looked at */
+const CAR_MATCH = ["fuel", "petrol", "benzin", "بنزين", "وقود", "gas station", "station", "chillout", "chill out", "total", "mobil", "shell", "wataniya", "watanya", "وطنية", "emarat", "misr petrol", "petroleum", "taqa", "gastec", "master gas", "coop", "car wash", "carwash", "wash", "غسيل", "oil", "زيت", "mechanic", "ميكانيكي", "service center", "garage", "tire", "tyre", "كاوتش", "battery", "بطارية", "autozone", "spare", "قطع غيار", "toyota", "hyundai", "kia", "nissan", "chevrolet", "mercedes", "bmw", "ghabbour", "mansour", "parking", "parkin", "باركينج", "جراج", "toll", "كارتة", "مرور", "license", "licence", "رخصة", "valet"];
+/* saved as keywords on the new category: specific enough not to catch other shops later */
+const CAR_KW = ["fuel", "petrol", "benzine", "بنزين", "وقود", "chillout", "totalenergies", "mobil", "shell", "wataniya", "وطنية", "emarat misr", "misr petroleum", "taqa", "gastec", "car wash", "carwash", "oil change", "tires", "tyres", "autozone", "ghabbour", "parking", "toll", "كارتة"];
+const GENERIC_SHOP = /^(instapay|transfer|cash|apple pay|money|payment|purchase|card)\b/i;
+const looksCar = c => /transport|car\b|cars|مواصلات|عربي|سيار/i.test(c.name || "") || c.id === "transport";
+function openSplit(id) {
+  const c = catById(id); if (!c) return;
+  const car = looksCar(c);
+  /* when you already have a Fuel category, the car costs join it instead of making a third one */
+  const fuelOther = S.cats.find(x => x.id !== c.id && (x.id === "fuel" || /fuel|car serv|بنزين|وقود/i.test(x.name || "")));
+  const others = S.cats.filter(x => x.id !== c.id);
+  const from90 = addDays(todayStr(), -90);
+  /* the shops in this category, with what each cost */
+  const shops = new Map();
+  for (const t of S.txns) {
+    if (!isSpend(t)) continue;
+    const part = catParts(t).find(p => p.categoryId === c.id); if (!part) continue;
+    const k = nickKey(t.merchant || "") || "(no name)";
+    const r = shops.get(k) || { k, name: shopName(t) || t.merchant || "No name", n: 0, sum: 0, recent: 0, text: "", ids: [] };
+    r.n++; r.sum += part.v; if (t.date >= from90) r.recent += part.v; r.ids.push(t.id);
+    if (r.text.length < 400) r.text += " " + (t.merchant || "") + " " + (t.raw || "");
+    shops.set(k, r);
+  }
+  const rows = [...shops.values()].sort((a, b) => b.sum - a.sum);
+  const hitsCar = r => CAR_MATCH.some(w => kwRe(w).test(r.name + " " + r.text));
+  const tick = new Map(rows.map(r => [r.k, car ? hitsCar(r) : false]));
+  const touched = new Set();
+  const to0 = car && fuelOther ? fuelOther.id : "";
+  const kwFor = to => { const have = to ? kw(catById(to)) : []; return car ? CAR_KW.filter(w => !have.includes(w)).join(", ") : ""; };
+  const nameFor = to => car ? "Fuel & car services" : to ? catById(to).name : "";
+  const nm0 = car ? "Transportation" : c.name;
+  openSheet(`<div class="row"><h2>Split ${esc(c.name)}</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
+    <form id="splitForm" style="display:flex;flex-direction:column;gap:12px">
+      <p class="small muted" style="margin:0">Tick the shops that move. Everything else stays here. Totals don't change, only where they're counted.</p>
+      <div class="grid2">
+        <label class="field"><span>Keep as</span><input type="text" id="spOld" value="${esc(nm0)}" required></label>
+        <label class="field"><span>Move to</span><select id="spTo"><option value="">A new category</option>${others.map(x => `<option value="${esc(x.id)}" ${x.id === to0 ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></label>
+      </div>
+      <label class="field"><span id="spNewL">Name it</span><input type="text" id="spNew" value="${esc(nameFor(to0))}" placeholder="Name" required></label>
+      <div class="field"><span class="row" style="width:100%"><span>Shops (${rows.length})</span><span class="small muted num" id="spSum"></span></span>
+        <div class="cs-list">${rows.map(r => `<label class="cs-row"><input type="checkbox" data-shop="${esc(r.k)}" ${tick.get(r.k) ? "checked" : ""}>
+          <span class="mid"><b>${esc(r.name)}</b><span>${plural(r.n, "purchase")}</span></span><span class="amt num">${fmt(Math.round(r.sum))}</span></label>`).join("")}</div></div>
+      <label class="field"><span id="spKwL">Keywords to add</span><textarea id="spKw" placeholder="shell, mobil, car wash">${esc(kwFor(to0))}</textarea></label>
+      <div class="grid2">
+        <label class="field"><span>${esc(nm0)} limit / month</span><div class="affix"><input type="number" inputmode="decimal" id="spBo" step="any" min="0"><span>EGP</span></div></label>
+        <label class="field"><span id="spBnL">New limit / month</span><div class="affix"><input type="number" inputmode="decimal" id="spBn" step="any" min="0"><span>EGP</span></div></label>
+      </div>
+      <div class="sheet-actions"><button class="btn grad big" type="submit" ${S.dbOk ? "" : "disabled"}>Split</button></div>
+      <div class="small muted" id="spMsg"></div>
+    </form>`);
+  $("#xClose").onclick = closeSheet;
+  const budget = +c.budget || 0, weekly = +c.weekly || 0;
+  let limitsTouched = false, confirmEmpty = false;
+  const share = () => { const useRecent = rows.some(r => r.recent > 0), v = r => Math.max(0, useRecent ? r.recent : r.sum), all = rows.reduce((x, r) => x + v(r), 0); return all ? rows.filter(r => tick.get(r.k)).reduce((x, r) => x + v(r), 0) / all : 0; };
+  const r50 = v => Math.round(v / 50) * 50;
+  const paint = () => {
+    const mv = rows.filter(r => tick.get(r.k)), n = mv.reduce((a, r) => a + r.n, 0), sum = mv.reduce((a, r) => a + r.sum, 0);
+    $("#spSum").textContent = n ? `${plural(n, "purchase")} · ${money(Math.round(sum))} move` : "Nothing ticked";
+    $("#spBnL").textContent = ($("#spNew").value.trim() || "New") + " limit / month";
+    const tgt = catById($("#spTo").value), tb = tgt ? +tgt.budget || 0 : 0;
+    if ((budget || tb) && !limitsTouched) { const nb = r50(budget * share()); $("#spBn").value = (tb + nb) || ""; $("#spBo").value = Math.max(0, budget - nb) || ""; }
+  };
+  $("#spTo").onchange = () => { const to = $("#spTo").value; $("#spNew").value = nameFor(to); $("#spKw").value = kwFor(to); limitsTouched = false; paint(); };
+  $("#spBo").placeholder = "No limit"; $("#spBn").placeholder = "No limit";
+  sheet.querySelectorAll("[data-shop]").forEach(b => b.onchange = () => { tick.set(b.dataset.shop, b.checked); touched.add(b.dataset.shop); paint(); });
+  $("#spBo").oninput = $("#spBn").oninput = () => { limitsTouched = true; };
+  $("#spNew").oninput = paint;
+  $("#spKw").oninput = () => {
+    const kws = $("#spKw").value.split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
+    for (const r of rows) if (!touched.has(r.k)) { const on = (car && hitsCar(r)) || kws.some(w => kwRe(w).test(r.name + " " + r.text)); tick.set(r.k, on); const cb = sheet.querySelector(`[data-shop="${CSS.escape(r.k)}"]`); if (cb) cb.checked = on; }
+    paint();
+  };
+  paint();
+  $("#splitForm").onsubmit = async e => {
+    e.preventDefault();
+    const oldName = $("#spOld").value.trim(), newName = $("#spNew").value.trim();
+    const moving = rows.filter(r => tick.get(r.k));
+    if (!oldName || !newName) { $("#spMsg").textContent = "Give both categories a name."; return; }
+    const tgt = catById($("#spTo").value) || null;
+    if (S.cats.some(x => x.id !== c.id && (!tgt || x.id !== tgt.id) && x.name.trim().toLowerCase() === newName.toLowerCase())) { $("#spMsg").textContent = `You already have a category called ${newName}. Pick another name, or move the purchases to it instead.`; return; }
+    if (!moving.length && !confirmEmpty) { confirmEmpty = true; $("#spMsg").textContent = "No shops are ticked, so the new category starts empty. Tap Split again to go ahead."; return; }
+    const stay = rows.filter(r => !tick.get(r.k));
+    /* keywords: the old category's words that only fit the moving shops go with them */
+    const oldKw = kw(c), typed = $("#spKw").value.split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
+    const fits = (w, list) => list.some(r => kwRe(w).test(r.name + " " + r.text));
+    const goes = w => typed.includes(w) || (car && CAR_MATCH.includes(w)) || (fits(w, moving) && !fits(w, stay));
+    const shopKw = moving.map(r => r.k).filter(k => k && k !== "(no name)" && k.length > 2 && !GENERIC_SHOP.test(k));
+    const newKw = [...new Set((tgt ? kw(tgt) : []).concat(typed, oldKw.filter(goes), shopKw))];
+    const keepKw = oldKw.filter(w => !goes(w));
+    const nb = +$("#spBn").value || 0, ob = +$("#spBo").value || 0;
+    const share0 = share();
+    const nid = tgt ? tgt.id : car && !catById("fuel") ? "fuel" : "c_" + uid();
+    const tBefore = tgt ? { name: tgt.name, keywords: tgt.keywords || "", budget: tgt.budget || 0, weekly: tgt.weekly || 0 } : null;
+    const used = new Set(S.cats.map(catColor).map(x => String(x).toLowerCase()));
+    const color = PALETTE.find(p => !used.has(p.toLowerCase()) && p !== "#64748B") || PALETTE[(S.cats.length + 3) % PALETTE.length];
+    const before = { name: c.name, keywords: c.keywords || "", budget: c.budget || 0, weekly: c.weekly || 0 };
+    const ids = new Set(moving.flatMap(r => r.ids));
+    const undo = { txns: [], settings: null, recur: [] };
+    $("#spMsg").textContent = "Splitting…";
+    try {
+      const addWk = weekly ? r50(weekly * share0) : 0;
+      if (tgt) await db.collection("categories").doc(nid).update({ name: newName, budget: nb, weekly: (+tgt.weekly || 0) + addWk, keywords: newKw.join(", ") });
+      else await db.collection("categories").doc(nid).set({ name: newName, group: c.group || "need", color, budget: nb, weekly: addWk, keywords: newKw.join(", "), order: (+c.order || S.cats.indexOf(c)) + 0.5 });
+      await db.collection("categories").doc(c.id).update({ name: oldName, keywords: keepKw.join(", "), budget: ob, weekly: weekly ? Math.max(0, weekly - r50(weekly * share0)) : 0 });
+      for (const t of S.txns.filter(t => ids.has(t.id))) {
+        if (Array.isArray(t.splits) && t.splits.length > 1) {
+          undo.txns.push({ id: t.id, splits: t.splits });
+          await db.collection("transactions").doc(t.id).update({ splits: t.splits.map(p => p.categoryId === c.id ? Object.assign({}, p, { categoryId: nid }) : p) });
+        } else if (t.categoryId === c.id) {
+          undo.txns.push({ id: t.id, categoryId: c.id });
+          await db.collection("transactions").doc(t.id).update({ categoryId: nid });
+        }
+      }
+      /* shops the app learned, quick-add buttons and repeating purchases follow too */
+      const isNew = text => newKw.some(w => kwRe(w).test(String(text || ""))) || CAR_MATCH.some(w => car && kwRe(w).test(String(text || "")));
+      const learned = Object.assign({}, settings().learned || {}); let ch = false;
+      for (const k in learned) if (learned[k] && learned[k].cat === c.id && (shopKw.includes(k) || moving.some(r => r.k === k))) { learned[k] = Object.assign({}, learned[k], { cat: nid }); ch = true; }
+      const quick = quickList().map(q => q.categoryId === c.id && isNew(q.label) ? Object.assign({}, q, { categoryId: nid }) : q);
+      const qch = quick.some((q, i) => q !== quickList()[i]);
+      if (ch || qch) { undo.settings = { learned: settings().learned, quick: settings().quick }; await patchSettings(Object.assign(ch ? { learned } : {}, qch ? { quick } : {})); }
+      for (const r of (S.recurring || []).filter(r => r.categoryId === c.id && (isNew(r.name) || moving.some(m => m.k === nickKey(r.name || ""))))) { undo.recur.push(r.id); await db.collection("recurring").doc(r.id).update({ categoryId: nid }); }
+      closeSheet();
+      toast(`${plural(undo.txns.length, "purchase")} moved to ${newName}.`, async () => {
+        try {
+          for (const u of undo.txns) await db.collection("transactions").doc(u.id).update(u.splits ? { splits: u.splits } : { categoryId: u.categoryId });
+          for (const id of undo.recur) await db.collection("recurring").doc(id).update({ categoryId: c.id });
+          if (undo.settings) await patchSettings({ learned: undo.settings.learned || {}, quick: undo.settings.quick });
+          await db.collection("categories").doc(c.id).update(before);
+          if (tBefore) await db.collection("categories").doc(nid).update(tBefore); else await db.collection("categories").doc(nid).delete();
+          toast(`${before.name} is back as one category`);
+        } catch { toast("Couldn't undo. Try again."); }
+      });
+    } catch { $("#spMsg").textContent = "Couldn't finish. Check your connection and try again; nothing is lost."; }
+  };
 }
 
 /* ---------- Ask Claude (copies your month and opens the Claude app) ---------- */
