@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-FbekiMzMDPWBKYMS3nLGmmDFrEH8pefd0J3vlaBm6bE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-eV2o6IBmZW7c+ILkv30vDmiIot0dpO1uAzXHHnUEMlM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2620,8 +2620,9 @@ function homeHero() {
   const stale = balanceStale();
   return `<div class="hero h-${h.level} hero2">
       <div class="row"><div class="label">Safe to spend today</div><span class="hero-tag"><i></i>${word}</span></div>
-      <div class="big num ${h.perDay < 1 ? "word" : ""}">${h.perDay < 1 ? "Essentials only" : `<small>EGP</small>${fmt(h.perDay)}`}</div>
-      <div class="sub"><b class="num">${money(h.an.now)}</b> in your bank · payday ${esc(payday)}, in ${plural(h.days, "day")}${h.level !== "good" && h.why ? `<br>${esc(h.why)}` : ""}</div>
+      <div class="big num ${h.todaySafe < 1 && h.by === "bank" ? "word" : ""}">${h.todaySafe < 1 && h.by === "bank" ? "Essentials only" : `<small>EGP</small>${fmt(Math.max(0, h.todaySafe))}`}</div>
+      ${h.todaySafe < 0 ? `<div class="sub"><b>${h.al && h.al.spent >= -h.todaySafe ? "Over today's share by" : "Behind this week's pace by"} <span class="num">${money(-h.todaySafe)}</span>.</b> Each day under ${money(h.al ? h.al.base : 0)} wins some back.</div>` : ""}
+      <div class="sub"><b class="num">${money(h.an.now)}</b> in your bank · payday ${esc(payday)}, in ${plural(h.days, "day")}${h.by === "week" && h.todaySafe >= 0 ? `<br>Set by your weekly limit (${money(h.al.base)} a day). Your bank alone could cover ${money(h.perDay)} a day.` : ""}${h.level !== "good" && h.why && !(h.todaySafe < 0 && /today's share/.test(h.why)) ? `<br>${esc(h.why)}` : ""}</div>
       <div class="hero-track" aria-hidden="true"><i style="width:${gone.toFixed(0)}%"></i><b style="left:${gone.toFixed(0)}%"></b></div>
       <div class="hero-ends" aria-hidden="true"><span>${esc(toDate(pStart(key)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span><span>${esc(payday)}</span></div>
       <div class="hero-foot"><span class="upd">${stale >= 7 ? `<b class="stale">Balance updated ${stale} days ago. Please update.</b>` : `<i aria-hidden="true"></i>${esc(snapLabel(st.account.asOf, st.account.asOfTime))}`}</span><button type="button" class="hero-btn sm" id="updBal" data-bal aria-label="Update bank balance">✎ Edit</button></div>
@@ -3785,7 +3786,14 @@ function healthOf() {
   else if (lim && w.total > lim) { level = "bad"; why = `Over this week's limit. Essentials only until Saturday.`; }
   else if (lim && w.total > pace * 1.1) { level = "warn"; why = `A bit fast this week. Try a no-spend day to get back on pace.`; }
   else if (an.set && free / days < 100) { level = "warn"; why = "Money is tight until payday."; }
-  return { level, why, an, toPay, days, free, perDay: Math.max(0, free) / days };
+  const perDay = Math.max(0, free) / days;
+  /* today's amount is the smaller of: what the bank can carry per day until payday, and what's left of today's share of the weekly limit */
+  const base = allowAmt(); let al = null;
+  if (base) { const before = dayN > 1 ? spendBetween(ws, addDays(today, -1)) : 0, spent = spendBetween(today, today); al = { base, spent, left: base * dayN - before - spent }; }
+  const todaySafe = al ? Math.min(perDay, al.left) : perDay;
+  const by = al && al.left < perDay ? "week" : "bank";
+  if (todaySafe < 0 && level === "good") { level = "warn"; why = "You've used today's share of your weekly limit."; }
+  return { level, why, an, toPay, days, free, perDay, todaySafe, by, al };
 }
 function healthHero() {
   const st = settings(), h = healthOf(), key = curKey();
@@ -6399,7 +6407,7 @@ function morningBrief() {
   const hp = healthOf(), key = curKey(), today = todayStr(), soon = billsFor(key).filter(b => !b.paid && b.date >= today && daysDiff(today, b.date) <= 3);
   const ms = missionState(wkStart(today)), coach = S.notes.coach, wd = weakDays().find(x => x.i === daysDiff(pStart(key), today));
   const lines = [
-    hp.an.set ? `💵 Safe to spend today: <b class="num">${money(hp.perDay)}</b>` : "",
+    hp.an.set ? `💵 Safe to spend today: <b class="num">${money(Math.max(0, hp.todaySafe))}</b>` : "",
     soon.length ? `🧾 ${soon.map(b => `${esc(b.name)} ${money(b.amount)} ${b.date === today ? "today" : "on " + esc(dayLabel(b.date))}`).join(", ")}` : "",
     ms && !ms.failed ? `🎯 Mission: ${esc(ms.m.title)}` : "",
     wd ? `🗓️ Today is usually expensive (${wd.r.toFixed(1)}× a normal day). Plan it.` : "",
