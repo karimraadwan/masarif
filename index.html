@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-VmlBdWp5akbgfwXY1cwEiliMHKhyUAVpd2yKhETnSCE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-FbekiMzMDPWBKYMS3nLGmmDFrEH8pefd0J3vlaBm6bE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1565,10 +1565,38 @@ function parseShortcutFile(text) {
   return rows;
 }
 const CUR = "(?:EGP|LE|L\\.E\\.?|جنيه|ج\\.م\\.?|جم)";
+/* rough EGP per unit, used only until the card's own limit tells us the real charge (bank fees included) */
+const FX = { USD: 55, EUR: 60, GBP: 70, SAR: 14.7, AED: 15, KWD: 180, QAR: 15.1, TRY: 1.6 };
+const FXCUR = "(USD|EUR|GBP|SAR|AED|KWD|QAR|TRY|\\$|€|£)";
+/* remove "available limit is …", "international limit … EGP 141204", "الرصيد المتاح EGP 3728" so they're never read as the price */
+const limitsOut = m => m.replace(/(?:\b(?:available|international|remaining)\b[^.\d]{0,30}?\b(?:limit|balance)|\blimit\s+is)\b[^.\d]{0,30}?[\d,]+(?:\.\d+)?/gi, " ")
+  .replace(/(?:الرصيد|الحد)\s*(?:المتاح|الائتماني)?[^\d]{0,12}[\d,]+(?:\.\d+)?/g, " ");
+function fxIn(m) {
+  m = limitsOut(norm(m));
+  const x = m.match(new RegExp("(?:charged for|خصم|for)\\s*" + FXCUR + "\\s*([\\d,]+(?:\\.\\d+)?)", "i")) || m.match(new RegExp("\\b" + FXCUR + "\\s*([\\d,]+(?:\\.\\d+)?)"));
+  if (!x || new RegExp("(?:charged for|خصم)\\s*" + CUR, "i").test(m)) return null;
+  const cur = { $: "USD", "€": "EUR", "£": "GBP" }[x[1]] || x[1].toUpperCase(), amt = parseFloat(x[2].replace(/,/g, ""));
+  return amt > 0 && FX[cur] ? { cur, amt, egp: Math.round(amt * FX[cur] * 100) / 100 } : null;
+}
 function amountIn(m) {
   m = norm(m);
+  const fx = fxIn(m); if (fx) return fx.egp;
+  m = limitsOut(m);
   const x = m.match(new RegExp(CUR + "\\s*([\\d,]+(?:\\.\\d+)?)", "i")) || m.match(new RegExp("([\\d,]+(?:\\.\\d+)?)\\s*" + CUR, "i")) || m.match(/([\d,]+\.\d{2})/);
   return x ? parseFloat(x[1].replace(/,/g, "")) : 0;
+}
+const availIn = m => { const x = norm(String(m || "")).match(/available limit is\s*(?:EGP)?\s*([\d,]+(?:\.\d+)?)/i); return x ? parseFloat(x[1].replace(/,/g, "")) : null; };
+function fxFix(row, extra) {
+  const fx = fxIn(row.raw || ""); if (!fx) return row;
+  row.fx = { cur: fx.cur, amt: fx.amt };
+  const now = availIn(row.raw); if (now == null) return row;
+  const at = (row.date || "") + " " + (row.time || "");
+  const prev = S.txns.concat(extra || []).filter(t => !t.deleted && t.cardId === row.cardId && t.id !== row.id && availIn(t.raw) != null && ((t.date || "") + " " + (t.time || "")) < at)
+    .sort((a, b) => ((b.date || "") + (b.time || "")).localeCompare((a.date || "") + (a.time || "")))[0];
+  if (!prev) return row;
+  const diff = Math.round((availIn(prev.raw) - now) * 100) / 100;
+  if (diff > fx.egp * 0.7 && diff < fx.egp * 1.5) { row.amount = diff; row.fx.exact = true; }
+  return row;
 }
 function dateIn(m) { const x = norm(m).match(/\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}/); return x ? x[0] : ""; }
 function shopFor(m, kind, fallback) {
@@ -1980,13 +2008,23 @@ async function processInbox() {
   const seen = new Set();
   rows = rows.filter(r => { const k = textKey(r); if (have.has(r.id) || seen.has(r.id) || (k && (have.has(k) || seen.has(k)))) return false; seen.add(r.id); if (k) seen.add(k); return true; });
   const defCard = settings().defaultCardId || null, cc = creditCard();
+  /* foreign-currency charges saved before this fix took the card's limit as the price (e.g. USD 1 saved as EGP 141,204) */
+  for (const t of S.txns) {
+    if (t.deleted || t.source !== "sync" || (t.kind || "expense") !== "expense" || t.fx) continue;
+    const fx = fxIn(t.raw || ""); if (!fx || !(+t.amount > fx.egp * 3)) continue;
+    const r = fxFix({ id: t.id, raw: t.raw, date: t.date, time: t.time, cardId: t.cardId, amount: fx.egp });
+    t.amount = r.amount; t.fx = r.fx;
+    await db.collection("transactions").doc(t.id).update({ amount: r.amount, fx: r.fx, note: t.note || `${fx.cur} ${fx.amt.toFixed(2)}` });
+  }
+  const done = [];
   for (const r of rows) {
     const cardId = r.kind === "payment" ? (cc ? cc.id : null) : (r.cardId || defCard);
+    r.cardId = cardId; fxFix(r, done); done.push(r);
     /* the same purchase or card payment already added by hand (within 2 days, same amount): link the bank text to it instead of counting it twice */
     const twin = S.txns.find(t => !t.deleted && t.source === "manual" && !t.smsId && (t.kind || "expense") === (r.kind || "expense") && Math.abs((+t.amount || 0) - r.amount) < 0.01 && t.date && Math.abs(daysDiff(t.date, r.date)) <= 2 && t.cardId !== "cash");
     if (twin) { twin.smsId = r.id; await db.collection("transactions").doc(twin.id).update({ smsId: r.id, raw: r.raw, cardId: twin.cardId || cardId, time: twin.time || r.time || "" }); continue; }
     await db.collection("transactions").doc(r.id).set({ date: r.date, time: r.time || "", amount: r.amount, kind: r.kind || "expense",
-      merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: "", categoryId: isFlow(r) ? null : autoCat((r.merchant || "") + " " + r.raw),
+      merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: r.fx ? `${r.fx.cur} ${r.fx.amt.toFixed(2)}` : "", ...(r.fx ? { fx: r.fx } : {}), categoryId: isFlow(r) ? null : autoCat((r.merchant || "") + " " + r.raw),
       cardId, source: "sync", raw: r.raw, createdAt: Date.now() });
   }
   S.sync.added = rows.length;
@@ -2914,7 +2952,7 @@ async function doImport() {
       const r = queue.shift();
       try {
         await db.collection("transactions").doc(r.id).set({ date: r.date, time: r.time || "", amount: r.amount, kind: r.kind || "expense",
-          merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: "", categoryId: r.categoryId || null, cardId: r.cardId || null, source: r.source, raw: r.raw || "", createdAt: Date.now() });
+          merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: r.fx ? `${r.fx.cur} ${r.fx.amt.toFixed(2)}` : "", ...(r.fx ? { fx: r.fx } : {}), categoryId: r.categoryId || null, cardId: r.cardId || null, source: r.source, raw: r.raw || "", createdAt: Date.now() });
         done++;
       } catch (e) { failed++; if (e && e.code === "quota_exceeded") queue.length = 0; }
       if (msg) msg.textContent = `Saving ${done + failed} of ${rows.length}…`;
