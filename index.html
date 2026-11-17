@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-eV2o6IBmZW7c+ILkv30vDmiIot0dpO1uAzXHHnUEMlM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-PpPYYhqFqwf72fx0qJQIxJLjoUYEiDdfxqid0CcXH8g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1715,9 +1715,11 @@ function snapLabel(d, tm) {
 /* ---------- weeks (Saturday to Friday) ---------- */
 const wkStart = ds => { const d = toDate(ds); d.setDate(d.getDate() - ((d.getDay() + 1) % 7)); return toStr(d); };
 const wkEnd = ws => { const d = toDate(ws); d.setDate(d.getDate() + 6); return toStr(d); };
+/* categories you've chosen to keep out of the weekly limit and daily allowance (e.g. Transportation, Fuel & car) */
+const outOfWeek = id => { const c = catById(id); return !!(c && c.noWeek); };
 function weekData(ws) {
   const we = wkEnd(ws), byCat = {};
-  let total = 0, n = 0;
+  let total = 0, n = 0, outside = 0;
   for (const t of S.txns) {
     if (t.deleted || !t.date || t.date < ws || t.date > we || isFlow(t)) continue;
     if (typeof seasonOf === "function" && seasonOf(t)) continue;
@@ -1725,13 +1727,14 @@ function weekData(ws) {
     let counted = false;
     for (const p of catParts(t)) {
       if (groupOfCat(p.categoryId) === "debt") continue;
-      total += p.v; counted = true;
       const k = catById(p.categoryId) ? p.categoryId : "_none";
-      byCat[k] = (byCat[k] || 0) + p.v;
+      byCat[k] = (byCat[k] || 0) + p.v;  /* a category's own weekly limit still sees its spending */
+      const c0 = catById(p.categoryId); if (c0 && c0.noWeek) { outside += p.v; continue; }
+      total += p.v; counted = true;
     }
     if (counted) n++;
   }
-  return { ws, we, total, n, byCat };
+  return { ws, we, total, n, byCat, outside };
 }
 function weekLimitStatus(w) {
   const over = [], near = [];
@@ -1765,7 +1768,7 @@ function weekCard() {
       <div style="text-align:right"><div class="small muted">Safe per day</div><b class="num" style="font:800 1rem var(--f-display)">${left > 0 ? fmt(left / daysLeft) : "Essentials only"}</b></div></div>
       <div class="bar" style="--c:var(--accent);height:11px"><i class="${left < 0 ? "over" : ""}" style="width:${pct.toFixed(1)}%"></i></div>`
     : `<div class="small muted">Spent ${money(w.total)} so far. Set a weekly limit${suggestedWeekly() ? ` (about ${money(suggestedWeekly())} fits your plan)` : ""} <button type="button" class="link-btn" data-ewk>Set a weekly limit</button></div>`}
-    <div class="small muted num">Spent ${money(w.total)} in ${w.n} purchase${w.n === 1 ? "" : "s"}${prev.total ? ` · last week ${money(prev.total)}` : ""}</div>
+    <div class="small muted num">Spent ${money(w.total)} in ${w.n} purchase${w.n === 1 ? "" : "s"}${prev.total ? ` · last week ${money(prev.total)}` : ""}${w.outside ? `<br>Not counted: ${money(w.outside)} on ${esc(S.cats.filter(c => c.noWeek).map(c => c.name).join(" and "))}` : ""}</div>
     ${(() => { const ns = noSpendDays(ws, today), goal = challengeGoal(), streak = challengeStreak(), hit = goal && ns.free.length >= goal;
       return `<div class="nsd">${ns.days.map(x => `<span class="${ns.spent.has(x) ? "" : "free"}${x === today ? " today" : ""}" title="${esc(x)}">${toDate(x).toLocaleDateString("en-GB", { weekday: "narrow" })}</span>`).join("")}
         <b class="small">${goal ? `${Math.min(ns.free.length, goal)} of ${goal} no-spend days${hit ? " ✓" : ""}` : plural(ns.free.length, "no-spend day")}</b>${streak ? `<span class="streak">🔥 ${streak}</span>` : ""}</div>`; })()}
@@ -3471,6 +3474,7 @@ function openCat(id) {
         <label class="field"><span>Weekly limit (optional)</span><div class="affix"><input type="number" inputmode="decimal" id="cWk" value="${esc(v.weekly || "")}" step="any" min="0"><span>EGP</span></div></label>
       </div>
       <label class="field"><span>Keywords, separated by commas</span><textarea id="cKw" placeholder="carrefour, spinneys, seoudi">${esc(v.keywords || "")}</textarea></label>
+      <label class="check"><input type="checkbox" id="cNoWk" ${v.noWeek ? "checked" : ""}><span>Leave out of the weekly limit and daily allowance</span></label>
       ${c ? `<label class="check"><input type="checkbox" id="cRe"><span>Also move uncategorized purchases that match these keywords</span></label>` : ""}
       ${c && S.txns.some(t => !t.deleted && catParts(t).some(p => p.categoryId === c.id)) ? `<button type="button" class="btn" id="cSplit" style="align-self:flex-start" ${S.dbOk ? "" : "disabled"}>Split into two categories…</button>` : ""}
       <div class="sheet-actions">${c ? `<button class="btn danger" type="button" id="cDel">Delete</button>` : ""}<button class="btn grad big" type="submit" ${S.dbOk ? "" : "disabled"}>Save</button></div>
@@ -3481,7 +3485,7 @@ function openCat(id) {
   $("#catForm").onsubmit = async e => {
     e.preventDefault();
     const colEl = sheet.querySelector("input[name=col]:checked");
-    const data = { name: $("#cName").value.trim(), group: sheet.querySelector("input[name=grp]:checked").value, budget: +$("#cBud").value || 0, weekly: +$("#cWk").value || 0,
+    const data = { name: $("#cName").value.trim(), group: sheet.querySelector("input[name=grp]:checked").value, budget: +$("#cBud").value || 0, weekly: +$("#cWk").value || 0, noWeek: $("#cNoWk").checked,
       color: colEl ? colEl.value : cur,
       keywords: $("#cKw").value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean).join(", ") };
     if (!data.name) { $("#cMsg").textContent = "Give the category a name."; return; }
@@ -3789,7 +3793,7 @@ function healthOf() {
   const perDay = Math.max(0, free) / days;
   /* today's amount is the smaller of: what the bank can carry per day until payday, and what's left of today's share of the weekly limit */
   const base = allowAmt(); let al = null;
-  if (base) { const before = dayN > 1 ? spendBetween(ws, addDays(today, -1)) : 0, spent = spendBetween(today, today); al = { base, spent, left: base * dayN - before - spent }; }
+  if (base) { const before = dayN > 1 ? weekSpend(ws, addDays(today, -1)) : 0, spent = weekSpend(today, today); al = { base, spent, left: base * dayN - before - spent }; }
   const todaySafe = al ? Math.min(perDay, al.left) : perDay;
   const by = al && al.left < perDay ? "week" : "bank";
   if (todaySafe < 0 && level === "good") { level = "warn"; why = "You've used today's share of your weekly limit."; }
@@ -3931,7 +3935,7 @@ function affordVerdict(amt, catId, payId) {
   }
   const lim = +settings().weekLimit || 0;
   if (lim) {
-    const w = weekData(wkStart(today)), left = lim - w.total - amt;
+    const w = weekData(wkStart(today)), left = lim - w.total - (outOfWeek(catId) ? 0 : amt);
     lines.push({ t: left >= 0 ? `This week: ${money(left)} left of ${money(lim)} after it.` : `This week: it puts you <b class="badtxt">${money(-left)} over</b> your ${money(lim)} limit.`, l: left >= 0 ? (left < lim * 0.15 ? "warn" : "good") : "bad" });
   }
   const c = catById(catId);
@@ -5068,12 +5072,14 @@ const APPLE_PAY_RE = /apple ?pay|ابل ?باي|أبل ?باي/i;
 const FOREIGN_RE = /\b(USD|EUR|GBP|SAR|AED|KWD|QAR|TRY)\b|\$|€|£/;
 const ONLINE_RE = /online|e-?commerce|internet|www\.|\.com\b|عبر الانترنت|اونلاين/i;
 /* everyday spending between two dates (same rules as the weekly total) */
-function spendBetween(a, b) {
+/* spending that counts against the weekly limit / daily allowance */
+const weekSpend = (a, b) => spendBetween(a, b, true);
+function spendBetween(a, b, wk) {
   let sum = 0;
   for (const t of S.txns) {
     if (t.deleted || !t.date || t.date < a || t.date > b || isFlow(t) || t.treat) continue;
     if (typeof seasonOf === "function" && seasonOf(t)) continue;
-    for (const p of catParts(t)) if (groupOfCat(p.categoryId) !== "debt") sum += p.v;
+    for (const p of catParts(t)) if (groupOfCat(p.categoryId) !== "debt" && !(wk && (catById(p.categoryId) || {}).noWeek)) sum += p.v;
   }
   return sum;
 }
@@ -5092,7 +5098,7 @@ function winsList() {
   let ws = wkStart(today);
   for (let i = 0; i < 26; i++) {
     ws = addDays(ws, -7); if (wkEnd(ws) < since || wkEnd(ws) < first) break;
-    if (lim && spendBetween(ws, wkEnd(ws)) <= lim) out.push({ id: "wk_" + ws, text: `Under the weekly limit (week of ${dayLabel(ws)})` });
+    if (lim && weekSpend(ws, wkEnd(ws)) <= lim) out.push({ id: "wk_" + ws, text: `Under the weekly limit (week of ${dayLabel(ws)})` });
     if (goal && noSpendDays(ws, wkEnd(ws)).free.length >= goal) out.push({ id: "ns_" + ws, text: `${goal} no-spend days (week of ${dayLabel(ws)})` });
     if (typeof missionState === "function") { const ms = missionState(ws); if (ms && ms.done) out.push({ id: "mi_" + ws, text: `Mission done: ${ms.m.title}` }); }
   }
@@ -5362,7 +5368,7 @@ const allowAmt = () => +allowCfg().amount || Math.floor((+settings().weekLimit |
 function allowance() {
   const base = allowAmt(); if (!base) return null;
   const today = todayStr(), ws = wkStart(today), dayN = daysDiff(ws, today) + 1;
-  const before = dayN > 1 ? spendBetween(ws, addDays(today, -1)) : 0, todaySp = spendBetween(today, today);
+  const before = dayN > 1 ? weekSpend(ws, addDays(today, -1)) : 0, todaySp = weekSpend(today, today);
   const carry = base * (dayN - 1) - before;
   return { base, carry, today: todaySp, left: base + carry - todaySp, dayN };
 }
@@ -5883,7 +5889,7 @@ function streaks() {
   const deliv = new Set(S.txns.filter(t => isSpend(t) && DELIVERY_RE.test((t.merchant || "") + " " + (t.raw || ""))).map(t => t.date));
   const out = { nospend: run(d => !(sp[d] > 0)), nodeliv: run(d => !deliv.has(d)), allowance: base ? run(d => (sp[d] || 0) <= base) : null };
   const lim = +settings().weekLimit || 0;
-  if (lim) { let best = 0, cur = 0, ws = wkStart(f); const end = wkStart(today); const flags = []; for (; ws < end; ws = addDays(ws, 7)) flags.push(spendBetween(ws, wkEnd(ws)) <= lim); for (const x of flags) { if (x) { cur++; best = Math.max(best, cur); } else cur = 0; } out.weeks = { best, cur }; }
+  if (lim) { let best = 0, cur = 0, ws = wkStart(f); const end = wkStart(today); const flags = []; for (; ws < end; ws = addDays(ws, 7)) flags.push(weekSpend(ws, wkEnd(ws)) <= lim); for (const x of flags) { if (x) { cur++; best = Math.max(best, cur); } else cur = 0; } out.weeks = { best, cur }; }
   return out;
 }
 function streaksCard() {
@@ -6032,11 +6038,11 @@ function weekMission(ws) {
   const inW = (t, a, b) => isSpend(t) && t.date >= a && t.date <= b;
   const deliv = (a, b) => S.txns.filter(t => inW(t, a, b) && t.kind === "expense" && DELIVERY_RE.test((t.merchant || "") + " " + (t.raw || ""))).length;
   const night = (a, b) => S.txns.filter(t => inW(t, a, b) && t.kind === "expense" && groupOf(t) === "want" && hourOf(t) !== null && (hourOf(t) >= 22 || hourOf(t) < 5)).length;
-  const lim = +settings().weekLimit || 0, goal = Math.max(1, challengeGoal()), pd = deliv(prev, pe), pn = night(prev, pe), pt = spendBetween(prev, pe), pns = noSpendDays(prev, pe).free.length;
+  const lim = +settings().weekLimit || 0, goal = Math.max(1, challengeGoal()), pd = deliv(prev, pe), pn = night(prev, pe), pt = weekSpend(prev, pe), pns = noSpendDays(prev, pe).free.length;
   const opts = [];
   if (pd >= 2) opts.push({ id: "deliv", score: pd, title: `Max ${pd - 1} delivery order${pd - 1 === 1 ? "" : "s"}`, why: `Last week: ${pd}`, prog: (a, b) => deliv(a, b), target: pd - 1, max: true });
   if (pn >= 1) opts.push({ id: "night", score: pn * 1.5, title: "No wants after 10 pm", why: `Last week: ${plural(pn, "late buy")}`, prog: (a, b) => night(a, b), target: 0, max: true });
-  if (lim && pt > lim) opts.push({ id: "limit", score: (pt / lim) * 2, title: `Stay under ${money(lim)}`, why: `Last week: ${money(pt)}`, prog: (a, b) => spendBetween(a, b), target: lim, max: true, money: true });
+  if (lim && pt > lim) opts.push({ id: "limit", score: (pt / lim) * 2, title: `Stay under ${money(lim)}`, why: `Last week: ${money(pt)}`, prog: (a, b) => weekSpend(a, b), target: lim, max: true, money: true });
   opts.push({ id: "nospend", score: 1, title: plural(Math.min(4, Math.max(goal, pns + 1)), "no-spend day"), why: `Last week: ${pns}`, prog: (a, b) => noSpendDays(a, b).free.length, target: Math.min(4, Math.max(goal, pns + 1)), max: false });
   return opts.sort((a, b) => b.score - a.score)[0];
 }
@@ -6152,7 +6158,7 @@ function socialCard() {
 const dm = ds => toDate(ds).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 function storyCard(key) {
   const today = todayStr(), end = pEndStr(key), done = today > end, day = elapsedDays(key); if (!done && day < 20) return "";
-  const lim = +settings().weekLimit || 0, weeks = []; for (let ws = wkStart(pStart(key)); ws <= (done ? end : today); ws = addDays(ws, 7)) { const a = ws < pStart(key) ? pStart(key) : ws, b = wkEnd(ws) > end ? end : wkEnd(ws); weeks.push({ ws, a, b, v: spendBetween(a, b) }); }
+  const lim = +settings().weekLimit || 0, weeks = []; for (let ws = wkStart(pStart(key)); ws <= (done ? end : today); ws = addDays(ws, 7)) { const a = ws < pStart(key) ? pStart(key) : ws, b = wkEnd(ws) > end ? end : wkEnd(ws); weeks.push({ ws, a, b, v: weekSpend(a, b) }); }
   const full = weeks.filter(w => daysDiff(w.a, w.b) >= 3 && (done || w.b < today)); if (full.length < 2) return "";
   const best = full.slice().sort((x, y) => x.v - y.v)[0], worst = full.slice().sort((x, y) => y.v - x.v)[0];
   const big = S.txns.filter(t => isSpend(t) && t.kind === "expense" && inP(t.date, key) && groupOf(t) !== "debt").sort((a, b) => b.amount - a.amount)[0];
@@ -6194,7 +6200,7 @@ function xp() {
   const f = firstTxDate(); if (!f) return { pts: 0, parts: [] };
   const today = todayStr(), sp = dailySpend(f, addDays(today, -1)), parts = [];
   const ns = daysBetween(f, addDays(today, -1)).filter(d => !(sp[d] > 0)).length; parts.push(["No-spend days", ns * 10]);
-  const lim = +settings().weekLimit || 0; let wk = 0; if (lim) for (let ws = wkStart(f); wkEnd(ws) < today; ws = addDays(ws, 7)) if (spendBetween(ws, wkEnd(ws)) <= lim) wk++; parts.push(["Weeks under the limit", wk * 50]);
+  const lim = +settings().weekLimit || 0; let wk = 0; if (lim) for (let ws = wkStart(f); wkEnd(ws) < today; ws = addDays(ws, 7)) if (weekSpend(ws, wkEnd(ws)) <= lim) wk++; parts.push(["Weeks under the limit", wk * 50]);
   parts.push(["Missions done", missionsWon().length * 40]);
   parts.push(["Card payments", S.txns.filter(t => !t.deleted && t.kind === "payment").length * 30]);
   parts.push(["Purchases rated", S.txns.filter(t => !t.deleted && t.worth).length * 2]);
