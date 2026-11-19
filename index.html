@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-PpPYYhqFqwf72fx0qJQIxJLjoUYEiDdfxqid0CcXH8g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-/uGQ7bSOPhJLNoKdM/cn8citjafbyxJfkRpqKz4y9js='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1220,6 +1220,22 @@ nav.tabs a{font-size:clamp(12px,0.75rem,13px)!important}
 .cs-row .mid b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cs-row .mid span{font-size:0.7647rem;color:var(--muted)}
 .cs-row .amt{font-weight:700}
+.pt-sec{font-size:0.7059rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.pt-list{display:flex;flex-direction:column;border-radius:14px;background:var(--soft);overflow:hidden}
+.pt-item{display:flex;align-items:center;gap:10px;padding:10px 12px;min-height:52px;border-top:1px solid var(--line)}
+.pt-item:first-child{border-top:0}
+.pt-item.bad{background:color-mix(in srgb,#B4232A 6%,transparent)}
+.pt-mid{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+.pt-mid b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-mid span{font-size:0.7647rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-end{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.pt-end b{font-weight:800}
+.pt-end .delta{padding:1px 8px;align-self:flex-end;min-width:0;width:auto;flex:none}
+.pt-ini{width:28px;height:28px;flex:none;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:0.8rem;background:var(--sunk);color:var(--muted)}
+.pt-spark{flex:none;display:flex;align-items:flex-end;gap:2px;height:22px;width:44px}
+.pt-spark i{flex:1;border-radius:2px;background:color-mix(in srgb,var(--muted) 35%,transparent)}
+.pt-spark i.last{background:var(--accent,#10B981)}
+@media (max-width:360px){.pt-spark{display:none}}
 /* ---------- dark theme (follows the iPhone setting, or Settings → Appearance) ---------- */
 html[data-theme=dark]{color-scheme:dark;--ck0:#153727;--bg:#171A21;--soft:#1C2029;--sunk:#252A35;--ink:#ECEEF3;--muted:#A1AABB;--line:#2C323E;--page:#0B0E13;
   --accent:#14A37A;--accent-ink:#5EE0B5;--bad-ink:#FF8A8E;--good-ink:#4ADE9C;--warn-ink:#FBBF4D;--none:#7C8597;
@@ -1466,6 +1482,8 @@ const REFUND_RE = /refund|reversal|reversed|cashback|تم رد|رد مبلغ|ا�
 const IGNORE_DEFAULT = ["ALEXBANK", "19033"];
 const ignoreList = () => (Array.isArray(settings().ignoreTexts) ? settings().ignoreTexts : IGNORE_DEFAULT).map(x => String(x).trim()).filter(Boolean);
 const ignoredText = txt => { const t = norm(String(txt || "")).replace(/\s+/g, " ").toLowerCase(); return ignoreList().some(k => t.includes(norm(k).replace(/\s+/g, " ").toLowerCase())); };
+/* "we received your refund request … will be added once the merchant pays" is a promise, not money: the real refund text comes later */
+const PENDING_RE = /استلام الطلب لرد|بمجرد استلام المبلغ|refund request (?:has been )?received|will be credited once/i;
 const OTP_RE = /\b(otp|one[- ]time|verification|password|passcode)\b|رمز|كلمة المرور|كود التفعيل/i;
 const BANK_RE = /card|بطاقة|حساب|account|cib|19666|apple pay|تحويل/i;
 /* a refund into your account is a refund (it lowers that category), so it is checked before money in */
@@ -1547,7 +1565,7 @@ function parseShortcutFile(text) {
     if (parts.length < 2) continue;
     const sms = parts.slice(3).join(" | ").trim();
     if (sms) {
-      if (OTP_RE.test(sms)) continue;
+      if (OTP_RE.test(sms) || PENDING_RE.test(sms)) continue;
       const cardId = detectCard(line);
       if (!cardId && !BANK_RE.test(sms)) continue;
       const amount = amountIn(sms) || parseAmount(parts[1]);
@@ -1625,7 +1643,7 @@ function parseSms(text) {
   return msgs.map(m => {
     const amount = amountIn(m);
     if (!amount) return null;
-    if (OTP_RE.test(m) || ignoredText(m)) return null;
+    if (OTP_RE.test(m) || PENDING_RE.test(m) || ignoredText(m)) return null;
     const kind = kindOf(m);
     return { id: "m_" + hash(m), date: parseDate(dateIn(m), order) || todayStr(), time: parseTime(m), amount,
       merchant: shopFor(m, kind), raw: m, source: "sms", kind, cardId: detectCard(m) };
@@ -2019,6 +2037,12 @@ async function processInbox() {
     t.amount = r.amount; t.fx = r.fx;
     await db.collection("transactions").doc(t.id).update({ amount: r.amount, fx: r.fx, note: t.note || `${fx.cur} ${fx.amt.toFixed(2)}` });
   }
+  /* refunds saved from a "request received" text, once the real refund text is in, would count twice */
+  for (const t of S.txns) {
+    if (t.deleted || t.source !== "sync" || t.kind !== "refund" || !PENDING_RE.test(t.raw || "")) continue;
+    const real = S.txns.find(x => x !== t && !x.deleted && x.kind === "refund" && !PENDING_RE.test(x.raw || "") && Math.abs((+x.amount || 0) - (+t.amount || 0)) < 0.01 && x.cardId === t.cardId && x.date >= t.date && daysDiff(t.date, x.date) <= 45);
+    if (real) { t.deleted = true; await db.collection("transactions").doc(t.id).update({ deleted: true }); }
+  }
   const done = [];
   for (const r of rows) {
     const cardId = r.kind === "payment" ? (cc ? cc.id : null) : (r.cardId || defCard);
@@ -2153,7 +2177,9 @@ function goalsCard() {
     <button type="button" class="link-btn gf-link" id="gfOpen">🎯 Plan for a goal: tell Masarif what and when ›</button>
   </div>`;
 }
-const SUB_KW = /netflix|spotify|google ?play|apple\.com|itunes|icloud|prime video|amazon prime|osn|shahid|youtube|anghami|watch ?it|chatgpt|openai|adobe|microsoft|xbox|playstation|membership|subscription|اشتراك/i;
+const SUB_KW = /netflix|spotify|google ?play|google ?one|google ?cloud|google ?google|google ?storage|youtube|apple\.com|itunes|icloud|prime video|amazon prime|disney|osn|shahid|starz|tod tv|\btod\b|anghami|deezer|watch ?it|yango ?play|chatgpt|openai|anthropic|claude\.ai|midjourney|github|canva|notion|dropbox|adobe|microsoft|office 365|linkedin|duolingo|xbox|playstation|\bpsn\b|nintendo|steam|membership|subscription|اشتراك/i;
+/* a card check (e.g. "GOOGLE TEMPORAR" for USD 1) is a temporary hold, not a subscription */
+const SUB_NOT = /temporar|verification|auth hold/i;
 const normMerchant = s => String(s || "").toLowerCase().replace(/\.(com|net|org|eg|co)\b/g, "").replace(/[^a-z؀-ۿ ]/g, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
 function findSubs() {
   const g = {};
@@ -2163,7 +2189,7 @@ function findSubs() {
     const amts = list.map(t => +t.amount || 0).sort((a, b) => a - b), med = amts[Math.floor(amts.length / 2)];
     const periods = new Set(list.map(t => pKeyOf(t.date)));
     const steady = amts[0] >= med * 0.7 && amts[amts.length - 1] <= med * 1.3;
-    const kwHit = list.some(t => SUB_KW.test(t.merchant + " " + (t.raw || "")));
+    const kwHit = list.some(t => SUB_KW.test(t.merchant + " " + (t.raw || "").replace(/https?:\S+/g, ""))) && !list.every(t => SUB_NOT.test(t.merchant));
     if ((periods.size >= 2 && steady && list.length <= periods.size + 1) || kwHit) {
       const byDate = list.slice().sort((a, b) => a.date.localeCompare(b.date)), last = byDate[byDate.length - 1].date;
       const la = +byDate[byDate.length - 1].amount || 0, pa = byDate.length > 1 ? +byDate[byDate.length - 2].amount || 0 : 0;
@@ -2185,7 +2211,7 @@ function subsCard() {
         <span class="mini-btns"><button type="button" class="${stOf(x) === "keep" ? "on" : ""}" data-sub="${x.key}" data-st="keep">Keep</button><button type="button" data-sub="${x.key}" data-st="cancelled">Cancelled</button></span>
       </div>`).join("")}
       ${gone.length ? `<div class="note ok">You cancelled ${gone.length}: saving about ${money(gone.reduce((a, x) => a + x.yearly, 0))} a year. ${gone.map(x => `<button type="button" class="link-btn" data-sub="${x.key}" data-st="">Undo ${esc(x.name)}</button>`).join(" ")}</div>` : ""}</div>`
-    : `<div class="small muted">Nothing repeating found yet. Masarif looks for shops charging a similar amount every month, and for names like Netflix, Google Play or Prime Video.</div>`}
+    : `<div class="small muted">Nothing repeating found yet. Masarif looks for shops charging a similar amount every month, and for names like Netflix, Disney+, Google One or ChatGPT.</div>`}
   </div>`;
 }
 function owedCard() {
@@ -4129,22 +4155,33 @@ function typicalDayCard() {
 }
 function priceTrackerCard() {
   const since = addDays(todayStr(), -180), g = {};
-  for (const t of S.txns) { if (!isSpend(t) || t.kind !== "expense" || !t.merchant || t.date < since) continue; const k = normMerchant(t.merchant); if (!k || /instapay|transfer/i.test(k)) continue; (g[k] = g[k] || []).push(t); }
+  for (const t of S.txns) { if (!isSpend(t) || t.kind !== "expense" || !t.merchant || t.date < since) continue; const k = normMerchant(t.merchant); if (!k || /instapay|transfer/i.test(k) || SUB_NOT.test(k)) continue; (g[k] = g[k] || []).push(t); }
   const rows = [];
   for (const list of Object.values(g)) {
     if (list.length < 3) continue;
     list.sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
     const last = list[list.length - 1], prev = list.slice(0, -1).map(t => +t.amount || 0).sort((a, b) => a - b), med = prev[Math.floor(prev.length / 2)];
-    rows.push({ name: last.merchant, last: +last.amount || 0, med, n: list.length, date: last.date, diff: (+last.amount || 0) - med });
+    const cats = {}; for (const t of list) if (t.categoryId) cats[t.categoryId] = (cats[t.categoryId] || 0) + 1;
+    const cat = catById(Object.entries(cats).sort((a, b) => b[1] - a[1]).map(x => x[0])[0]);
+    rows.push({ name: last.merchant, last: +last.amount || 0, med, n: list.length, date: last.date, diff: (+last.amount || 0) - med, cat, hist: list.slice(-8).map(t => +t.amount || 0) });
   }
-  const up = rows.filter(r => r.med && r.diff >= 50 && r.last > r.med * 1.2).sort((a, b) => b.diff - a.diff).slice(0, 5);
-  const regular = rows.sort((a, b) => b.n - a.n).slice(0, 5);
+  const isUp = r => r.med && r.diff >= 50 && r.last > r.med * 1.2, isDown = r => r.med && -r.diff >= 50 && r.last < r.med * 0.8;
+  const up = rows.filter(isUp).sort((a, b) => b.diff - a.diff).slice(0, 4);
+  const regular = rows.filter(r => !isUp(r)).sort((a, b) => b.n - a.n).slice(0, 6);
+  const ico = r => r.cat ? catIco(r.cat, "sm") : `<span class="pt-ini" aria-hidden="true">${esc((r.name || "?").trim().charAt(0).toUpperCase())}</span>`;
+  /* tiny bars of the last few prices, the latest one highlighted */
+  const spark = r => { const mx = Math.max(...r.hist, 1); return `<span class="pt-spark" aria-hidden="true">${r.hist.map((v, i) => `<i style="height:${Math.max(12, Math.round(v / mx * 100))}%" class="${i === r.hist.length - 1 ? "last" : ""}"></i>`).join("")}</span>`; };
   return `<div class="card stack">
-    <div class="row"><h2>Price tracker</h2><span class="small muted">shops you use often</span></div>
-    ${up.length ? `<div class="stack" style="gap:8px">${up.map(r => `<div class="pt-row up"><span><b>${esc(r.name)}</b><span>${esc(dayLabel(r.date))}: paid ${fmt(r.last)}, usually ${fmt(r.med)}</span></span><span class="delta up">+${pct(r.diff, r.med)}%</span></div>`).join("")}</div>`
-      : regular.length ? `<div class="small muted">No price jumps at your regular shops. 👍</div>` : ""}
-    ${regular.length ? `<div class="small muted" style="margin-top:2px">Your regulars: ${regular.map(r => `${esc(r.name)} (${r.n}×, usually ${fmt(r.med || r.last)})`).join(" · ")}</div>`
-      : `<div class="small muted">After 3 purchases at the same shop, Masarif tells you when you pay more than usual.</div>`}
+    <div><h2>Price tracker</h2><div class="small muted">What you usually pay at your regular shops, from the last 6 months.</div></div>
+    ${up.length ? `<div class="pt-sec">Paid more than usual</div>
+      <div class="pt-list">${up.map(r => `<div class="pt-item bad">
+        ${ico(r)}<span class="pt-mid" title="${esc(dayLabel(r.date))}"><b>${esc(r.name)}</b><span>Usually ${money(r.med)}</span></span>
+        <span class="pt-end"><b class="num">${money(r.last)}</b><span class="delta up">+${pct(r.diff, r.med)}%</span></span></div>`).join("")}</div>` : ""}
+    ${regular.length ? `<div class="pt-sec">${up.length ? "Your other regulars" : "Your regulars · no price jumps 👍"}</div>
+      <div class="pt-list">${regular.map(r => `<div class="pt-item">
+        ${ico(r)}<span class="pt-mid" title="Last ${esc(dayLabel(r.date))}"><b>${esc(r.name)}</b><span>${r.n} times</span></span>
+        ${spark(r)}<span class="pt-end"><b class="num">${money(r.med || r.last)}</b><span class="${isDown(r) ? "delta down" : "small muted"}">${isDown(r) ? `−${pct(-r.diff, r.med)}% last time` : "usually"}</span></span></div>`).join("")}</div>`
+      : `<div class="small muted">After 3 purchases at the same shop, Masarif shows what you usually pay there and tells you when it goes up.</div>`}
   </div>`;
 }
 function peopleCard() {
