@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-/uGQ7bSOPhJLNoKdM/cn8citjafbyxJfkRpqKz4y9js='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-scM3K0QBB50Clush+lX3oeQEMFsyms7qf7D/gOTWmQU='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1236,6 +1236,30 @@ nav.tabs a{font-size:clamp(12px,0.75rem,13px)!important}
 .pt-spark i{flex:1;border-radius:2px;background:color-mix(in srgb,var(--muted) 35%,transparent)}
 .pt-spark i.last{background:var(--accent,#10B981)}
 @media (max-width:360px){.pt-spark{display:none}}
+.sb-sum{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:16px;background:var(--soft)}
+.sb-sum b{font:800 1.75rem/1.1 var(--f-display);letter-spacing:-.01em}
+.sb-sum b small{font-size:0.8235rem;font-weight:700;color:var(--muted);margin-right:4px}
+.sb-item{border-top:1px solid var(--line)}
+.sb-item:first-child{border-top:0}
+.sb-item > summary{display:flex;align-items:center;gap:10px;padding:10px 12px;min-height:56px;cursor:pointer;list-style:none}
+.sb-item > summary::-webkit-details-marker{display:none}
+.sb-chev{flex:none;color:var(--muted);font-size:1.2rem;transition:transform .2s}
+.sb-item[open] .sb-chev{transform:rotate(90deg)}
+.sb-item.sb-up > summary{background:color-mix(in srgb,#B4232A 6%,transparent)}
+.sb-more{display:flex;flex-direction:column;gap:10px;padding:2px 12px 14px 50px}
+.sb-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.sb-facts span{display:flex;flex-direction:column;font-size:0.7059rem;color:var(--muted);min-width:0}
+.sb-facts b{font-size:0.8824rem;color:var(--ink);font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-use{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:0.8235rem}
+.sb-step{display:inline-flex;align-items:center;gap:6px}
+.sb-step button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-weight:800;font-size:1rem;color:var(--ink)}
+.sb-step b{min-width:22px;text-align:center}
+.sb-seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sb-seg button{min-height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:700;color:var(--ink)}
+.sb-seg button.on{background:color-mix(in srgb,#10B981 14%,var(--card));border-color:#10B981;color:#04704F}
+.sb-seg button + button{color:#B4232A}
+.sb-gone{opacity:.75}.sb-gone .link-btn{flex:none}
+@media (max-width:360px){.sb-more{padding-left:12px}}
 /* ---------- dark theme (follows the iPhone setting, or Settings → Appearance) ---------- */
 html[data-theme=dark]{color-scheme:dark;--ck0:#153727;--bg:#171A21;--soft:#1C2029;--sunk:#252A35;--ink:#ECEEF3;--muted:#A1AABB;--line:#2C323E;--page:#0B0E13;
   --accent:#14A37A;--accent-ink:#5EE0B5;--bad-ink:#FF8A8E;--good-ink:#4ADE9C;--warn-ink:#FBBF4D;--none:#7C8597;
@@ -2181,36 +2205,67 @@ const SUB_KW = /netflix|spotify|google ?play|google ?one|google ?cloud|google ?g
 /* a card check (e.g. "GOOGLE TEMPORAR" for USD 1) is a temporary hold, not a subscription */
 const SUB_NOT = /temporar|verification|auth hold/i;
 const normMerchant = s => String(s || "").toLowerCase().replace(/\.(com|net|org|eg|co)\b/g, "").replace(/[^a-z؀-ۿ ]/g, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
+/* friendly names for services, and one row per service (e.g. "ANTHROPIC" and "ANTHROPIC CLAU" are both Claude) */
+const SUB_NAMES = [[/anthropic|claude/i, "Claude"], [/openai|chatgpt/i, "ChatGPT"], [/disney/i, "Disney+"], [/netflix/i, "Netflix"], [/google ?(one|google|storage)/i, "Google One"], [/google ?cloud/i, "Google Cloud"], [/youtube/i, "YouTube Premium"], [/google ?play/i, "Google Play"], [/spotify/i, "Spotify"], [/icloud|apple\.com|itunes|apple ?music/i, "Apple"], [/shahid/i, "Shahid"], [/\bosn/i, "OSN+"], [/anghami/i, "Anghami"], [/watch ?it/i, "Watch It"], [/\btod\b|tod tv/i, "TOD"], [/prime video|amazon prime/i, "Prime Video"], [/canva/i, "Canva"], [/github/i, "GitHub"], [/notion/i, "Notion"], [/adobe/i, "Adobe"], [/microsoft|office 365|xbox/i, "Microsoft"], [/playstation|\bpsn\b/i, "PlayStation"], [/linkedin/i, "LinkedIn"], [/duolingo/i, "Duolingo"], [/midjourney/i, "Midjourney"], [/dropbox/i, "Dropbox"]];
+const subName = m => { const x = SUB_NAMES.find(([re]) => re.test(m || "")); return x ? x[1] : ""; };
+const prettyShop = m => String(m || "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 function findSubs() {
   const g = {};
-  for (const t of S.txns) { if (t.deleted || t.kind !== "expense" || !t.merchant || /instapay|transfer|تحويل/i.test(t.merchant)) continue; const k = normMerchant(t.merchant); if (!k) continue; (g[k] = g[k] || []).push(t); }
-  const out = [];
-  for (const [k, list] of Object.entries(g)) {
-    const amts = list.map(t => +t.amount || 0).sort((a, b) => a - b), med = amts[Math.floor(amts.length / 2)];
-    const periods = new Set(list.map(t => pKeyOf(t.date)));
-    const steady = amts[0] >= med * 0.7 && amts[amts.length - 1] <= med * 1.3;
-    const kwHit = list.some(t => SUB_KW.test(t.merchant + " " + (t.raw || "").replace(/https?:\S+/g, ""))) && !list.every(t => SUB_NOT.test(t.merchant));
-    if ((periods.size >= 2 && steady && list.length <= periods.size + 1) || kwHit) {
-      const byDate = list.slice().sort((a, b) => a.date.localeCompare(b.date)), last = byDate[byDate.length - 1].date;
-      const la = +byDate[byDate.length - 1].amount || 0, pa = byDate.length > 1 ? +byDate[byDate.length - 2].amount || 0 : 0;
-      out.push({ key: "s" + hash(k), name: byDate[byDate.length - 1].merchant, med, months: periods.size, last, yearly: med * 12, up: pa && la > pa * 1.03 ? { from: pa, to: la } : null });
-    }
+  for (const t of S.txns) {
+    if (t.deleted || t.kind !== "expense" || !t.merchant || /instapay|transfer|تحويل/i.test(t.merchant) || SUB_NOT.test(t.merchant)) continue;
+    const known = subName(t.merchant), k = known ? "svc:" + known : normMerchant(t.merchant); if (!k) continue;
+    (g[k] = g[k] || { known, list: [] }).list.push(t);
   }
-  return out.sort((a, b) => b.yearly - a.yearly);
+  const out = [];
+  for (const [k, { known, list }] of Object.entries(g)) {
+    /* what the service costs per month: add up each month, then take the typical month */
+    const byP = {}; for (const t of list) { const pk = pKeyOf(t.date); byP[pk] = (byP[pk] || 0) + (+t.amount || 0); }
+    const months = Object.keys(byP).sort(), tot = months.map(m => byP[m]), sorted = tot.slice().sort((a, b) => a - b), med = sorted[Math.floor(sorted.length / 2)];
+    const steady = sorted[0] >= med * 0.7 && sorted[sorted.length - 1] <= med * 1.3;
+    const kwHit = !!known || list.some(t => SUB_KW.test(t.merchant + " " + (t.raw || "").replace(/https?:\S+/g, "")));
+    if (!((months.length >= 2 && steady && list.length <= months.length + 1) || kwHit)) continue;
+    const byDate = list.slice().sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || ""))), lastT = byDate[byDate.length - 1];
+    const la = tot[tot.length - 1], pa = tot.length > 1 ? tot[tot.length - 2] : 0;
+    const cats = {}; for (const t of list) if (t.categoryId) cats[t.categoryId] = (cats[t.categoryId] || 0) + 1;
+    out.push({ key: "s" + hash(k.replace(/^svc:/, "").toLowerCase()), name: known || prettyShop(lastT.merchant), shop: lastT.merchant, med, months: months.length, n: list.length, last: lastT.date,
+      next: addDays(lastT.date, 30), yearly: med * 12, fx: lastT.fx || null, cat: catById(Object.entries(cats).sort((a, b) => b[1] - a[1]).map(x => x[0])[0]),
+      up: pa && la > pa * 1.03 ? { from: pa, to: la } : null });
+  }
+  return out.sort((a, b) => b.med - a.med);
 }
+/* keep a subscription row open across re-renders (tapping + or Keep redraws the card) */
+const SUB_OPEN = new Set();
+document.addEventListener("toggle", e => { const d = e.target; if (d && d.classList && d.classList.contains("sb-item")) d.open ? SUB_OPEN.add(d.dataset.sbk) : SUB_OPEN.delete(d.dataset.sbk); }, true);
 function subsCard() {
   const list = findSubs(), stOf = x => (S.subs[x.key] || {}).status || "";
   const active = list.filter(x => stOf(x) !== "cancelled"), gone = list.filter(x => stOf(x) === "cancelled");
-  const monthly = active.reduce((a, x) => a + x.med, 0);
+  const monthly = active.reduce((a, x) => a + x.med, 0), saved = gone.reduce((a, x) => a + x.yearly, 0);
+  const ico = x => x.cat ? catIco(x.cat, "sm") : `<span class="pt-ini" aria-hidden="true">${esc(x.name.charAt(0).toUpperCase())}</span>`;
+  const row = x => { const u = usesFor(x.key), st = stOf(x); return `<details class="sb-item${x.up ? " sb-up" : ""}" data-sbk="${x.key}" ${SUB_OPEN.has(x.key) ? "open" : ""}>
+      <summary>${ico(x)}<span class="pt-mid"><b>${esc(x.name)}</b><span>${x.up ? `<span class="badtxt">Price up ${pct(x.up.to - x.up.from, x.up.from)}%</span> · ` : ""}${st === "keep" ? "Keeping ✓ · " : ""}next about ${esc(dm(x.next))}</span></span>
+        <span class="pt-end"><b class="num">${money(x.up ? x.up.to : x.med)}</b><span class="small muted">a month</span></span><span class="sb-chev" aria-hidden="true">›</span></summary>
+      <div class="sb-more">
+        <div class="sb-facts">
+          <span><b class="num">${fmt(x.yearly)}</b>EGP a year</span>
+          <span><b class="num">${x.months}</b>${x.months === 1 ? "month seen" : "months seen"}</span>
+          <span><b>${esc(dm(x.last))}</b>last charge</span>
+        </div>
+        ${x.up ? `<div class="note warn small">Now ${money(x.up.to)} a month, was ${money(x.up.from)}.</div>` : ""}
+        ${x.n > x.months ? `<div class="small muted">${plural(x.n, "charge")} from ${esc(x.shop)} and similar names, added together.</div>` : ""}${x.fx ? `<div class="small muted">Charged in ${esc(x.fx.cur)}, so the EGP price moves with the exchange rate.</div>` : ""}
+        <div class="sb-use"><span>Used this month</span><span class="sb-step"><button type="button" data-uses="${x.key}" data-d="-1" aria-label="One less">−</button><b class="num">${u}</b><button type="button" data-uses="${x.key}" data-d="1" aria-label="One more">+</button></span></div>
+        ${u ? `<div class="small muted">That's <b>${money(x.med / u)}</b> each time you use it.</div>` : ""}
+        <div class="seg sb-seg" role="group" aria-label="${esc(x.name)}"><button type="button" class="${st === "keep" ? "on" : ""}" data-sub="${x.key}" data-st="${st === "keep" ? "" : "keep"}">Keep it</button><button type="button" data-sub="${x.key}" data-st="cancelled">I cancelled it</button></div>
+      </div></details>`; };
   return `<div class="card stack">
-    <div class="row"><h2>Subscriptions</h2>${active.length ? `<span class="small muted num">${money(monthly)}/mo · ${money(monthly * 12)}/yr</span>` : ""}</div>
-    ${list.length ? `<div class="stack" style="gap:8px">${active.map(x => `<div class="sub-row">
-        <span class="nm">${esc(x.name)}</span><span class="yr num">${fmt(x.yearly)}<span class="muted small"> /yr</span></span>
-        <span class="meta">${x.up ? `<span class="up-tag">Price up ${pct(x.up.to - x.up.from, x.up.from)}%</span> <b class="badtxt">now ${money(x.up.to)}, was ${money(x.up.from)}.</b> ` : ""}${money(x.med)} a month · seen in ${x.months} month${x.months === 1 ? "" : "s"} · last ${esc(dayLabel(x.last))}</span>
-        <span class="uses">Used this month <button type="button" data-uses="${x.key}" data-d="-1" aria-label="One less">−</button><b class="num">${usesFor(x.key)}</b><button type="button" data-uses="${x.key}" data-d="1" aria-label="One more">+</button>${usesFor(x.key) ? ` = <b>${money(x.med / usesFor(x.key))}</b> a use` : ""}</span>
-        <span class="mini-btns"><button type="button" class="${stOf(x) === "keep" ? "on" : ""}" data-sub="${x.key}" data-st="keep">Keep</button><button type="button" data-sub="${x.key}" data-st="cancelled">Cancelled</button></span>
-      </div>`).join("")}
-      ${gone.length ? `<div class="note ok">You cancelled ${gone.length}: saving about ${money(gone.reduce((a, x) => a + x.yearly, 0))} a year. ${gone.map(x => `<button type="button" class="link-btn" data-sub="${x.key}" data-st="">Undo ${esc(x.name)}</button>`).join(" ")}</div>` : ""}</div>`
+    <h2>Subscriptions</h2>
+    ${list.length ? `<div class="sb-sum">
+        <span class="small muted">You pay every month</span>
+        <b class="num"><small>EGP</small>${fmt(monthly)}</b>
+        <span class="small muted num">${money(monthly * 12)} a year · ${plural(active.length, "subscription")}</span>
+      </div>
+      ${active.length ? `<div class="pt-list">${active.map(row).join("")}</div><div class="small muted">Tap one to see the yearly cost, track how often you use it, or mark it cancelled.</div>` : ""}
+      ${gone.length ? `<div class="pt-sec">Cancelled · saving ${money(saved)} a year</div>
+        <div class="pt-list">${gone.map(x => `<div class="pt-item sb-gone">${ico(x)}<span class="pt-mid"><b>${esc(x.name)}</b><span>${money(x.med)} a month</span></span><button type="button" class="link-btn" data-sub="${x.key}" data-st="">Undo</button></div>`).join("")}</div>` : ""}`
     : `<div class="small muted">Nothing repeating found yet. Masarif looks for shops charging a similar amount every month, and for names like Netflix, Disney+, Google One or ChatGPT.</div>`}
   </div>`;
 }
