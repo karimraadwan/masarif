@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-scM3K0QBB50Clush+lX3oeQEMFsyms7qf7D/gOTWmQU='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-pHsx7WwRvrpndsTbGY5yC2qNejduW2+zopAWibTUXi0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1710,18 +1710,48 @@ function payoff(b, r, p) {
   while (b > 0.005 && m < 600) { const i = b * r; int += i; b = b + i - p; m++; }
   return { months: m, interest: int };
 }
-/* Credit balance now = last statement balance + credit purchases since − refunds since − payments since */
+/* Bank texts carry the real numbers: "Card available limit is EGP 727.03", "You are over the limit by 382.97", "الرصيد المتاح EGP3794.34".
+   The newest such text is a better starting point than a balance typed in days ago, because it already includes fees,
+   interest and charges that never sent a text. */
+const numOf = x => parseFloat(String(x).replace(/,/g, ""));
+function owedFromText(raw, limit) {
+  const m = norm(String(raw || "")); let x;
+  if (!limit) return null;
+  if ((x = m.match(/over the limit by\s*(?:EGP)?\s*([\d,]+(?:\.\d+)?)/i))) return limit + numOf(x[1]);
+  if ((x = m.match(/available limit is\s*(?:EGP)?\s*([\d,]+(?:\.\d+)?)/i))) return limit - numOf(x[1]);
+  return null;
+}
+function balanceFromText(raw) {
+  const m = norm(String(raw || "")), x = m.match(/(?:الرصيد المتاح|available balance(?: is)?)\s*:?\s*(?:EGP)?\s*([\d,]+(?:\.\d+)?)/i);
+  return x ? numOf(x[1]) : null;
+}
+const tKey = t => (t.date || "") + " " + (t.time || "00:00") + " " + String(+t.createdAt || 0).padStart(16, "0");
+/* the newest text with a figure, if it's newer than the balance you typed in */
+function textAnchor(ids, read, asOf, asOfTime) {
+  let best = null;
+  for (const t of S.txns) {
+    if (t.deleted || !t.date || t.date > todayStr() || !ids.has(t.cardId)) continue;
+    const v = read(t.raw); if (v == null || !isFinite(v)) continue;
+    if (!best || tKey(t) > tKey(best.t)) best = { t, v };
+  }
+  if (!best) return null;
+  const snap = (asOf || "") + " " + (asOfTime || "00:00");
+  return !asOf || (best.t.date + " " + (best.t.time || "00:00")) > snap ? best : null;
+}
+/* Credit balance now = newest known balance (bank text or what you typed) + credit purchases since − refunds since − payments since */
 function cardNow() {
   const c = settings().card, cc = creditCard();
+  const an = cc ? textAnchor(new Set([cc.id]), raw => owedFromText(raw, +cc.limit || 0), c.asOf, c.asOfTime) : null;
+  const after = t => an ? tKey(t) > tKey(an.t) : afterSnap(t, c.asOf, c.asOfTime);
   let adds = 0, refunds = 0, paid = 0;
   for (const t of S.txns) {
-    if (t.deleted || !t.date || t.date > todayStr() || !afterSnap(t, c.asOf, c.asOfTime)) continue;
+    if (t.deleted || !t.date || t.date > todayStr() || !after(t)) continue;
     if (t.kind === "payment") { paid += +t.amount || 0; continue; }
     if (t.kind === "income") continue;
     if (cc && t.cardId === cc.id) { if (t.kind === "refund") refunds += +t.amount || 0; else adds += +t.amount || 0; }
   }
-  const base = +c.balance || 0;
-  return { base, adds, refunds, paid, now: Math.max(0, base + adds - refunds - paid) };
+  const base = an ? an.v : +c.balance || 0;
+  return { base, adds, refunds, paid, now: Math.max(0, base + adds - refunds - paid), asOf: an ? an.t.date : c.asOf, asOfTime: an ? an.t.time : c.asOfTime, fromText: !!an };
 }
 
 /* A purchase counts after a balance snapshot when it is dated later, or the same day at a later time */
@@ -1733,16 +1763,18 @@ function afterSnap(t, d, tm) {
 /* Bank account now = balance you copied from the CIB app − debit purchases and card payments since + refunds and money in since */
 function accountNow() {
   const a = settings().account, debitIds = new Set(cards().filter(c => c.type !== "credit").map(c => c.id));
+  const an = textAnchor(debitIds, balanceFromText, a.asOf, a.asOfTime);
+  const after = t => an ? tKey(t) > tKey(an.t) : afterSnap(t, a.asOf, a.asOfTime);
   let out = 0, inn = 0;
   for (const t of S.txns) {
-    if (t.deleted || !t.date || t.date > todayStr() || !afterSnap(t, a.asOf, a.asOfTime)) continue;
+    if (t.deleted || !t.date || t.date > todayStr() || !after(t)) continue;
     const v = +t.amount || 0;
     if (t.kind === "income") inn += v;
     else if (t.kind === "payment") out += v;
     else if (debitIds.has(t.cardId)) { if (t.kind === "refund") inn += v; else out += v; }
   }
-  const base = +a.balance || 0;
-  return { base, out, inn, now: base - out + inn, set: !!a.asOf };
+  const base = an ? an.v : +a.balance || 0;
+  return { base, out, inn, now: base - out + inn, set: !!a.asOf || !!an, asOf: an ? an.t.date : a.asOf, asOfTime: an ? an.t.time : a.asOfTime, fromText: !!an };
 }
 const nowHM = () => { const p = cairoNow(); return p.hour + ":" + p.minute; };
 function snapLabel(d, tm) {
@@ -2584,7 +2616,7 @@ function bankHero() {
   return `<div class="hero">
       <div class="row"><div class="label">In your bank account</div><button type="button" class="hero-btn sm" data-bal aria-label="Edit bank balance">✎ Edit</button></div>
       <div class="big num ${an.now < 0 ? "neg" : ""}"><small>EGP</small>${fmt(an.now)}</div>
-      <div class="sub">${esc(snapLabel(st.account.asOf, st.account.asOfTime))} · payday ${esc(payday)}, in ${days} day${days === 1 ? "" : "s"}</div>
+      <div class="sub">${esc(snapLabel(accountNow().asOf, accountNow().asOfTime) + (accountNow().fromText ? " from your bank text" : ""))} · payday ${esc(payday)}, in ${days} day${days === 1 ? "" : "s"}</div>
       <div class="pills two">
         <div class="pill"><div>Bills before payday</div><div class="num">${fmt(toPay)}</div></div>
         <div class="pill"><div>Safe per day</div><div class="num">${fmt(perDay)}</div></div>
@@ -2709,7 +2741,7 @@ function homeHero() {
       <div class="sub"><b class="num">${money(h.an.now)}</b> in your bank · payday ${esc(payday)}, in ${plural(h.days, "day")}${h.by === "week" && h.todaySafe >= 0 ? `<br>Set by your weekly limit (${money(h.al.base)} a day). Your bank alone could cover ${money(h.perDay)} a day.` : ""}${h.level !== "good" && h.why && !(h.todaySafe < 0 && /today's share/.test(h.why)) ? `<br>${esc(h.why)}` : ""}</div>
       <div class="hero-track" aria-hidden="true"><i style="width:${gone.toFixed(0)}%"></i><b style="left:${gone.toFixed(0)}%"></b></div>
       <div class="hero-ends" aria-hidden="true"><span>${esc(toDate(pStart(key)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span><span>${esc(payday)}</span></div>
-      <div class="hero-foot"><span class="upd">${stale >= 7 ? `<b class="stale">Balance updated ${stale} days ago. Please update.</b>` : `<i aria-hidden="true"></i>${esc(snapLabel(st.account.asOf, st.account.asOfTime))}`}</span><button type="button" class="hero-btn sm" id="updBal" data-bal aria-label="Update bank balance">✎ Edit</button></div>
+      <div class="hero-foot"><span class="upd">${stale >= 7 ? `<b class="stale">Balance updated ${stale} days ago. Please update.</b>` : `<i aria-hidden="true"></i>${esc(snapLabel(accountNow().asOf, accountNow().asOfTime) + (accountNow().fromText ? " from your bank text" : ""))}`}</span><button type="button" class="hero-btn sm" id="updBal" data-bal aria-label="Update bank balance">✎ Edit</button></div>
       ${h.level === "bad" && !emergencyOn() ? `<button type="button" class="hero-em" data-emerg="on"><span>Money tight? Try emergency mode</span><span aria-hidden="true">›</span></button>` : ""}
     </div>`;
 }
@@ -3898,7 +3930,7 @@ function healthHero() {
         <div class="pill"><div>Bills before payday</div><div class="num">${fmt(h.toPay)}</div></div>
       </div>
       <div class="hero-track" aria-hidden="true"><i style="width:${Math.min(100, Math.max(3, (1 - h.days / Math.max(1, daysDiff(pStart(key), pNext(key)))) * 100)).toFixed(0)}%"></i><b style="left:${Math.min(100, Math.max(3, (1 - h.days / Math.max(1, daysDiff(pStart(key), pNext(key)))) * 100)).toFixed(0)}%"></b><span class="ht-a">${esc(toDate(pStart(key)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span><span class="ht-b">💰 ${esc(payday)}</span></div>
-      <div class="hero-foot"><span>${balanceStale() >= 7 ? `<b class="stale">Updated ${balanceStale()} days ago. Please update.</b>` : esc(snapLabel(st.account.asOf, st.account.asOfTime))} · payday ${esc(payday)}, in ${plural(h.days, "day")}</span><button type="button" class="hero-btn sm" data-bal aria-label="Edit bank balance">✎ Edit</button></div>
+      <div class="hero-foot"><span>${balanceStale() >= 7 ? `<b class="stale">Updated ${balanceStale()} days ago. Please update.</b>` : esc(snapLabel(accountNow().asOf, accountNow().asOfTime) + (accountNow().fromText ? " from your bank text" : ""))} · payday ${esc(payday)}, in ${plural(h.days, "day")}</span><button type="button" class="hero-btn sm" data-bal aria-label="Edit bank balance">✎ Edit</button></div>
       ${h.level === "bad" && !emergencyOn() ? `<button type="button" class="hero-em" data-emerg="on"><span>Money tight? Try emergency mode</span><span aria-hidden="true">›</span></button>` : ""}
     </div>`;
 }
@@ -5125,7 +5157,7 @@ function usesFor(key) { const x = S.subs[key] || {}; return (x.uses || {})[curKe
 async function setUses(key, n) { const x = Object.assign({}, S.subs[key] || {}), uses = Object.assign({}, x.uses || {}, { [curKey()]: Math.max(0, n) }); x.uses = uses; S.subs[key] = x; try { await db.collection("subs").doc(key).set(x); } catch {} render(true); }
 
 /* ---------- balance reminder ---------- */
-function balanceStale() { const a = settings().account; return a.asOf ? daysDiff(a.asOf, todayStr()) : null; }
+function balanceStale() { const a = accountNow(); return a.asOf ? daysDiff(a.asOf, todayStr()) : null; }
 
 /* ---------- delegated clicks for round 3 ---------- */
 main.addEventListener("click", async e => {
