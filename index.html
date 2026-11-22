@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-pHsx7WwRvrpndsTbGY5yC2qNejduW2+zopAWibTUXi0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-B5cblTQDWoYShtRrftYyFQq7Fu/D2So7pWLwAvT4XBw='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1260,6 +1260,9 @@ nav.tabs a{font-size:clamp(12px,0.75rem,13px)!important}
 .sb-seg button + button{color:#B4232A}
 .sb-gone{opacity:.75}.sb-gone .link-btn{flex:none}
 @media (max-width:360px){.sb-more{padding-left:12px}}
+/* long shop or card names with no spaces (AMAZON.EG*MKTPLACE…) wrap instead of pushing the page sideways */
+.tl-s,.ccard-top span,.pd-score span,.check span,.sub,.small,.muted,.note,.pt-mid b,.sb-item b,.mid b,.mid span{overflow-wrap:anywhere}
+button.mid{min-width:0;max-width:100%}
 /* ---------- dark theme (follows the iPhone setting, or Settings → Appearance) ---------- */
 html[data-theme=dark]{color-scheme:dark;--ck0:#153727;--bg:#171A21;--soft:#1C2029;--sunk:#252A35;--ink:#ECEEF3;--muted:#A1AABB;--line:#2C323E;--page:#0B0E13;
   --accent:#14A37A;--accent-ink:#5EE0B5;--bad-ink:#FF8A8E;--good-ink:#4ADE9C;--warn-ink:#FBBF4D;--none:#7C8597;
@@ -1425,7 +1428,8 @@ const fmt = n => { if (HIDE) return "•••"; const v = +n || 0; return v !==
 const fmtX = n => { if (HIDE) return "•••"; const v = +n || 0; return v.toLocaleString("en-US", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
 const money = n => "EGP " + fmt(n);
 const fmtIn = n => (+n || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
-const numIn = s => parseFloat(norm(s).replace(/[^\d.]/g, "")) || 0;
+/* "1,234.50" → 1234.5 and "12,5" (comma as decimal point) → 12.5, never 125 */
+const numIn = s => { let t = norm(s).replace(/[^\d.,]/g, ""); if (/^\d+,\d{1,2}$/.test(t)) t = t.replace(",", "."); return parseFloat(t.replace(/,/g, "")) || 0; };
 /* strict amount check for typed purchases: "12,5" is 12.5, "1,250" is 1250, no minus, no 2 dots, no silly sizes */
 function amtIn(s) {
   let t = norm(s).replace(/egp|ج\.?م|جنيه|le/gi, "").replace(/\s+/g, "").trim();
@@ -1514,6 +1518,13 @@ const BANK_RE = /card|بطاقة|حساب|account|cib|19666|apple pay|تحويل
 const kindOf = m => PAY_RE.test(m) ? "payment" : REFUND_RE.test(m) ? "refund" : INCOME_RE.test(m) ? "income" : "expense";
 const isFlow = t => t.kind === "payment" || t.kind === "income";
 const PAY_RE = /\b(payment received|thank you for your payment|payment of .{0,30} (?:has been )?received|card payment received)\b|تم سداد|سداد مبلغ|تم استلام سداد/i;
+/* the text names a card or account ending (#7777, ending with 7777, المنتهي بـ ****7777) and none of yours match: someone else's card */
+function notMyCard(text) {
+  const mine = cards().flatMap(c => c.nums || []); if (!mine.length) return false;
+  const t = norm(text), ends = [];
+  for (const m of t.matchAll(/(?:ending with|ending|#|المنتهي(?:ة)?\s*بـ?|بـ)\s*#?\s*\**\s*(\d{4})(?!\d)/gi)) ends.push(m[1]);
+  return ends.length > 0 && !ends.some(e => mine.some(n => String(n).endsWith(e) || e.endsWith(String(n))));
+}
 function detectCard(text) {
   const t = norm(text);
   if (/\|\s*CASH\s*$/i.test(t.trim())) return "cash";
@@ -1542,7 +1553,8 @@ const kwRe = k => new RegExp("(^|[^a-z0-9\u0600-\u06ff])" + k.replace(/[.*+?^${}
 function autoCat(text) {
   /* shops you re-filed twice win over keywords */
   const learned = (S.settings && S.settings.learned) || {}, low = String(text || "").toLowerCase().replace(/[^a-z\u0600-\u06ff ]/g, " ").replace(/\s+/g, " ");
-  for (const k in learned) { const v = learned[k]; if (v && v.n >= 2 && k && low.includes(k) && S.cats.some(c => c.id === v.cat)) return v.cat; }
+  const padded = " " + low + " ";
+  for (const k in learned) { const v = learned[k]; if (v && v.n >= 2 && k && k.replace(/\s/g, "").length >= 3 && padded.includes(" " + k + " ") && S.cats.some(c => c.id === v.cat)) return v.cat; }
   const parts = String(text || "").split("|");
   const tries = [parts.length > 3 ? parts[2] : "", String(text || "")];
   for (const t of tries) {
@@ -1592,6 +1604,7 @@ function parseShortcutFile(text) {
       if (OTP_RE.test(sms) || PENDING_RE.test(sms)) continue;
       const cardId = detectCard(line);
       if (!cardId && !BANK_RE.test(sms)) continue;
+      if (!cardId && notMyCard(sms)) continue;
       const amount = amountIn(sms) || parseAmount(parts[1]);
       if (!amount) continue;
       const kind = kindOf(sms);
@@ -1725,7 +1738,16 @@ function balanceFromText(raw) {
   const m = norm(String(raw || "")), x = m.match(/(?:الرصيد المتاح|available balance(?: is)?)\s*:?\s*(?:EGP)?\s*([\d,]+(?:\.\d+)?)/i);
   return x ? numOf(x[1]) : null;
 }
-const tKey = t => (t.date || "") + " " + (t.time || "00:00") + " " + String(+t.createdAt || 0).padStart(16, "0");
+/* a purchase added by hand with no time: use the time it was added, if that was on the same day (else start of day) */
+let _hmF = null;
+function timeOf(t) {
+  if (t.time) return t.time;
+  if (!t.createdAt) return "";
+  try { _hmF = _hmF || new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+    const p = {}; for (const x of _hmF.formatToParts(new Date(+t.createdAt))) p[x.type] = x.value;
+    return p.year + "-" + p.month + "-" + p.day === t.date ? p.hour + ":" + p.minute : ""; } catch { return ""; }
+}
+const tKey = t => (t.date || "") + " " + (timeOf(t) || "00:00") + " " + String(+t.createdAt || 0).padStart(16, "0");
 /* the newest text with a figure, if it's newer than the balance you typed in */
 function textAnchor(ids, read, asOf, asOfTime) {
   let best = null;
@@ -1758,7 +1780,8 @@ function cardNow() {
 function afterSnap(t, d, tm) {
   if (!d) return true;
   if (t.date > d) return true;
-  return t.date === d && !!tm && !!t.time && t.time > tm;
+  const ht = timeOf(t);
+  return t.date === d && !!tm && !!ht && ht > tm;
 }
 /* Bank account now = balance you copied from the CIB app − debit purchases and card payments since + refunds and money in since */
 function accountNow() {
@@ -2106,8 +2129,15 @@ async function processInbox() {
     /* the same purchase or card payment already added by hand (within 2 days, same amount): link the bank text to it instead of counting it twice */
     const twin = S.txns.find(t => !t.deleted && t.source === "manual" && !t.smsId && (t.kind || "expense") === (r.kind || "expense") && Math.abs((+t.amount || 0) - r.amount) < 0.01 && t.date && Math.abs(daysDiff(t.date, r.date)) <= 2 && t.cardId !== "cash");
     if (twin) { twin.smsId = r.id; await db.collection("transactions").doc(twin.id).update({ smsId: r.id, raw: r.raw, cardId: twin.cardId || cardId, time: twin.time || r.time || "" }); continue; }
+    let cat = isFlow(r) ? null : autoCat((r.merchant || "") + " " + r.raw);
+    if (cat && /instapay|transfer/i.test(r.merchant || "")) {
+      /* most transfers are small (rides, people); a much bigger one is probably savings or family, so let you file it */
+      const same = S.txns.filter(t => !t.deleted && t.categoryId === cat && /instapay|transfer/i.test(t.merchant || "")).map(t => +t.amount || 0).sort((x, y) => x - y);
+      const med = same.length >= 3 ? same[Math.floor(same.length / 2)] : 0;
+      if (r.amount > Math.max(5000, med * 5)) cat = null;
+    }
     await db.collection("transactions").doc(r.id).set({ date: r.date, time: r.time || "", amount: r.amount, kind: r.kind || "expense",
-      merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: r.fx ? `${r.fx.cur} ${r.fx.amt.toFixed(2)}` : "", ...(r.fx ? { fx: r.fx } : {}), categoryId: isFlow(r) ? null : autoCat((r.merchant || "") + " " + r.raw),
+      merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: r.fx ? `${r.fx.cur} ${r.fx.amt.toFixed(2)}` : "", ...(r.fx ? { fx: r.fx } : {}), categoryId: cat,
       cardId, source: "sync", raw: r.raw, createdAt: Date.now() });
   }
   S.sync.added = rows.length;
@@ -3371,7 +3401,7 @@ function wireSecurity() {
   };
   authCall({ action: "sessions", token: Store.session() }).then(j => {
     const el = $("#sessList"); if (!el) return;
-    if (!j.ok) { el.innerHTML = `<span class="small muted">Couldn't check signed-in phones right now.</span>`; return; }
+    if (!j || !j.ok || !Array.isArray(j.sessions)) { el.innerHTML = `<span class="small muted">Couldn't check signed-in phones right now.</span>`; return; }
     const others = j.sessions.filter(x => !x.me);
     el.innerHTML = `<div class="small"><b>Signed in on ${plural(j.sessions.length, "device")}</b></div>` +
       j.sessions.sort((a, b) => b.me - a.me || b.last - a.last).map(x => `<div class="small muted sess-row">${esc(x.dev)}${x.me ? " · this phone" : ` · last used ${esc(new Date(x.last).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}`}</div>`).join("") +
@@ -3488,7 +3518,8 @@ function openTx(id, preset) {
   $("#tCats").onchange = () => { catTouched = true; sheet.querySelectorAll("#tCats .chip.sug").forEach(l => l.classList.remove("sug")); };
   sheet.querySelectorAll("[data-qtop]").forEach(b => b.onclick = () => { closeSheet(); quickAdd(+b.dataset.qtop); });
   const amt = $("#tAmt");
-  amt.addEventListener("blur", () => { if (amt.value.trim()) amt.value = fmtIn(numIn(amt.value)); });
+  /* tidy the number when you leave the box, but leave a mistake (like -50) as typed so Save can explain it */
+  amt.addEventListener("blur", () => { if (!amt.value.trim()) return; const ai = amtIn(amt.value); if (!ai.err) amt.value = fmtIn(ai.v); });
   amt.addEventListener("input", () => drawHrs()); setTimeout(() => drawHrs(), 0);
   $("#tMer").oninput = e => {
     const val = e.target.value.trim();
@@ -3542,6 +3573,8 @@ function openTx(id, preset) {
     data.reviewed = true;
     if (!t && preset && preset.treat) data.treat = true;
     if (!t && typeof TX_LOC !== "undefined" && TX_LOC) data.loc = TX_LOC;
+    /* a new entry for today with no time gets "now", so it sorts after this morning's bank texts */
+    if (!t && !data.time && data.date === todayStr()) data.time = nowHM();
     if (data.kind === "income") { data.categoryId = null; if (!data.merchant) data.merchant = "Money received"; }
     if (data.kind === "payment") { data.categoryId = null; data.cardId = (creditCard() || {}).id || null; if (!data.merchant) data.merchant = "Credit card payment"; }
     $("#tMsg").textContent = "Saving…";
@@ -4708,7 +4741,7 @@ function openNick(t) {
 /* ---------- self-learning categories ---------- */
 async function learnFrom(t, newCat) {
   if (!t || !newCat || t.source === "manual" || !t.merchant || t.categoryId === newCat) return;
-  const key = nickKey(t.merchant); if (!key) return;
+  const key = nickKey(t.merchant); if (!key || key.replace(/\s/g, "").length < 3 || /^[a-z]?\d/.test(key)) return;   /* "b" or a reference code would match everything */
   const learned = Object.assign({}, settings().learned || {}), cur = learned[key];
   const n = cur && cur.cat === newCat ? (cur.n || 1) + 1 : 1;
   learned[key] = { cat: newCat, n };
