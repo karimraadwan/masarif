@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-B5cblTQDWoYShtRrftYyFQq7Fu/D2So7pWLwAvT4XBw='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-m9KZkg9VPLwwUxUNU1d1zu80VEgklONmS+pW9UDGvM8='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2418,8 +2418,8 @@ function planTiles() {
   out.push(tile({ k: "Goals", ic: PT_IC("goal"), c: "#10B981", v: S.goals.length ? money(pots) : "Start one", s: S.goals.length ? `saved in ${plural(S.goals.length, "goal")}` : "Emergency fund, car, travel", attr: 'data-psec="goals"' }));
   const ups = upcoming(), up = ups[0];
   out.push(tile({ k: "Coming up", ic: PT_IC("cal"), c: "#F59E0B", v: ups.length ? plural(ups.length, "event") : "Nothing yet", s: up ? `${esc(up.name)} in ${plural(Math.max(0, up.days), "day")}` : "Yearly costs, Ramadan, Eid", attr: 'data-psec="coming"' }));
-  const car = typeof carState === "function" ? carState() : null, fuel = periodData(key).byCat.fuel || 0;
-  out.push(tile({ k: "Car & fuel", ic: PT_IC("car"), c: "#64748B", v: money(fuel), s: car && car.set && car.left !== undefined ? `this month · service in ${fmt(Math.max(0, car.left))} km` : "fuel this month", attr: 'data-psec="car"' }));
+  const car = typeof carState === "function" ? carState() : null, fcT = typeof fuelCat === "function" ? fuelCat() : null, fuel = fcT ? (periodData(key).byCat[fcT.id] || 0) : 0;
+  out.push(tile({ k: "Car & fuel", ic: PT_IC("car"), c: "#64748B", v: money(fuel), s: car && car.set && car.left !== undefined ? `fuel & car this month · service in ${fmt(Math.max(0, car.left))} km` : "fuel & car this month", attr: 'data-psec="car"' }));
   const owed = (S.owed || []).filter(o => !o.received);
   out.push(tile({ k: "Owed to you", ic: PT_IC("owed"), c: "#8B5CF6", v: owed.length ? money(owed.reduce((a, o) => a + (+o.amount || 0), 0)) : "None", s: owed.length ? (owed.length === 1 ? "from 1 person" : `from ${owed.length} people`) : "Lent someone money?", attr: 'data-psec="owed"' }));
   const sl = (S.lists && S.lists.shop && S.lists.shop.items) || [];
