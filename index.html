@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-m9KZkg9VPLwwUxUNU1d1zu80VEgklONmS+pW9UDGvM8='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-S4cRpmq3B8l9wEvEshtpyUlXkh8E4xZr3cWvYxxrCeg='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3989,7 +3989,7 @@ function quickCard() {
 }
 function paydayBanner() {
   if (!paydayDue()) return "";
-  return `<button type="button" class="act payday" data-act="payday"><span class="act-ic" aria-hidden="true">₤</span><span><b>It's payday!</b><span>Start the month right: 5 quick steps</span></span><span class="chev" aria-hidden="true">›</span></button>`;
+  return `<button type="button" class="act payday" data-act="payday"><span class="act-ic" aria-hidden="true">₤</span><span><b>It's payday!</b><span>${(() => { const co = carryOver(); return co && co.move >= 100 ? `Move the ${money(co.move)} you kept from last month to savings` : "Start the month right: 5 quick steps"; })()}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
 }
 function homeAlerts(d) {
   const m = limitStatus(d), wk = weekLimitStatus(weekData(wkStart(todayStr())));
@@ -4116,8 +4116,28 @@ function paydayDue() {
   if (ck.payday) return false;
   return daysDiff(pStart(key), today) <= 5;
 }
+/* Money kept from last month = bank balance just before the salary landed (or before the new month began if no salary text yet).
+   Worked backwards from today's balance, so it stays right even when a later bank text reset the balance. */
+function carryOver() {
+  const today = todayStr(), an = accountNow(); if (!an.set) return null;
+  const sal = S.txns.filter(t => isSalary(t) && t.date <= today && daysDiff(t.date, today) <= 7).sort((a, b) => tKey(a).localeCompare(tKey(b)));
+  let cut;
+  if (sal.length) { const last = sal[sal.length - 1]; cut = tKey(sal.find(t => Math.abs(daysDiff(t.date, last.date)) <= 1)); }
+  else { const ps = pStart(curKey()); if (daysDiff(ps, today) > 7) return null; cut = ps + " 00:00"; }
+  const debitIds = new Set(cards().filter(c => c.type !== "credit").map(c => c.id));
+  let bal = an.now;
+  for (const t of S.txns) {
+    if (t.deleted || !t.date || t.date > today || tKey(t) < cut) continue;
+    const v = +t.amount || 0;
+    if (t.kind === "income") bal -= v;
+    else if (t.kind === "payment") bal += v;
+    else if (debitIds.has(t.cardId)) bal += t.kind === "refund" ? -v : v;
+  }
+  const amt = Math.max(0, Math.min(bal, an.now));
+  return { amt, move: Math.floor(amt / 100) * 100, salary: !!sal.length };
+}
 function openPayday() {
-  const st = settings(), key = curKey(), prevK = shiftMonth(key, -1);
+  const st = settings(), key = curKey(), prevK = shiftMonth(key, -1), co = carryOver();
   const prev = periodData(prevK), sc = monthScore(prevK);
   const bills = billsFor(key), an = accountNow(), pots = S.goals;
   const sugg = suggestedWeekly();
@@ -4135,8 +4155,8 @@ function openPayday() {
         <b>Pay the credit card</b><span class="small muted">Your plan: ${money(st.card.payment)}. Pay it in the CIB app. Masarif records it from CIB's text; tick this only if no text comes.</span>
         <label class="check"><input type="checkbox" id="pdPay"><span>I paid <input type="text" inputmode="decimal" class="inline-num money-in" id="pdPayAmt" value="${fmtIn(st.card.payment || 0)}"> to the card today</span></label></div></div>
       <div class="pd-step"><span class="pd-n">4</span><div class="stack">
-        <b>Pay yourself</b><span class="small muted">Move something to savings first, before spending starts.</span>
-        ${pots.length ? `<div class="grid2"><label class="field"><span>Amount</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="pdSave" placeholder="0"><span>EGP</span></div></label>
+        <b>Pay yourself</b>${co && co.move >= 100 ? `<span class="small">You kept <b>${money(co.amt)}</b> from last month (your balance just before ${co.salary ? "the salary came in" : "the new month started"}). Move it to savings now, so this month runs on the new salary only.</span>` : co ? `<span class="small muted">Nothing was left over from last month this time. Move something to savings first, before spending starts.</span>` : `<span class="small muted">Move something to savings first, before spending starts.</span>`}
+        ${pots.length ? `<div class="grid2"><label class="field"><span>Amount</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="pdSave" placeholder="0" value="${co && co.move >= 100 ? fmtIn(co.move) : ""}"><span>EGP</span></div></label>
           <label class="field"><span>Into</span><select id="pdPot">${pots.map(g => `<option value="${esc(g.id)}">${esc(g.name)}</option>`).join("")}</select></label></div>`
         : `<span class="small muted">You don't have a savings pot yet. Create one on the Plan tab.</span>`}</div></div>
       <div class="pd-step"><span class="pd-n">5</span><div class="stack">
@@ -5370,7 +5390,7 @@ function salaryBanner() {
   if (!t || dismissed("sal_" + t.id)) return "";
   const ck = S.checks[pKeyOf(t.date)] || {}, ck2 = S.checks[curKey()] || {};
   if (ck.payday || ck2.payday) return "";
-  return `<button type="button" class="act payday" data-salary="${esc(t.id)}"><span class="act-ic" aria-hidden="true">💰</span><span><b>Salary in: ${money(t.amount)}</b><span>Plan the month in 2 minutes before it starts disappearing</span></span><span class="chev" aria-hidden="true">›</span></button>`;
+  return `<button type="button" class="act payday" data-salary="${esc(t.id)}"><span class="act-ic" aria-hidden="true">💰</span><span><b>Salary in: ${money(t.amount)}</b><span>${(() => { const co = carryOver(); return co && co.move >= 100 ? `You kept ${money(co.move)} from last month: move it to savings first` : "Plan the month in 2 minutes before it starts disappearing"; })()}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
 }
 
 /* ---------- 4. extra money splitter ---------- */
