@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-S4cRpmq3B8l9wEvEshtpyUlXkh8E4xZr3cWvYxxrCeg='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-p8suABD3ltL6siZafaSvndk9tJ9zbUD82QQSFP1BlDg='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -644,6 +644,7 @@ textarea{resize:vertical;min-height:90px}
 .cal button small{font-size:0.7059rem;font-weight:700;opacity:.85}
 .cal button.zero{background:#E8FAF3;color:#067A55}
 .cal button.future{opacity:.4}
+.cal button.hot{color:#431407}:where(html[data-theme=dark]) .cal button.hot{color:#fff}
 .cal button.today{box-shadow:inset 0 0 0 2px var(--ink)}
 .cal button[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:1px}
 .cal .blank{visibility:hidden}
@@ -673,7 +674,7 @@ nav.tabs a{font-size:0.7059rem!important}
 .ledger{display:flex;flex-direction:column;gap:7px;font-size:0.8824rem;background:var(--soft);border-radius:14px;padding:12px 14px}
 .ledger div{display:flex;justify-content:space-between;gap:10px}
 .ledger span{color:var(--muted)}
-.ledger .plus{color:var(--bad-ink)} .ledger .minus{color:var(--good-ink)}
+.ledger .plus{color:var(--bad-ink)} .ledger .minus{color:var(--good-ink)} .ledger .out{color:var(--ink)}
 .ledger .tot{border-top:1px dashed var(--line);padding-top:7px}
 .ledger .tot span{color:var(--ink);font-weight:700}
 .ledger .tot b{font:800 1rem var(--f-display)}
@@ -735,7 +736,7 @@ nav.tabs a[aria-current=page]{color:var(--accent);background:color-mix(in srgb,v
 .tgl i{position:absolute;top:9px;left:5px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
 .tgl[aria-checked=true]::before{background:var(--accent)}.tgl[aria-checked=true] i{left:25px}
 .treat{border-color:#FBCFE8;background:linear-gradient(135deg,#FDF2F8,#fff)}
-.tj{display:flex;gap:8px;font-size:1.5294rem;color:#E5E7EB}.tj .on{color:#F59E0B}
+.tj{display:flex;gap:8px;font-size:1.5294rem;color:var(--line)}.tj .on{color:#F59E0B}
 .quote{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;color:inherit;background:linear-gradient(135deg,#F0FDF4,#fff);border-color:#BBF7D0;position:relative;padding-top:22px}
 .q-mark{position:absolute;top:-6px;left:14px;font:800 3.1765rem/1 Georgia,serif;color:#86EFAC}
 .q-txt{font-size:0.9412rem;line-height:1.5;font-weight:600}.q-who{font-size:0.7647rem;color:var(--muted)}.q-more{font-size:0.7059rem;color:var(--accent-ink);font-weight:700}
@@ -748,7 +749,7 @@ nav.tabs a[aria-current=page]{color:var(--accent);background:color-mix(in srgb,v
 .cmp2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cmp2>div{background:var(--soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}.cmp2 span{font-size:0.7059rem;color:var(--muted)}.cmp2 b{font-size:1.1765rem}.cmp2 em{font-style:normal;font-size:0.7059rem;color:var(--muted)}
 .allow{border-color:#BAE6FD;background:linear-gradient(135deg,#F0F9FF,#fff)}.allow.over{border-color:#FECACA;background:linear-gradient(135deg,#FEF2F2,#fff)}
 .gap.warn{border-color:#FDE68A}
-.hours{display:flex;align-items:flex-end;gap:2px;height:90px;padding-top:4px}.hours span{flex:1;background:#BFDBFE;border-radius:3px 3px 0 0;min-width:0}.hours span.top{background:#F97316}
+.hours{display:flex;align-items:flex-end;gap:2px;height:90px;padding-top:4px}.hours span{flex:1;background:#BFDBFE;border-radius:3px 3px 0 0;min-width:0}.hours span.peak{background:#F97316}
 .hours-l{display:flex;justify-content:space-between;margin-top:-6px}
 .checks{border-color:#FECACA;background:linear-gradient(135deg,#FEF2F2,#fff)}.ck{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--line)}.ck:first-of-type{border-top:0}
 .loc-sug{display:block;width:100%;text-align:left;border:1px dashed #93C5FD;background:#EFF6FF;color:inherit;border-radius:12px;padding:10px 12px;font-size:0.8235rem;min-height:44px}
@@ -826,7 +827,7 @@ main h2{font-weight:700;letter-spacing:-.01em}
 #lock .btn{width:100%;margin-top:14px;display:flex;gap:8px;justify-content:center;align-items:center;min-height:52px}
 body.locked main,body.locked nav.tabs,body.locked header.top,body.locked .sheet-wrap{visibility:hidden}
 /* per-account lists */
-.acct-chips button[aria-pressed=true]{background:var(--accent)!important}
+.acct-chips button[aria-pressed=true]{background:var(--accent)!important}html[data-theme=dark] .acct-chips button[aria-pressed=true]{background:#0b6b51!important;color:#fff}
 .acct-h{display:flex;flex-direction:column;gap:6px;padding:14px 16px;margin-top:4px}
 .acct-h.credit{background:linear-gradient(135deg,#F5F3FF,#fff)}
 .ah-top{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:0.8235rem}
@@ -909,7 +910,7 @@ section.view{gap:12px}
 .mission.anim .ms-t2{animation-delay:.05s}.mission.anim .ms-t3{animation-delay:.1s}.mission.anim .ms-t4{animation-delay:.15s}
 .mission.anim .ms-rf{animation:msRing 1s cubic-bezier(.3,.8,.3,1) both .2s}
 .mission.anim .ms-pills i.on{animation:msPill .4s ease both;animation-delay:calc(.35s + var(--d))}
-.mission.anim .ms-bar i{animation:msBar .9s cubic-bezier(.3,.8,.3,1) both .3s}
+.mission.anim .ms-bar i{transform-origin:left center;animation:msBar .9s cubic-bezier(.3,.8,.3,1) both .3s}
 .mission.anim .ms-check{stroke-dasharray:24;animation:msCheck .45s ease both 1s}
 .mission.anim .ms-dot{animation:msPop .4s cubic-bezier(.2,.9,.3,1.5) both .9s;transform-box:fill-box;transform-origin:center}
 .ms-done .ms-spark{animation:msTwinkle 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
@@ -917,7 +918,7 @@ section.view{gap:12px}
 @keyframes msPop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes msRing{from{stroke-dasharray:0 106.8}}
 @keyframes msPill{from{transform:scaleX(.2);opacity:.3}to{transform:none;opacity:1}}
-@keyframes msBar{from{width:0}}
+@keyframes msBar{from{transform:scaleX(0)}}
 @keyframes msCheck{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
 @keyframes msTwinkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 @media (prefers-reduced-motion: reduce){.mission *{animation:none!important}}
@@ -947,7 +948,7 @@ section.view{gap:12px}
   .sec-h:hover .sec-ic,.sec-h:active .sec-ic{transform:rotate(-6deg)}.sec-ic{transition:transform .2s ease}
   .empty::before{animation:floaty 3.5s ease-in-out infinite}
   .nudge-more .nm-dots i{animation:dot 1.6s ease-in-out infinite}.nudge-more .nm-dots i:nth-child(2){animation-delay:.2s}.nudge-more .nm-dots i:nth-child(3){animation-delay:.4s}
-  .sheet .sheet-actions .btn.grad{background-size:200% 100%;animation:sheen 4s ease-in-out infinite}
+  .sheet .sheet-actions .btn.grad{background-size:200% 100%;animation:sheen 4s ease-in-out 2}
 }
 @keyframes vin{from{opacity:0;transform:translateY(14px)}}
 @keyframes grow{from{transform:scaleX(0)}}
@@ -991,7 +992,7 @@ section.view{gap:16px!important}
   section.view.v-in .score-ring{animation:ringIn 1s cubic-bezier(.3,.8,.3,1) both .2s}
   section.view.v-in .hero-track i{animation:grow 1.1s cubic-bezier(.3,.8,.3,1) both .3s;transform-origin:left}
   section.view.v-in .hero-track b{animation:slideIn 1.1s cubic-bezier(.3,.8,.3,1) both .3s}
-  .hero-track b{animation:pulseDot 2.6s ease-in-out infinite 1.4s}
+  .hero-track b{animation:pulseDot 2.6s ease-in-out 3 1.4s}
   section.view.v-in .h-ic{animation:icPop .5s cubic-bezier(.2,.9,.3,1.5) both .2s}
   section.view.v-in .tx .ic,section.view.v-in .cico{animation:icPop .45s cubic-bezier(.2,.9,.3,1.5) both .25s}
   section.view.v-in .chart rect,section.view.v-in .chart .bar-c{animation:barUp .8s cubic-bezier(.3,.8,.3,1) both .25s;transform-box:fill-box;transform-origin:bottom}
@@ -1272,7 +1273,10 @@ html[data-theme=dark] .pin-dots i.on{background:var(--ink);border-color:var(--in
 html[data-theme=dark] .auth-mark{box-shadow:0 14px 34px rgba(0,0,0,.45)}
 html[data-theme=dark] .tl-badge{color:#171A21}
 /* generated from the light rules */
-:where(html[data-theme=dark]) .nav-add{color:#ffffff;box-shadow:0 8px 20px rgba(14,165,233,0.35)}:where(html[data-theme=dark]) .toast{background:#2e334c;color:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .toast button{color:#5eead4}:where(html[data-theme=dark]) .hero.h-good{background:linear-gradient(135deg,#0f9d74 0%,#14b8a6 52%,#0ea5e9 100%)}:where(html[data-theme=dark]) .hero.h-warn{background:linear-gradient(135deg,#d97706 0%,#f59e0b 55%,#fbbf24 100%);box-shadow:0 14px 34px rgba(245,158,11,0.28)}:where(html[data-theme=dark]) .hero.h-bad{background:linear-gradient(135deg,#be123c 0%,#e5484d 55%,#f97316 100%);box-shadow:0 14px 34px rgba(229,72,77,0.28)}:where(html[data-theme=dark]) .hero-tag{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .hero-tag i{background:#171a21}:where(html[data-theme=dark]) .countdown{background:linear-gradient(135deg,#151d37,#1b1537);border:1px solid #2e3c6b}:where(html[data-theme=dark]) .cd-num{background:linear-gradient(150deg,#6d28d9,#4338ca);color:#ffffff}:where(html[data-theme=dark]) .cd-bar{background:#241b50}:where(html[data-theme=dark]) .cd-bar i{background:linear-gradient(90deg,#6d28d9,#10b981)}:where(html[data-theme=dark]) .cd-chev{color:#9b6ce5}:where(html[data-theme=dark]) .act{background:#171a21}:where(html[data-theme=dark]) .act-ic{background:#152a37;color:#7fcbf5}:where(html[data-theme=dark]) .act.payday{background:linear-gradient(135deg,#50461b,#373115);border-color:#6b5f2e}:where(html[data-theme=dark]) .act.payday .act-ic{background:#f59e0b;color:#ffffff}:where(html[data-theme=dark]) .qchip{background:#171a21}:where(html[data-theme=dark]) .leftover{background:linear-gradient(135deg,#153727,#153730);border-color:#2e6b4f}:where(html[data-theme=dark]) .lo-ic{background:#10b981;color:#ffffff}:where(html[data-theme=dark]) .streak{color:#f28a5f;background:#50391b}:where(html[data-theme=dark]) .v-good{background:#153727;color:#a1f7df}:where(html[data-theme=dark]) .v-warn{background:#373115;color:#f3ae84}:where(html[data-theme=dark]) .v-bad{background:#371515;color:#e87c7c}:where(html[data-theme=dark]) .pd-n{color:#ffffff}:where(html[data-theme=dark]) .score-ring{background:radial-gradient(closest-side,#171a21 78%,transparent 79%),conic-gradient(var(--accent) calc(var(--s)*1%),var(--sunk) 0)}:where(html[data-theme=dark]) .lv-n{background:linear-gradient(150deg,#6d28d9,#4338ca);color:#ffffff}:where(html[data-theme=dark]) .badge.got{background:linear-gradient(160deg,#50461b,#372815)}:where(html[data-theme=dark]) .b-ic{background:#171a21;color:#f3a468;box-shadow:0 2px 6px rgba(0,0,0,0.24)}:where(html[data-theme=dark]) .hc{background:color-mix(in srgb,#f97316 calc(var(--a)*100%),var(--soft));color:#f5b5a3}:where(html[data-theme=dark]) .up-tag{color:#e86868;background:#371515}:where(html[data-theme=dark]) .pp-av{background:#151d37;color:#7e76db}:where(html[data-theme=dark]) .card.year{color:#ffffff;background:linear-gradient(150deg,#2e374c,#2e3a4c 60%,#334155)}:where(html[data-theme=dark]) .year .label{color:rgba(255,255,255,0.75)}:where(html[data-theme=dark]) .yr-grid > div{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .ask{background:linear-gradient(135deg,#152a37,#153637);border-color:#2e566b}:where(html[data-theme=dark]) .chip-q{background:#171a21}:where(html[data-theme=dark]) .claude-note{background:linear-gradient(135deg,#372815,#373115);border-color:#6b4f2e}:where(html[data-theme=dark]) .cn-ic{color:#f2ae5f}:where(html[data-theme=dark]) .yc-row{background:#171a21}:where(html[data-theme=dark]) .pot-ic{background:color-mix(in srgb,var(--c) 15%,#171a21);color:color-mix(in srgb,var(--c) 55%,#ffffff)}:where(html[data-theme=dark]) .hdr-btn.on{background:color-mix(in srgb,var(--accent) 12%,#171a21);border-color:color-mix(in srgb,var(--accent) 30%,#404040)}:where(html[data-theme=dark]) .qtile{background:#171a21}:where(html[data-theme=dark]) .q-ic{background:color-mix(in srgb,var(--c) 16%,#171a21);color:color-mix(in srgb,var(--c) 55%,#ffffff)}:where(html[data-theme=dark]) .heads{border-color:#6b2e31;background:#371515}:where(html[data-theme=dark]) .h-dot{box-shadow:0 0 0 4px rgba(255,255,255,0.06)}:where(html[data-theme=dark]) .bd-ic{background:#1b5035;color:#a1f7df}:where(html[data-theme=dark]) .hero.h-good{background:linear-gradient(135deg,#047857 0%,#0f766e 55%,#0369a1 100%)}:where(html[data-theme=dark]) .hero.h-warn{background:linear-gradient(135deg,#9a3412 0%,#b45309 55%,#c2410c 100%);box-shadow:0 14px 34px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .hero.h-bad{background:linear-gradient(135deg,#881337 0%,#b91c1c 55%,#c2410c 100%);box-shadow:0 14px 34px rgba(185,28,28,0.28)}:where(html[data-theme=dark]) .tool{background:#171a21}:where(html[data-theme=dark]) .card.year{background:linear-gradient(160deg,#172636,#151d37);border:1px solid #2e3c6b}:where(html[data-theme=dark]) .yr-grid > div{background:#171a21}:where(html[data-theme=dark]) .nav-badge{background:#b91c1c;color:#ffffff}:where(html[data-theme=dark]) .rv-tag{color:#f3ae84;background:#50461b}:where(html[data-theme=dark]) .stale{color:#fef3c7}:where(html[data-theme=dark]) .hero-em{background:rgba(255,255,255,0.114);color:#e87c7c}:where(html[data-theme=dark]) .hero.h-emerg{background:linear-gradient(135deg,#2e3b4c,#374151 60%,#7f1d1d)}:where(html[data-theme=dark]) .em-list span{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .fc.bad .fc-line{stroke:#e86868}:where(html[data-theme=dark]) .fc.bad .fc-area{fill:#371515}:where(html[data-theme=dark]) .fc-zero{stroke:#e86868}:where(html[data-theme=dark]) .smart{border-color:#2e3a6b;background:linear-gradient(135deg,#151d37,#171a21)}:where(html[data-theme=dark]) .stmt-b{border-color:#6b5f2e;background:#373115}:where(html[data-theme=dark]) .sb-ic{background:#f59e0b;color:#ffffff}:where(html[data-theme=dark]) .uses button{background:#171a21}:where(html[data-theme=dark]) .season{border-color:#392e6b;background:linear-gradient(135deg,#1b1537,#171a21)}:where(html[data-theme=dark]) .live-tag{color:#ffffff;background:#7c3aed}:where(html[data-theme=dark]) .celebrate{background:rgba(0,0,0,0.6)}:where(html[data-theme=dark]) .cel-box{background:#171a21}:where(html[data-theme=dark]) .logo{box-shadow:0 4px 12px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .month button{background:#171a21;box-shadow:0 1px 2px rgba(0,0,0,0.18)}:where(html[data-theme=dark]) .card{background:#171a21}:where(html[data-theme=dark]) .hero{color:#ffffff;box-shadow:0 14px 34px rgba(14,165,233,0.22),0 6px 14px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .hero::after{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .hero .label{color:rgba(255,255,255,0.85)}:where(html[data-theme=dark]) .hero .sub{color:rgba(255,255,255,0.88)}:where(html[data-theme=dark]) .hero .neg{color:#ffe4e1}:where(html[data-theme=dark]) .pill{background:rgba(255,255,255,0.08);border:1px solid rgba(64,64,64,0.22)}:where(html[data-theme=dark]) .plan-card{color:#ffffff;background:radial-gradient(120% 90% at 100% 0%,rgba(255,255,255,0.08),transparent 60%),linear-gradient(150deg,#6d28d9,#4338ca 60%,#1e3a8a);box-shadow:0 14px 30px rgba(79,70,229,0.28)}:where(html[data-theme=dark]) .pc-chip{background:#1b5038;color:#a1f7e0}:where(html[data-theme=dark]) .pc-chip.bad{background:#501b1b;color:#e79595}:where(html[data-theme=dark]) .pc-pay{background:rgba(255,255,255,0.08);border:1px solid rgba(64,64,64,0.18)}:where(html[data-theme=dark]) .pc-steps button{background:#171a21;color:#7e76db}:where(html[data-theme=dark]) .pc-slider{background:linear-gradient(to right,#1b5038 var(--p,50%),rgba(255,255,255,0.08) var(--p,50%))}:where(html[data-theme=dark]) .pc-slider::-webkit-slider-thumb{background:#171a21;box-shadow:0 2px 8px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .pc-slider::-moz-range-thumb{background:#171a21}:where(html[data-theme=dark]) .pc-stats div{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .pc-delta.good{background:rgba(27,80,56,0.2);color:#d1fae5}:where(html[data-theme=dark]) .pc-delta.bad{background:rgba(80,27,27,0.2);color:#fee2e2}:where(html[data-theme=dark]) .pc-bars i{background:linear-gradient(to top,rgba(255,255,255,0.08),rgba(255,255,255,0.09))}:where(html[data-theme=dark]) .pc-bars i:last-child{background:#1b5038}:where(html[data-theme=dark]) .pc-free{background:#171a21;color:#becada}:where(html[data-theme=dark]) .pc-free b{color:#a1f7df}:where(html[data-theme=dark]) .pc-warn{background:#371515;color:#e79595}:where(html[data-theme=dark]) .btn.pc-use{background:#171a21;color:#7e76db}:where(html[data-theme=dark]) .btn.pc-reset{color:#ffffff;border:1px solid rgba(64,64,64,0.45)}:where(html[data-theme=dark]) .ge-ic{background:#1b5035;color:#a1f7df}:where(html[data-theme=dark]) .ge-amt{color:#a1f7df}:where(html[data-theme=dark]) .k-ic{background:#171a21}:where(html[data-theme=dark]) .kind:has(input:checked){background:#171a21;box-shadow:0 0 0 2px var(--k),0 4px 10px rgba(0,0,0,0.18)}:where(html[data-theme=dark]) .kind:has(input:checked) .k-ic{color:#ffffff}:where(html[data-theme=dark]) .amt-box{background:color-mix(in srgb,var(--k) 7%,#171a21)}:where(html[data-theme=dark]) .chip:has(input:checked){background:color-mix(in srgb,var(--c) 14%,#171a21)}:where(html[data-theme=dark]) .paychip{color:#ffffff;background:linear-gradient(140deg,var(--c),color-mix(in srgb,var(--c) 65%,#2e384c))}:where(html[data-theme=dark]) .paychip:has(input:checked){box-shadow:0 0 0 2px rgba(255,255,255,0.06),0 0 0 4px var(--c)}:where(html[data-theme=dark]) .sheet-actions{background:linear-gradient(to top,#171a21 75%,rgba(255,255,255,0))}:where(html[data-theme=dark]) .ccard{color:#ffffff;background:radial-gradient(120% 140% at 100% 0%,rgba(255,255,255,0.08),transparent 55%),linear-gradient(140deg,var(--c),color-mix(in srgb,var(--c) 55%,#2e384c))}:where(html[data-theme=dark]) .ccard-edit{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .hero-btn{border:1px solid rgba(64,64,64,0.45);background:rgba(255,255,255,0.08);color:#ffffff}:where(html[data-theme=dark]) .hero-warn{background:rgba(255,255,255,0.114);color:#eb6f66}:where(html[data-theme=dark]) .bill-d{background:#171a21}:where(html[data-theme=dark]) .bill-tg{background:#171a21}:where(html[data-theme=dark]) .bill-tg[aria-pressed=true]{color:#ffffff}:where(html[data-theme=dark]) .bill.late .mid span{color:#eb6f66}:where(html[data-theme=dark]) .nsd span.free{background:#1b5035;color:#a1f7df}:where(html[data-theme=dark]) .nsd b{color:#a1f7df}:where(html[data-theme=dark]) .bal{color:#ffffff}:where(html[data-theme=dark]) .bal.acc{background:linear-gradient(135deg,#0f9d74,#14b8a6)}:where(html[data-theme=dark]) .bal.cc{background:linear-gradient(135deg,#2e3b4c,#374151)}:where(html[data-theme=dark]) .bal-bar{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .bal-bar i{background:#fbbf24}:where(html[data-theme=dark]) .bal-due{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .bal-due.soon{background:#f59e0b;color:#becada}:where(html[data-theme=dark]) .more-link{background:#171a21}:where(html[data-theme=dark]) .period-bar{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .period-bar i{background:#171a21}:where(html[data-theme=dark]) .bar{background:color-mix(in srgb,var(--c) 14%,#171a21)}:where(html[data-theme=dark]) .chip{color:color-mix(in srgb,var(--c) 55%,#ffffff);background:color-mix(in srgb,var(--c) 13%,#171a21)}:where(html[data-theme=dark]) .delta.up{color:#e36e73;background:#371515}:where(html[data-theme=dark]) .delta.down{color:#a1f7dd;background:#153728}:where(html[data-theme=dark]) .alert{background:#371515;border:1px solid #6b2e31}:where(html[data-theme=dark]) .alert.near{background:#372b15;border-color:#6b572e}:where(html[data-theme=dark]) .habits label:has(input:checked){background:#15372a}:where(html[data-theme=dark]) .ins li{background:color-mix(in srgb,var(--t) 9%,#171a21)}:where(html[data-theme=dark]) .btn{background:#171a21}:where(html[data-theme=dark]) .btn.grad{color:#ffffff}:where(html[data-theme=dark]) .btn.danger.armed{color:#ffffff}:where(html[data-theme=dark]) input:focus,:where(html[data-theme=dark]) select:focus,:where(html[data-theme=dark]) textarea:focus{background:#171a21}:where(html[data-theme=dark]) .seg label:has(input:checked),:where(html[data-theme=dark]) .seg button[aria-pressed=true]{background:#171a21;box-shadow:0 1px 3px rgba(0,0,0,0.3)}:where(html[data-theme=dark]) .swatches label{box-shadow:inset 0 0 0 2px rgba(255,255,255,0.06)}:where(html[data-theme=dark]) .chips button{background:#171a21;color:color-mix(in srgb,var(--c,var(--ink)) 60%,#ffffff)}:where(html[data-theme=dark]) .chips button[aria-pressed=true]{background:color-mix(in srgb,var(--c,var(--ink)) 80%,#3d3d3d);color:#ffffff}:where(html[data-theme=dark]) .tx{background:#171a21}:where(html[data-theme=dark]) .tx .ic{color:color-mix(in srgb,var(--c) 55%,#ffffff);background:color-mix(in srgb,var(--c) 16%,#171a21)}:where(html[data-theme=dark]) .fab{color:#ffffff;box-shadow:0 10px 24px rgba(14,165,233,0.35)}:where(html[data-theme=dark]) .note{background:#372c15;color:#f7d6a1}:where(html[data-theme=dark]) .note.ok{background:#15372a;color:#a1f7de}:where(html[data-theme=dark]) .tile .ib{color:#ffffff}:where(html[data-theme=dark]) .fx{background:#171a21}:where(html[data-theme=dark]) .fx-ic{color:#ffffff}:where(html[data-theme=dark]) .fx-edit input{background:#171a21}:where(html[data-theme=dark]) .fx-total{background:color-mix(in srgb,var(--accent) 9%,#171a21)}:where(html[data-theme=dark]) .timeline div::before{box-shadow:0 0 0 3px rgba(255,255,255,0.06)}:where(html[data-theme=dark]) .mini-btns button{background:#171a21}:where(html[data-theme=dark]) .mini-btns button.on{color:#ffffff}:where(html[data-theme=dark]) .tick{background:#171a21}:where(html[data-theme=dark]) .tick.on{color:#ffffff}:where(html[data-theme=dark]) .cal button.zero{background:#15372a;color:#a0f7dc}:where(html[data-theme=dark]) pre.code{background:#2e374c;color:#e2e8f0}:where(html[data-theme=dark]) .paytile{color:#ffffff;background:linear-gradient(140deg,var(--c) 0%,color-mix(in srgb,var(--c) 70%,#2e384c) 100%)}:where(html[data-theme=dark]) .pmchip{background:color-mix(in srgb,var(--p) 13%,#171a21)}:where(html[data-theme=dark]) .cfg-face{color:#ffffff;background:linear-gradient(140deg,var(--c) 0%,color-mix(in srgb,var(--c) 70%,#2e384c) 100%)}:where(html[data-theme=dark]) .cc-face{color:#ffffff;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#db2777 100%);box-shadow:0 12px 28px rgba(124,58,237,0.28)}:where(html[data-theme=dark]) .cc-face::after{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .cc-chip{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .cc-stats div{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .save-bar{background:rgba(255,255,255,0.114)}:where(html[data-theme=dark]) nav.tabs{background:rgba(255,255,255,0.113)}:where(html[data-theme=dark]) nav.tabs a[aria-current=page]{background:color-mix(in srgb,var(--accent) 10%,#171a21)}:where(html[data-theme=dark]) .sheet-wrap{background:rgba(0,0,0,0.6)}:where(html[data-theme=dark]) .sheet{background:#171a21}:where(html[data-theme=dark]) .stmt-due{border-color:#2e496b;background:linear-gradient(135deg,#152437,#171a21)}:where(html[data-theme=dark]) .stmt-due.late{border-color:#6b5f2e;background:linear-gradient(135deg,#373115,#171a21)}:where(html[data-theme=dark]) .tgl::before{background:#273444}:where(html[data-theme=dark]) .tgl i{background:#171a21;box-shadow:0 1px 3px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .treat{border-color:#6b2e51;background:linear-gradient(135deg,#371528,#171a21)}:where(html[data-theme=dark]) .tj{color:#e5e7eb}:where(html[data-theme=dark]) .tj .on{color:#f2bb5f}:where(html[data-theme=dark]) .quote{background:linear-gradient(135deg,#153720,#171a21);border-color:#2e6b43}:where(html[data-theme=dark]) .q-mark{color:#86efac}:where(html[data-theme=dark]) .mini-alert.warn{background:#373115;border-color:#6b5f2e}:where(html[data-theme=dark]) .mini-alert.good{background:#153720;border-color:#2e6b43}:where(html[data-theme=dark]) .mini-alert.bad{background:#371515;border-color:#6b2e2e}:where(html[data-theme=dark]) .allow{border-color:#2e566b;background:linear-gradient(135deg,#152a37,#171a21)}:where(html[data-theme=dark]) .allow.over{border-color:#6b2e2e;background:linear-gradient(135deg,#371515,#171a21)}:where(html[data-theme=dark]) .gap.warn{border-color:#6b5f2e}:where(html[data-theme=dark]) .hours span{background:#1b3350}:where(html[data-theme=dark]) .hours span.top{background:#f97316}:where(html[data-theme=dark]) .checks{border-color:#6b2e2e;background:linear-gradient(135deg,#371515,#171a21)}:where(html[data-theme=dark]) .loc-sug{border:1px dashed #2e4b6b;background:#152437}:where(html[data-theme=dark]) .pdd.now{background:#153727;border:1px solid #2e6b4f}:where(html[data-theme=dark]) .ptr{background:#2e374c;color:#ffffff;box-shadow:0 6px 20px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .treat{border-left-color:#ec4899!important}:where(html[data-theme=dark]) .allow{border-left-color:#0ea5e9!important}:where(html[data-theme=dark]) .checks{border-left-color:#dc2626!important}:where(html[data-theme=dark]) .smart{border-left-color:#6366f1!important}:where(html[data-theme=dark]) .season{border-left-color:#7c3aed!important}:where(html[data-theme=dark]) .stmt-due{border-left-color:#3b82f6!important}:where(html[data-theme=dark]) .extra{border-left-color:#10b981!important}:where(html[data-theme=dark]) .quote{border-left-color:#22c55e!important}:where(html[data-theme=dark]) .gap.warn{border-left-color:#f59e0b!important}:where(html[data-theme=dark]) .persona,:where(html[data-theme=dark]) .treat-p{border-left-color:#f59e0b!important}:where(html[data-theme=dark]) .allow.over{border-left-color:#dc2626!important}:where(html[data-theme=dark]) .nm-dots i:nth-child(2){background:#f59e0b}:where(html[data-theme=dark]) .nm-dots i:nth-child(3){background:#6366f1}:where(html[data-theme=dark]) .q-mark{color:#86efac}:where(html[data-theme=dark]) .txf .chip{background:#171a21!important}:where(html[data-theme=dark]) .txf .chip:has(input:checked){background:color-mix(in srgb,var(--c) 12%,#171a21)!important}:where(html[data-theme=dark]) .paychip{background:#171a21!important}:where(html[data-theme=dark]) .paychip:has(input:checked){background:color-mix(in srgb,var(--c) 10%,#171a21)!important}:where(html[data-theme=dark]) .cm-ic{background:#261537;color:#9560f0}:where(html[data-theme=dark]) .cm-bar i{background:#8b5cf6}:where(html[data-theme=dark]) #sheet .chip{background:#171a21!important}:where(html[data-theme=dark]) #sheet .chip:has(input:checked){background:color-mix(in srgb,var(--c) 12%,#171a21)!important}:where(html[data-theme=dark]) #lock img{box-shadow:0 6px 20px rgba(0,0,0,0.36)}:where(html[data-theme=dark]) .acct-h.credit{background:linear-gradient(135deg,#1b1537,#171a21)}:where(html[data-theme=dark]) .xp-p b{color:#9560f0}:where(html[data-theme=dark]) .jar i{background:linear-gradient(#fcd34d,#f59e0b)}:where(html[data-theme=dark]) .mission{background:linear-gradient(135deg,color-mix(in srgb,var(--mc) 9%,#171a21) 0%,#171a21 62%)}:where(html[data-theme=dark]) .ms-t1{fill:color-mix(in srgb,var(--mc) 16%,#171a21)}:where(html[data-theme=dark]) .ms-t2{fill:#171a21}:where(html[data-theme=dark]) .ms-t3{fill:color-mix(in srgb,var(--mc) 70%,#171a21)}:where(html[data-theme=dark]) .ms-pills i{background:color-mix(in srgb,var(--mc) 16%,#1a2332)}:where(html[data-theme=dark]) .ms-pills i.bonus.on{background:#f5b301}:where(html[data-theme=dark]) .ms-bar{background:color-mix(in srgb,var(--mc) 14%,#1a2332)}:where(html[data-theme=dark]) .sec-ic{background:color-mix(in srgb,var(--accent) 10%,#171a21)}:where(html[data-theme=dark]) .sec.open .sec-ic{background:#171a21}:where(html[data-theme=dark]) .empty::before{background:color-mix(in srgb,var(--accent) 10%,#171a21) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A8060' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h12v18l-3-2-3 2-3-2-3 2z'/%3E%3Cpath d='M9 8h6M9 12h6'/%3E%3C/svg%3E") center/28px no-repeat}:where(html[data-theme=dark]) .card{box-shadow:0 1px 2px rgba(0,0,0,0.12),0 6px 20px rgba(0,0,0,0.135)!important}:where(html[data-theme=dark]) .h-ic{background:color-mix(in srgb,var(--accent) 11%,#171a21)}:where(html[data-theme=dark]) .sec{background:#171a21;box-shadow:0 1px 2px rgba(0,0,0,0.12),0 6px 20px rgba(0,0,0,0.135)}:where(html[data-theme=dark]) .sec.open>.sec-h{background:#171a21;box-shadow:0 1px 2px rgba(0,0,0,0.12)}:where(html[data-theme=dark]) .tx{background:#171a21;box-shadow:0 1px 2px rgba(0,0,0,0.12)}:where(html[data-theme=dark]) .tx .ic{background:color-mix(in srgb,var(--c) 13%,#171a21)}:where(html[data-theme=dark]) .cico{background:color-mix(in srgb,var(--c) 14%,#171a21)}:where(html[data-theme=dark]) .hero-track::before{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .hero-track i{background:#171a21}:where(html[data-theme=dark]) .hero-track b{background:#171a21;box-shadow:0 0 0 4px rgba(255,255,255,0.06)}@media (prefers-reduced-motion:no-preference){:where(html[data-theme=dark]) .hero::after{background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.08) 45%,transparent 60%)}}:where(html[data-theme=dark]) .rk-ic{background:color-mix(in srgb,var(--c) 13%,#171a21)}:where(html[data-theme=dark]) .yr2-ic{background:#171a21}:where(html[data-theme=dark]) .seg{background:#283144!important;box-shadow:inset 0 1px 2px rgba(0,0,0,0.18)}:where(html[data-theme=dark]) .seg button{color:#b8becd}:where(html[data-theme=dark]) .seg button[aria-pressed="true"]{background:#171a21!important;box-shadow:0 1px 2px rgba(0,0,0,0.24),0 3px 8px rgba(0,0,0,0.24)!important}
+:where(html[data-theme=dark]) .nav-add{color:#ffffff;box-shadow:0 8px 20px rgba(14,165,233,0.35)}:where(html[data-theme=dark]) .toast{background:#2e334c;color:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .toast button{color:#5eead4}:where(html[data-theme=dark]) .hero.h-good{background:linear-gradient(135deg,#0f9d74 0%,#14b8a6 52%,#0ea5e9 100%)}:where(html[data-theme=dark]) .hero.h-warn{background:linear-gradient(135deg,#d97706 0%,#f59e0b 55%,#fbbf24 100%);box-shadow:0 14px 34px rgba(245,158,11,0.28)}:where(html[data-theme=dark]) .hero.h-bad{background:linear-gradient(135deg,#be123c 0%,#e5484d 55%,#f97316 100%);box-shadow:0 14px 34px rgba(229,72,77,0.28)}:where(html[data-theme=dark]) .hero-tag{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .hero-tag i{background:#171a21}:where(html[data-theme=dark]) .countdown{background:linear-gradient(135deg,#151d37,#1b1537);border:1px solid #2e3c6b}:where(html[data-theme=dark]) .cd-num{background:linear-gradient(150deg,#6d28d9,#4338ca);color:#ffffff}:where(html[data-theme=dark]) .cd-bar{background:#241b50}:where(html[data-theme=dark]) .cd-bar i{background:linear-gradient(90deg,#6d28d9,#10b981)}:where(html[data-theme=dark]) .cd-chev{color:#9b6ce5}:where(html[data-theme=dark]) .act{background:#171a21}:where(html[data-theme=dark]) .act-ic{background:#152a37;color:#7fcbf5}:where(html[data-theme=dark]) .act.payday{background:linear-gradient(135deg,#50461b,#373115);border-color:#6b5f2e}:where(html[data-theme=dark]) .act.payday .act-ic{background:#f59e0b;color:#ffffff}:where(html[data-theme=dark]) .qchip{background:#171a21}:where(html[data-theme=dark]) .leftover{background:linear-gradient(135deg,#153727,#153730);border-color:#2e6b4f}:where(html[data-theme=dark]) .lo-ic{background:#10b981;color:#ffffff}:where(html[data-theme=dark]) .streak{color:#f28a5f;background:#50391b}:where(html[data-theme=dark]) .v-good{background:#153727;color:#a1f7df}:where(html[data-theme=dark]) .v-warn{background:#373115;color:#f3ae84}:where(html[data-theme=dark]) .v-bad{background:#371515;color:#e87c7c}:where(html[data-theme=dark]) .pd-n{color:#ffffff}:where(html[data-theme=dark]) .score-ring{background:radial-gradient(closest-side,#171a21 78%,transparent 79%),conic-gradient(var(--accent) calc(var(--s)*1%),var(--sunk) 0)}:where(html[data-theme=dark]) .lv-n{background:linear-gradient(150deg,#6d28d9,#4338ca);color:#ffffff}:where(html[data-theme=dark]) .badge.got{background:linear-gradient(160deg,#50461b,#372815)}:where(html[data-theme=dark]) .b-ic{background:#171a21;color:#f3a468;box-shadow:0 2px 6px rgba(0,0,0,0.24)}:where(html[data-theme=dark]) .hc{background:color-mix(in srgb,#f97316 calc(var(--a)*100%),var(--soft));color:#f5b5a3}:where(html[data-theme=dark]) .up-tag{color:#e86868;background:#371515}:where(html[data-theme=dark]) .pp-av{background:#151d37;color:#7e76db}:where(html[data-theme=dark]) .card.year{color:#ffffff;background:linear-gradient(150deg,#2e374c,#2e3a4c 60%,#334155)}:where(html[data-theme=dark]) .year .label{color:rgba(255,255,255,0.75)}:where(html[data-theme=dark]) .yr-grid > div{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .ask{background:linear-gradient(135deg,#152a37,#153637);border-color:#2e566b}:where(html[data-theme=dark]) .chip-q{background:#171a21}:where(html[data-theme=dark]) .claude-note{background:linear-gradient(135deg,#372815,#373115);border-color:#6b4f2e}:where(html[data-theme=dark]) .cn-ic{color:#f2ae5f}:where(html[data-theme=dark]) .yc-row{background:#171a21}:where(html[data-theme=dark]) .pot-ic{background:color-mix(in srgb,var(--c) 15%,#171a21);color:color-mix(in srgb,var(--c) 55%,#ffffff)}:where(html[data-theme=dark]) .hdr-btn.on{background:color-mix(in srgb,var(--accent) 12%,#171a21);border-color:color-mix(in srgb,var(--accent) 30%,#404040)}:where(html[data-theme=dark]) .qtile{background:#171a21}:where(html[data-theme=dark]) .q-ic{background:color-mix(in srgb,var(--c) 16%,#171a21);color:color-mix(in srgb,var(--c) 55%,#ffffff)}:where(html[data-theme=dark]) .heads{border-color:#6b2e31;background:#371515}:where(html[data-theme=dark]) .h-dot{box-shadow:0 0 0 4px rgba(255,255,255,0.06)}:where(html[data-theme=dark]) .bd-ic{background:#1b5035;color:#a1f7df}:where(html[data-theme=dark]) .hero.h-good{background:linear-gradient(135deg,#047857 0%,#0f766e 55%,#0369a1 100%)}:where(html[data-theme=dark]) .hero.h-warn{background:linear-gradient(135deg,#9a3412 0%,#b45309 55%,#c2410c 100%);box-shadow:0 14px 34px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .hero.h-bad{background:linear-gradient(135deg,#881337 0%,#b91c1c 55%,#c2410c 100%);box-shadow:0 14px 34px rgba(185,28,28,0.28)}:where(html[data-theme=dark]) .tool{background:#171a21}:where(html[data-theme=dark]) .card.year{background:linear-gradient(160deg,#172636,#151d37);border:1px solid #2e3c6b}:where(html[data-theme=dark]) .yr-grid > div{background:#171a21}:where(html[data-theme=dark]) .nav-badge{background:#b91c1c;color:#ffffff}:where(html[data-theme=dark]) .rv-tag{color:#f3ae84;background:#50461b}:where(html[data-theme=dark]) .stale{color:#fef3c7}:where(html[data-theme=dark]) .hero-em{background:rgba(255,255,255,0.114);color:#e87c7c}:where(html[data-theme=dark]) .hero.h-emerg{background:linear-gradient(135deg,#2e3b4c,#374151 60%,#7f1d1d)}:where(html[data-theme=dark]) .em-list span{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .fc.bad .fc-line{stroke:#e86868}:where(html[data-theme=dark]) .fc.bad .fc-area{fill:#371515}:where(html[data-theme=dark]) .fc-zero{stroke:#e86868}:where(html[data-theme=dark]) .smart{border-color:#2e3a6b;background:linear-gradient(135deg,#151d37,#171a21)}:where(html[data-theme=dark]) .stmt-b{border-color:#6b5f2e;background:#373115}:where(html[data-theme=dark]) .sb-ic{background:#f59e0b;color:#ffffff}:where(html[data-theme=dark]) .uses button{background:#171a21}:where(html[data-theme=dark]) .season{border-color:#392e6b;background:linear-gradient(135deg,#1b1537,#171a21)}:where(html[data-theme=dark]) .live-tag{color:#ffffff;background:#7c3aed}:where(html[data-theme=dark]) .celebrate{background:rgba(0,0,0,0.6)}:where(html[data-theme=dark]) .cel-box{background:#171a21}:where(html[data-theme=dark]) .logo{box-shadow:0 4px 12px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .month button{background:#171a21;box-shadow:0 1px 2px rgba(0,0,0,0.18)}:where(html[data-theme=dark]) .card{background:#171a21}:where(html[data-theme=dark]) .hero{color:#ffffff;box-shadow:0 14px 34px rgba(14,165,233,0.22),0 6px 14px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .hero::after{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .hero .label{color:rgba(255,255,255,0.85)}:where(html[data-theme=dark]) .hero .sub{color:rgba(255,255,255,0.88)}:where(html[data-theme=dark]) .hero .neg{color:#ffe4e1}:where(html[data-theme=dark]) .pill{background:rgba(255,255,255,0.08);border:1px solid rgba(64,64,64,0.22)}:where(html[data-theme=dark]) .plan-card{color:#ffffff;background:radial-gradient(120% 90% at 100% 0%,rgba(255,255,255,0.08),transparent 60%),linear-gradient(150deg,#6d28d9,#4338ca 60%,#1e3a8a);box-shadow:0 14px 30px rgba(79,70,229,0.28)}:where(html[data-theme=dark]) .pc-chip{background:#1b5038;color:#a1f7e0}:where(html[data-theme=dark]) .pc-chip.bad{background:#501b1b;color:#e79595}:where(html[data-theme=dark]) .pc-pay{background:rgba(255,255,255,0.08);border:1px solid rgba(64,64,64,0.18)}:where(html[data-theme=dark]) .pc-steps button{background:#171a21;color:#7e76db}:where(html[data-theme=dark]) .pc-slider{background:linear-gradient(to right,#1b5038 var(--p,50%),rgba(255,255,255,0.08) var(--p,50%))}:where(html[data-theme=dark]) .pc-slider::-webkit-slider-thumb{background:#171a21;box-shadow:0 2px 8px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .pc-slider::-moz-range-thumb{background:#171a21}:where(html[data-theme=dark]) .pc-stats div{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .pc-delta.good{background:rgba(27,80,56,0.2);color:#d1fae5}:where(html[data-theme=dark]) .pc-delta.bad{background:rgba(80,27,27,0.2);color:#fee2e2}:where(html[data-theme=dark]) .pc-bars i{background:linear-gradient(to top,rgba(255,255,255,0.08),rgba(255,255,255,0.09))}:where(html[data-theme=dark]) .pc-bars i:last-child{background:#1b5038}:where(html[data-theme=dark]) .pc-free{background:#171a21;color:#becada}:where(html[data-theme=dark]) .pc-free b{color:#a1f7df}:where(html[data-theme=dark]) .pc-warn{background:#371515;color:#e79595}:where(html[data-theme=dark]) .btn.pc-use{background:#171a21;color:#7e76db}:where(html[data-theme=dark]) .btn.pc-reset{color:#ffffff;border:1px solid rgba(64,64,64,0.45)}:where(html[data-theme=dark]) .ge-ic{background:#1b5035;color:#a1f7df}:where(html[data-theme=dark]) .ge-amt{color:#a1f7df}:where(html[data-theme=dark]) .k-ic{background:#171a21}:where(html[data-theme=dark]) .kind:has(input:checked){background:#171a21;box-shadow:0 0 0 2px var(--k),0 4px 10px rgba(0,0,0,0.18)}:where(html[data-theme=dark]) .kind:has(input:checked) .k-ic{color:#ffffff}:where(html[data-theme=dark]) .amt-box{background:color-mix(in srgb,var(--k) 7%,#171a21)}:where(html[data-theme=dark]) .chip:has(input:checked){background:color-mix(in srgb,var(--c) 14%,#171a21)}:where(html[data-theme=dark]) .paychip{color:#ffffff;background:linear-gradient(140deg,var(--c),color-mix(in srgb,var(--c) 65%,#2e384c))}:where(html[data-theme=dark]) .paychip:has(input:checked){box-shadow:0 0 0 2px rgba(255,255,255,0.06),0 0 0 4px var(--c)}:where(html[data-theme=dark]) .sheet-actions{background:linear-gradient(to top,#171a21 75%,rgba(255,255,255,0))}:where(html[data-theme=dark]) .ccard{color:#ffffff;background:radial-gradient(120% 140% at 100% 0%,rgba(255,255,255,0.08),transparent 55%),linear-gradient(140deg,var(--c),color-mix(in srgb,var(--c) 55%,#2e384c))}:where(html[data-theme=dark]) .ccard-edit{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .hero-btn{border:1px solid rgba(64,64,64,0.45);background:rgba(255,255,255,0.08);color:#ffffff}:where(html[data-theme=dark]) .hero-warn{background:rgba(255,255,255,0.114);color:#eb6f66}:where(html[data-theme=dark]) .bill-d{background:#171a21}:where(html[data-theme=dark]) .bill-tg{background:#171a21}:where(html[data-theme=dark]) .bill-tg[aria-pressed=true]{color:#ffffff}:where(html[data-theme=dark]) .bill.late .mid span{color:#eb6f66}:where(html[data-theme=dark]) .nsd span.free{background:#1b5035;color:#a1f7df}:where(html[data-theme=dark]) .nsd b{color:#a1f7df}:where(html[data-theme=dark]) .bal{color:#ffffff}:where(html[data-theme=dark]) .bal.acc{background:linear-gradient(135deg,#0f9d74,#14b8a6)}:where(html[data-theme=dark]) .bal.cc{background:linear-gradient(135deg,#2e3b4c,#374151)}:where(html[data-theme=dark]) .bal-bar{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .bal-bar i{background:#fbbf24}:where(html[data-theme=dark]) .bal-due{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .bal-due.soon{background:#f59e0b;color:#becada}:where(html[data-theme=dark]) .more-link{background:#171a21}:where(html[data-theme=dark]) .period-bar{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .period-bar i{background:#171a21}:where(html[data-theme=dark]) .bar{background:color-mix(in srgb,var(--c) 14%,#171a21)}:where(html[data-theme=dark]) .chip{color:color-mix(in srgb,var(--c) 55%,#ffffff);background:color-mix(in srgb,var(--c) 13%,#171a21)}:where(html[data-theme=dark]) .delta.up{color:#e36e73;background:#371515}:where(html[data-theme=dark]) .delta.down{color:#a1f7dd;background:#153728}:where(html[data-theme=dark]) .alert{background:#371515;border:1px solid #6b2e31}:where(html[data-theme=dark]) .alert.near{background:#372b15;border-color:#6b572e}:where(html[data-theme=dark]) .habits label:has(input:checked){background:#15372a}:where(html[data-theme=dark]) .ins li{background:color-mix(in srgb,var(--t) 9%,#171a21)}:where(html[data-theme=dark]) .btn{background:#171a21}:where(html[data-theme=dark]) .btn.grad{color:#ffffff}:where(html[data-theme=dark]) .btn.danger.armed{color:#ffffff}:where(html[data-theme=dark]) input:focus,:where(html[data-theme=dark]) select:focus,:where(html[data-theme=dark]) textarea:focus{background:#171a21}:where(html[data-theme=dark]) .seg label:has(input:checked),:where(html[data-theme=dark]) .seg button[aria-pressed=true]{background:#171a21;box-shadow:0 1px 3px rgba(0,0,0,0.3)}:where(html[data-theme=dark]) .swatches label{box-shadow:inset 0 0 0 2px rgba(255,255,255,0.06)}:where(html[data-theme=dark]) .chips button{background:#171a21;color:color-mix(in srgb,var(--c,var(--ink)) 60%,#ffffff)}:where(html[data-theme=dark]) .chips button[aria-pressed=true]{background:color-mix(in srgb,var(--c,var(--accent)) 50%,#0b0e13);color:#ffffff;border-color:color-mix(in srgb,var(--c,var(--accent)) 70%,#0b0e13)}:where(html[data-theme=dark]) .tx{background:#171a21}:where(html[data-theme=dark]) .tx .ic{color:color-mix(in srgb,var(--c) 55%,#ffffff);background:color-mix(in srgb,var(--c) 16%,#171a21)}:where(html[data-theme=dark]) .fab{color:#ffffff;box-shadow:0 10px 24px rgba(14,165,233,0.35)}:where(html[data-theme=dark]) .note{background:#372c15;color:#f7d6a1}:where(html[data-theme=dark]) .note.ok{background:#15372a;color:#a1f7de}:where(html[data-theme=dark]) .tile .ib{color:#ffffff}:where(html[data-theme=dark]) .fx{background:#171a21}:where(html[data-theme=dark]) .fx-ic{color:#ffffff}:where(html[data-theme=dark]) .fx-edit input{background:#171a21}:where(html[data-theme=dark]) .fx-total{background:color-mix(in srgb,var(--accent) 9%,#171a21)}:where(html[data-theme=dark]) .timeline div::before{box-shadow:0 0 0 3px rgba(255,255,255,0.06)}:where(html[data-theme=dark]) .mini-btns button{background:#171a21}:where(html[data-theme=dark]) .mini-btns button.on{color:#ffffff}:where(html[data-theme=dark]) .tick{background:#171a21}:where(html[data-theme=dark]) .tick.on{color:#ffffff}:where(html[data-theme=dark]) .cal button.zero{background:#15372a;color:#a0f7dc}:where(html[data-theme=dark]) pre.code{background:#2e374c;color:#e2e8f0}:where(html[data-theme=dark]) .paytile{color:#ffffff;background:linear-gradient(140deg,var(--c) 0%,color-mix(in srgb,var(--c) 70%,#2e384c) 100%)}:where(html[data-theme=dark]) .pmchip{background:color-mix(in srgb,var(--p) 13%,#171a21)}:where(html[data-theme=dark]) .cfg-face{color:#ffffff;background:linear-gradient(140deg,var(--c) 0%,color-mix(in srgb,var(--c) 70%,#2e384c) 100%)}:where(html[data-theme=dark]) .cc-face{color:#ffffff;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#db2777 100%);box-shadow:0 12px 28px rgba(124,58,237,0.28)}:where(html[data-theme=dark]) .cc-face::after{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .cc-chip{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .cc-stats div{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .save-bar{background:rgba(255,255,255,0.114)}:where(html[data-theme=dark]) nav.tabs{background:rgba(255,255,255,0.113)}:where(html[data-theme=dark]) nav.tabs a[aria-current=page]{background:color-mix(in srgb,var(--accent) 10%,#171a21)}:where(html[data-theme=dark]) .sheet-wrap{background:rgba(0,0,0,0.6)}:where(html[data-theme=dark]) .sheet{background:#171a21}:where(html[data-theme=dark]) .stmt-due{border-color:#2e496b;background:linear-gradient(135deg,#152437,#171a21)}:where(html[data-theme=dark]) .stmt-due.late{border-color:#6b5f2e;background:linear-gradient(135deg,#373115,#171a21)}:where(html[data-theme=dark]) .tgl::before{background:#273444}:where(html[data-theme=dark]) .tgl i{background:#171a21;box-shadow:0 1px 3px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .treat{border-color:#6b2e51;background:linear-gradient(135deg,#371528,#171a21)}:where(html[data-theme=dark]) .tj{color:#3a4252}:where(html[data-theme=dark]) .tj .on{color:#f2bb5f}:where(html[data-theme=dark]) .quote{background:linear-gradient(135deg,#153720,#171a21);border-color:#2e6b43}:where(html[data-theme=dark]) .q-mark{color:#86efac}:where(html[data-theme=dark]) .mini-alert.warn{background:#373115;border-color:#6b5f2e}:where(html[data-theme=dark]) .mini-alert.good{background:#153720;border-color:#2e6b43}:where(html[data-theme=dark]) .mini-alert.bad{background:#371515;border-color:#6b2e2e}:where(html[data-theme=dark]) .allow{border-color:#2e566b;background:linear-gradient(135deg,#152a37,#171a21)}:where(html[data-theme=dark]) .allow.over{border-color:#6b2e2e;background:linear-gradient(135deg,#371515,#171a21)}:where(html[data-theme=dark]) .gap.warn{border-color:#6b5f2e}:where(html[data-theme=dark]) .hours span{background:#1b3350}:where(html[data-theme=dark]) .hours span.peak{background:#f97316}:where(html[data-theme=dark]) .checks{border-color:#6b2e2e;background:linear-gradient(135deg,#371515,#171a21)}:where(html[data-theme=dark]) .loc-sug{border:1px dashed #2e4b6b;background:#152437}:where(html[data-theme=dark]) .pdd.now{background:#153727;border:1px solid #2e6b4f}:where(html[data-theme=dark]) .ptr{background:#2e374c;color:#ffffff;box-shadow:0 6px 20px rgba(0,0,0,0.55)}:where(html[data-theme=dark]) .treat{border-left-color:#ec4899!important}:where(html[data-theme=dark]) .allow{border-left-color:#0ea5e9!important}:where(html[data-theme=dark]) .checks{border-left-color:#dc2626!important}:where(html[data-theme=dark]) .smart{border-left-color:#6366f1!important}:where(html[data-theme=dark]) .season{border-left-color:#7c3aed!important}:where(html[data-theme=dark]) .stmt-due{border-left-color:#3b82f6!important}:where(html[data-theme=dark]) .extra{border-left-color:#10b981!important}:where(html[data-theme=dark]) .quote{border-left-color:#22c55e!important}:where(html[data-theme=dark]) .gap.warn{border-left-color:#f59e0b!important}:where(html[data-theme=dark]) .persona,:where(html[data-theme=dark]) .treat-p{border-left-color:#f59e0b!important}:where(html[data-theme=dark]) .allow.over{border-left-color:#dc2626!important}:where(html[data-theme=dark]) .nm-dots i:nth-child(2){background:#f59e0b}:where(html[data-theme=dark]) .nm-dots i:nth-child(3){background:#6366f1}:where(html[data-theme=dark]) .q-mark{color:#86efac}:where(html[data-theme=dark]) .txf .chip{background:#171a21!important}:where(html[data-theme=dark]) .txf .chip:has(input:checked){background:color-mix(in srgb,var(--c) 12%,#171a21)!important}:where(html[data-theme=dark]) .paychip{background:#171a21!important}:where(html[data-theme=dark]) .paychip:has(input:checked){background:color-mix(in srgb,var(--c) 10%,#171a21)!important}:where(html[data-theme=dark]) .cm-ic{background:#261537;color:#9560f0}:where(html[data-theme=dark]) .cm-bar i{background:#8b5cf6}:where(html[data-theme=dark]) #sheet .chip{background:#171a21!important}:where(html[data-theme=dark]) #sheet .chip:has(input:checked){background:color-mix(in srgb,var(--c) 12%,#171a21)!important}:where(html[data-theme=dark]) #lock img{box-shadow:0 6px 20px rgba(0,0,0,0.36)}:where(html[data-theme=dark]) .acct-h.credit{background:linear-gradient(135deg,#1b1537,#171a21)}:where(html[data-theme=dark]) .xp-p b{color:#9560f0}:where(html[data-theme=dark]) .jar i{background:linear-gradient(#fcd34d,#f59e0b)}:where(html[data-theme=dark]) .mission{background:linear-gradient(135deg,color-mix(in srgb,var(--mc) 9%,#171a21) 0%,#171a21 62%)}:where(html[data-theme=dark]) .ms-t1{fill:color-mix(in srgb,var(--mc) 16%,#171a21)}:where(html[data-theme=dark]) .ms-t2{fill:#171a21}:where(html[data-theme=dark]) .ms-t3{fill:color-mix(in srgb,var(--mc) 70%,#171a21)}:where(html[data-theme=dark]) .ms-pills i{background:color-mix(in srgb,var(--mc) 16%,#1a2332)}:where(html[data-theme=dark]) .ms-pills i.bonus.on{background:#f5b301}:where(html[data-theme=dark]) .ms-bar{background:color-mix(in srgb,var(--mc) 14%,#1a2332)}:where(html[data-theme=dark]) .sec-ic{background:color-mix(in srgb,var(--accent) 10%,#171a21)}:where(html[data-theme=dark]) .sec.open .sec-ic{background:#171a21}:where(html[data-theme=dark]) .empty::before{background:color-mix(in srgb,var(--accent) 10%,#171a21) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A8060' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h12v18l-3-2-3 2-3-2-3 2z'/%3E%3Cpath d='M9 8h6M9 12h6'/%3E%3C/svg%3E") center/28px no-repeat}:where(html[data-theme=dark]) .card{box-shadow:0 1px 2px rgba(0,0,0,0.12),0 6px 20px rgba(0,0,0,0.135)!important}:where(html[data-theme=dark]) .h-ic{background:color-mix(in srgb,var(--accent) 11%,#171a21)}:where(html[data-theme=dark]) .sec{background:#171a21;box-shadow:0 1px 2px rgba(0,0,0,0.12),0 6px 20px rgba(0,0,0,0.135)}:where(html[data-theme=dark]) .sec.open>.sec-h{background:#171a21;box-shadow:0 1px 2px rgba(0,0,0,0.12)}:where(html[data-theme=dark]) .tx{background:#171a21;box-shadow:0 1px 2px rgba(0,0,0,0.12)}:where(html[data-theme=dark]) .tx .ic{background:color-mix(in srgb,var(--c) 13%,#171a21)}:where(html[data-theme=dark]) .cico{background:color-mix(in srgb,var(--c) 14%,#171a21)}:where(html[data-theme=dark]) .hero-track::before{background:rgba(255,255,255,0.08)}:where(html[data-theme=dark]) .hero-track i{background:#171a21}:where(html[data-theme=dark]) .hero-track b{background:#171a21;box-shadow:0 0 0 4px rgba(255,255,255,0.06)}@media (prefers-reduced-motion:no-preference){:where(html[data-theme=dark]) .hero::after{background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.08) 45%,transparent 60%)}}:where(html[data-theme=dark]) .rk-ic{background:color-mix(in srgb,var(--c) 13%,#171a21)}:where(html[data-theme=dark]) .yr2-ic{background:#171a21}:where(html[data-theme=dark]) .seg{background:#283144!important;box-shadow:inset 0 1px 2px rgba(0,0,0,0.18)}:where(html[data-theme=dark]) .seg button{color:#b8becd}:where(html[data-theme=dark]) .seg button[aria-pressed="true"]{background:#171a21!important;box-shadow:0 1px 2px rgba(0,0,0,0.24),0 3px 8px rgba(0,0,0,0.24)!important}
+
+/* respect "Reduce motion" everywhere, not only on a few elements */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1423,7 +1427,7 @@ const AR = "٠١٢٣٤٥٦٧٨٩";
 const norm = s => String(s ?? "").replace(/[٠-٩]/g, d => AR.indexOf(d)).replace(/٫/g, ".").replace(/٬/g, ",");
 /* "Hide amounts" masks every formatted amount (blur alone missed amounts inside sentences) */
 let HIDE = (() => { try { return localStorage.getItem("masarif.hide") === "1"; } catch (e) { return false; } })();
-const fmt = n => { if (HIDE) return "•••"; const v = +n || 0; return v !== 0 && Math.abs(v) < 1 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US"); };
+const fmt = n => { if (HIDE) return "•••"; const v = Math.round((+n || 0) * 100) / 100; /* round to piastres first so 60215.4999… (float drift) shows as 60,216 */ return v !== 0 && Math.abs(v) < 1 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US"); };
 /* exact amount (up to 2 decimals) for single purchases, so 1,234.56 isn't shown as 1,235 */
 const fmtX = n => { if (HIDE) return "•••"; const v = +n || 0; return v.toLocaleString("en-US", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
 const money = n => "EGP " + fmt(n);
@@ -1958,7 +1962,7 @@ function trendCard() {
       <div class="seg mini" id="trendSeg"><button type="button" data-n="6" aria-pressed="${n === 6}">6M</button><button type="button" data-n="12" aria-pressed="${n === 12}">1Y</button></div></div>
     <div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Spending per month for the last ${n} months">${g}</svg></div>
     <div class="legend num"><span style="--c:var(--need)"><span class="dot"></span>Need</span><span style="--c:var(--want)"><span class="dot"></span>Want</span><span style="--c:var(--none)"><span class="dot"></span>No category</span>${avg ? `<span class="muted">- - average ${fmt(avg)}</span>` : ""}</div>
-    <div class="small muted">${totalAll ? `Total for these ${n} months: ${money(totalAll)}.` : "The chart fills in as you import purchases."} Bills paid through the loan and fixed payments aren't included.</div>
+    <div class="small muted">${totalAll ? `Total for these ${n} months: ${money(totalAll)}.${trackStart() > addDays(todayStr(), -30 * (n - 1)) ? ` Masarif started on ${esc(dm(trackStart()))}, so earlier months are empty.` : ""}` : "The chart fills in as you import purchases."} Bills paid through the loan and fixed payments aren't included.</div>
   </div>`;
 }
 function habitsFor(d) {
@@ -2009,9 +2013,9 @@ function insights(key, d) {
   const unset = d.tx.filter(t => !isFlow(t) && !cardById(t.cardId)).length;
   if (unset && cards().length) out.push({ t: "", x: `${unset} purchase${unset > 1 ? "s don't" : " doesn't"} say which card paid. Tap them on the Spending tab to set it.` });
   const none = d.tx.filter(t => !isFlow(t) && groupOf(t) === "none").length;
-  if (none) out.push({ t: "", x: `${none} purchase${none > 1 ? "s have" : " has"} no category. Give them one so Need and Want stay accurate.` });
+  if (none) out.push({ t: "", x: `${none} purchase${none > 1 ? "s have" : " has"} no category. Give ${none > 1 ? "them" : "it"} one so Need and Want stay accurate.` });
   if (key === curKey()) {
-    const elapsed = daysDiff(pStart(key), todayStr()) + 1;
+    const ts = trackStart(), elapsed = daysDiff(ts > pStart(key) ? ts : pStart(key), todayStr()) + 1;
     const wantDays = new Set(d.tx.filter(t => groupOf(t) === "want" && t.kind !== "refund" && t.date <= todayStr()).map(t => t.date));
     const free = elapsed - wantDays.size;
     out.push({ t: free >= elapsed / 2 ? "good" : "", x: `${free} of ${elapsed} days this month had no Want spending.` });
@@ -2152,6 +2156,8 @@ async function refresh(force) {
   render(S.view !== "setup");
 }
 
+/* Days before your first recorded purchase have no data: they are not "no-spend" days */
+const trackStart = () => { let m = ""; for (const t of S.txns) if (!t.deleted && t.date && (!m || t.date < m)) m = t.date; return m || todayStr(); };
 /* ---------- calendar ---------- */
 function calendarCard(key) {
   const start = pStart(key), end = pEndStr(key), today = todayStr();
@@ -2160,13 +2166,13 @@ function calendarCard(key) {
   const max = Math.max(1, ...Object.values(per));
   const days = []; for (let d = toDate(start); toStr(d) <= end; d.setDate(d.getDate() + 1)) days.push(toStr(d));
   const lead = (toDate(start).getDay() + 1) % 7;
-  let zero = 0;
+  let zero = 0; const ts = trackStart();
   const cells = days.map(ds => {
-    const v = per[ds] || 0, fut = ds > today, isZ = !fut && v <= 0;
+    const v = per[ds] || 0, fut = ds > today, nodata = !fut && ds < ts, isZ = !fut && !nodata && v <= 0;
     if (isZ) zero++;
     const pct = v > 0 ? Math.round(14 + 66 * (v / max)) : 0;
-    const style = v > 0 ? `background:color-mix(in srgb,#F97316 ${pct}%,#fff);${pct > 55 ? "color:#431407" : ""}` : "";
-    return `<button type="button" data-day="${ds}" class="${fut ? "future" : ""} ${isZ ? "zero" : ""} ${ds === today ? "today" : ""}" style="${style}" aria-pressed="${S.calSel === ds}" aria-label="${esc(dayLabel(ds))}: ${v > 0 ? money(v) : "no spending"}">${+ds.slice(8)}${v > 0 ? `<small>${HIDE ? "•" : v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1) + "k" : Math.round(v)}</small>` : isZ ? "<small>✓</small>" : ""}</button>`;
+    const style = v > 0 ? `background:color-mix(in srgb,#F97316 ${pct}%,var(--bg));` : "";
+    return `<button type="button" data-day="${ds}" class="${fut || nodata ? "future" : ""} ${isZ ? "zero" : ""} ${v > 0 && pct > 55 ? "hot" : ""} ${ds === today ? "today" : ""}" style="${style}" aria-pressed="${S.calSel === ds}" aria-label="${esc(dayLabel(ds))}: ${v > 0 ? money(v) : nodata ? "before Masarif started" : "no spending"}">${+ds.slice(8)}${v > 0 ? `<small>${HIDE ? "•" : v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1) + "k" : Math.round(v)}</small>` : isZ ? "<small>✓</small>" : ""}</button>`;
   }).join("");
   const sel = S.calSel && inP(S.calSel, key) ? S.calSel : null;
   return `<div class="card stack">
@@ -2331,6 +2337,26 @@ function subsCard() {
     : `<div class="small muted">Nothing repeating found yet. Masarif looks for shops charging a similar amount every month, and for names like Netflix, Disney+, Google One or ChatGPT.</div>`}
   </div>`;
 }
+/* Money owed back: an incoming transfer of the same amount, on or after the day you lent it, is probably the repayment */
+function owedMatch(o) {
+  if (!o || o.received || !(+o.amount > 0)) return null;
+  const used = new Set((S.owed || []).map(x => x.matchTx).filter(Boolean));
+  return S.txns.filter(t => !t.deleted && t.kind === "income" && !used.has(t.id) && Math.abs((+t.amount || 0) - +o.amount) < 1 && t.date && (!o.date || (t.date >= addDays(o.date, -3) && daysDiff(o.date, t.date) <= 90)))
+    .sort((a, b) => tKey(a).localeCompare(tKey(b)))[0] || null;
+}
+function owedHome() {
+  const o = (S.owed || []).find(x => owedMatch(x) && !dismissed("owm_" + x.id)); if (!o) return "";
+  const t = owedMatch(o);
+  return `<div class="card stack extra"><div class="row"><h2>Did ${esc(o.who || "they")} pay you back?</h2></div>
+    <div class="small muted">${money(t.amount)} came in from ${esc(shopName(t) || "a transfer")} on ${esc(dayLabel(t.date))}. That matches ${esc(o.what || "the money you're owed")}.</div>
+    <div class="btns"><button type="button" class="btn grad" data-recvm="${esc(o.id)}" data-tx="${esc(t.id)}" ${S.dbOk ? "" : "disabled"}>Yes, mark it received</button><button type="button" class="btn" data-owmskip="${esc(o.id)}">No</button></div></div>`;
+}
+async function markOwedFrom(id, txId) {
+  const t = S.txns.find(x => x.id === txId); if (!t) return;
+  try { await db.collection("owed").doc(id).update({ received: true, receivedOn: t.date, matchTx: t.id });
+    if (!t.splitDone) await db.collection("transactions").doc(t.id).update({ splitDone: "skip" }); toast("Marked as paid back"); } catch {}
+  render(true);
+}
 function owedCard() {
   const open = S.owed.filter(o => !o.received).sort((a, b) => String(a.date).localeCompare(String(b.date)));
   const done = S.owed.filter(o => o.received).sort((a, b) => String(b.receivedOn).localeCompare(String(a.receivedOn))).slice(0, 3);
@@ -2341,7 +2367,7 @@ function owedCard() {
     ${open.length || done.length ? `<div class="stack" style="gap:8px">${open.map(o => { const w = o.date ? daysDiff(o.date, todayStr()) : 0; return `<div class="owed-row">
         <button type="button" class="tick" data-recv="${esc(o.id)}" aria-label="Mark ${esc(o.what)} as received"></button>
         <button type="button" class="mid" data-oedit="${esc(o.id)}" style="border:0;background:none;text-align:left;padding:0"><b>${esc(o.what)}</b><span>${esc(o.who || "")}${o.who ? " · " : ""}${w > 0 ? `waiting ${w} day${w === 1 ? "" : "s"}` : "added today"}</span></button>
-        <span class="amt num ${w > 30 ? "badtxt" : ""}">${fmt(o.amount)}</span></div>`; }).join("")}
+        <span class="amt num ${w > 30 ? "badtxt" : ""}">${fmt(o.amount)}</span></div>${(() => { const m = owedMatch(o); return m ? `<div class="note ok">${money(m.amount)} came in from ${esc(shopName(m) || "a transfer")} on ${esc(dayLabel(m.date))}. <button type="button" class="link-btn" data-recvm="${esc(o.id)}" data-tx="${esc(m.id)}">That's it, mark received</button></div>` : ""; })()}`; }).join("")}
       ${done.map(o => `<div class="owed-row" style="opacity:.6"><button type="button" class="tick on" data-unrecv="${esc(o.id)}" aria-label="Mark ${esc(o.what)} as not received">✓</button><span class="mid"><b>${esc(o.what)}</b><span>Received ${o.receivedOn ? esc(dayLabel(o.receivedOn)) : ""}</span></span><span class="amt num">${fmt(o.amount)}</span></div>`).join("")}</div>`
     : `<div class="small muted">Track refunds, insurance claims and money friends owe you, so nothing gets forgotten. Tap the circle when it arrives.</div>`}
   </div>`;
@@ -2680,7 +2706,7 @@ function billsCard() {
 function balancesCard() {
   const st = settings(), an = accountNow(), cn = cardNow(), cc = creditCard();
   const lim = cc && +cc.limit > 0 ? +cc.limit : 0, util = lim ? Math.min(100, cn.now / lim * 100) : 0;
-  const due = st.card.dueDate, dueIn = due ? daysDiff(todayStr(), due) : null;
+  const due = cardDue(), dueIn = due ? daysDiff(todayStr(), due) : null;
   return `<div class="card stack">
     <div class="row"><h2>Credit card</h2><button type="button" class="link-btn" id="updBal" ${S.dbOk ? "" : "disabled"}>✎ Edit</button></div>
     <div class="bal-grid">
@@ -2727,10 +2753,10 @@ function monthPlanCard(d) {
     <div class="row"><h2>How this month adds up</h2><a class="link" href="#setup">Edit</a></div>
     <div class="ledger num">
       <div><span>Salary</span><b>${fmt(d.salary)}</b></div>
-      <div><span>Fixed payments</span><b class="minus">− ${fmt(d.fixedTotal)}</b></div>
-      ${d.reserve ? `<div><span>Credit card payment</span><b class="minus">− ${fmt(d.reserve)}</b></div>` : ""}
-      <div><span>Spent so far</span><b class="minus">− ${fmt(d.spend)}</b></div>
-      <div class="tot"><span>Left to spend</span><b>${fmt(d.left)}</b></div>
+      <div><span>Fixed payments</span><b class="out">− ${fmt(d.fixedTotal)}</b></div>
+      ${d.reserve ? `<div><span>Credit card payment</span><b class="out">− ${fmt(d.reserve)}</b></div>` : ""}
+      <div><span>Spent so far</span><b class="out">− ${fmt(d.spend)}</b></div>
+      <div class="tot"><span>${d.left < 0 ? "Over the plan by" : "Left to spend"}</span><b class="${d.left < 0 ? "badtxt" : ""}">${fmt(Math.abs(d.left))}</b></div>
     </div>
     ${d.fixed.length ? `<div class="stack" style="gap:6px">${d.fixed.map(f => `<div class="row small"><span>${esc(f.name)}${f.until ? ` <span class="muted">until ${esc(monthLabel(f.until))}</span>` : ""}</span><span class="num" style="font-weight:700">${money(f.amount)}</span></div>`).join("")}</div>` : ""}
   </div>`;
@@ -2790,7 +2816,7 @@ function homeTiles(d) {
   const cc = creditCard(), cn = cc ? cardNow() : null;
   if (cc && cn && cn.now > 0) {
     const c = settings().card || {}, l = +cc.limit || 0;
-    out.push(tile({ k: "Credit card owed", ic: tlIc("card"), c: "var(--debt, #7C3AED)", v: money(cn.now), s: c.dueDate ? `Due ${esc(toDate(c.dueDate).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }))}` : l ? `${Math.round(cn.now / l * 100)}% of your limit` : "owed now", bar: l ? cn.now / l * 100 : null, href: "#plan" }));
+    out.push(tile({ k: "Credit card owed", ic: tlIc("card"), c: "var(--debt, #7C3AED)", v: money(cn.now), s: c.dueDate ? `Due ${esc(toDate(cardDue()).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }))}` : l ? `${Math.round(cn.now / l * 100)}% of your limit` : "owed now", bar: l ? cn.now / l * 100 : null, href: "#plan" }));
   }
   const rc = reviewCount();
   if (rc) out.push(tile({ k: "To review", ic: tlIc("review"), c: "var(--warn-ink)", v: plural(rc, "text"), s: "Tap to sort them", tone: "warn", badge: rc, attr: "data-review" }));
@@ -2799,7 +2825,7 @@ function homeTiles(d) {
 }
 /* one suggestion at a time; the rest one tap away */
 function forYou(d) {
-  const list = [salaryBanner() || paydayBanner(), checkCard(), stmtDueCard(), morningBrief(), stmtBanner(), extraCard(), worthPrompt(), moodHome(), treatCard(), leftoverCard(), gapCard(true), carHome(), subAuditHome(), deliveryHome(), earlyHome(), rebalanceHome(), weakDayHome(), needCheckHome(), seasonalHome(), roundGoalHome(), yearHome(), smartCard(true), allowanceCard(), paydayPlanCard(), seasonHomeCard(), missionCard(), billsDue() ? billsCard() : ""].filter(x => x && String(x).trim());
+  const list = [salaryBanner() || paydayBanner(), checkCard(), owedHome(), stmtDueCard(), morningBrief(), stmtBanner(), extraCard(), worthPrompt(), moodHome(), treatCard(), leftoverCard(), gapCard(true), carHome(), subAuditHome(), deliveryHome(), earlyHome(), rebalanceHome(), weakDayHome(), needCheckHome(), seasonalHome(), roundGoalHome(), yearHome(), smartCard(true), allowanceCard(), paydayPlanCard(), seasonHomeCard(), missionCard(), billsDue() ? billsCard() : ""].filter(x => x && String(x).trim());
   if (!list.length) return "";
   const rest = list.length - 1;
   return `<div class="fy"><h2 class="fy-h">For you</h2>${list[0]}${rest ? (showAllNudges ? list.slice(1).join("") + `<button type="button" class="nudge-more" data-nudges="less">Show less</button>`
@@ -2948,7 +2974,7 @@ function spendTiles() {
   const prevName = toDate(pStart(prevK)).toLocaleDateString("en-GB", { month: "long" });
   return `<div class="bento sum2">
     ${tile({ k: isCur ? "Spent this month" : "Spent in " + esc(pLabel(k)), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense").length, "purchase") + (d.byGroup.debt ? ` · plus ${money(d.byGroup.debt)} card & loan` : ""), attr: 'data-sum="m"' })}
-    ${tile({ k: isCur ? "vs last month" : "vs the month before", v: ch == null ? "–" : `${ch > 0 ? "▲" : "▼"} ${Math.abs(Math.round(ch))}% ${ch > 0 ? "more" : "less"}`, s: isCur ? `same ${plural(n, "day")} · ${money(before)}` : money(before), tone: ch != null && ch > 10 ? "bad" : "", attr: 'data-sum="c"' })}
+    ${tile({ k: isCur ? "vs last month" : "vs the month before", v: ch == null ? "–" : `${ch > 0 ? "▲" : "▼"} ${Math.abs(Math.round(ch))}% ${ch > 0 ? "more" : "less"}`, s: trackStart() > pStart(prevK) ? "Masarif started this month, so there's nothing to compare yet" : isCur ? `same ${plural(n, "day")} · ${money(before)}` : money(before), tone: ch != null && ch > 10 ? "bad" : "", attr: 'data-sum="c"' })}
   </div>`;
 }
 function renderTxList() {
@@ -3005,7 +3031,7 @@ function renderCats() {
       return `<div class="card stack">
         <div class="row"><span class="chip" style="--c:${GROUP_COLOR[g]};font-size:0.7647rem;padding:4px 10px">${GROUPS[g]}</span><span class="small muted num">${list.length ? "Limits " + fmt(list.reduce((a, c) => a + (+c.budget || 0), 0)) : ""}</span></div>
         ${list.length ? `<div>${list.map(c => `<button type="button" class="tx" data-cat="${esc(c.id)}" style="--c:${catColor(c)}">
-          <span class="ic" aria-hidden="true">${esc((c.name || "?")[0].toUpperCase())}</span>
+          <span class="ic" aria-hidden="true">${catIcon(c)}</span>
           <span class="mid"><b>${esc(c.name)}</b><span>${esc(kw(c).slice(0, 6).join(", ") || "No keywords")}${kw(c).length > 6 ? "…" : ""}</span></span>
           <span class="amt num" style="text-align:right">${+c.budget ? fmt(c.budget) : "—"}${+c.weekly ? `<span class="muted small" style="display:block;font-weight:600">${fmt(c.weekly)} / wk</span>` : ""}</span></button>`).join("")}</div>`
         : `<div class="small muted">${loaded() ? "None yet." : "Loading…"}</div>`}
@@ -3904,8 +3930,20 @@ function cardFreeInfo() {
   const peak = Math.max(+st.card.peak || 0, cn.now, +st.card.balance || 0);
   return { now: cn.now, months: po.months, end, days: Math.max(0, daysDiff(todayStr(), end)), paidPct: peak ? (1 - cn.now / peak) * 100 : 0, peak };
 }
+/* The due date you typed is one month's date; after it passes, the next one is the same day next month. */
+function monthShiftDay(ds, n) {
+  const [y, m, d] = ds.split("-").map(Number), first = new Date(y, m - 1 + n, 1);
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  return toStr(new Date(first.getFullYear(), first.getMonth(), Math.min(d, last)));
+}
+function cardDue() {
+  const d = settings().card.dueDate; if (!d) return "";
+  const today = todayStr(); let n = 0, x = d;
+  while (x < today && n < 120) x = monthShiftDay(d, ++n);
+  return x;
+}
 function dueTxt() {
-  const due = settings().card.dueDate; if (!due) return "";
+  const due = cardDue(); if (!due) return "";
   const n = daysDiff(todayStr(), due); if (n < 0) return "";
   const when = toDate(due).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   return `<br><b class="due-chip ${n <= 3 ? "soon" : ""}">${n === 0 ? "Payment due today" : `Payment due ${when} · in ${plural(n, "day")}`}</b>`;
@@ -4202,7 +4240,7 @@ function monthScore(key) {
   parts.push({ name: "Weeks under the limit", got: lim && wks.length ? 20 * under / wks.length : 10, max: 20, note: lim ? `${under} of ${wks.length}` : "Set a weekly limit" });
   const nw = d.byGroup.need + d.byGroup.want, ws_ = nw > 0 ? d.byGroup.want / nw : 0;
   parts.push({ name: "Wants kept small", got: nw ? 15 * Math.max(0, Math.min(1, (0.4 - ws_) / 0.2)) : 15, max: 15, note: nw ? `Wants are ${Math.round(ws_ * 100)}% of spending` : "No spending yet" });
-  const elapsed = Math.max(1, daysDiff(pStart(key), end) + 1);
+  const ts0 = trackStart(), elapsed = Math.max(1, daysDiff(ts0 > pStart(key) ? ts0 : pStart(key), end) + 1);
   const spentDays = new Set(d.tx.filter(t => !isFlow(t) && t.kind !== "refund" && t.date <= end).map(t => t.date));
   const free = elapsed - spentDays.size, goal = Math.max(1, challengeGoal() * elapsed / 7);
   parts.push({ name: "No-spend days", got: 15 * Math.min(1, free / goal), max: 15, note: `${free} of about ${Math.round(goal)} goal` });
@@ -4231,7 +4269,7 @@ function badges() {
   const wkUnder = lim ? weeks.map(ws => weekData(ws).total <= lim) : [];
   let run = 0, best = 0; for (const u of wkUnder) { run = u ? run + 1 : 0; best = Math.max(best, run); }
   const months = [...new Set(S.txns.filter(isSpend).map(t => pKeyOf(t.date)))];
-  const nsdMonth = Math.max(0, ...months.map(k => { const d = periodData(k), end = k === curKey() ? todayStr() : pEndStr(k); const sd = new Set(d.tx.filter(t => !isFlow(t) && t.kind !== "refund").map(t => t.date)); return daysDiff(pStart(k), end) + 1 - sd.size; }));
+  const nsdMonth = Math.max(0, ...months.map(k => { const d = periodData(k), end = k === curKey() ? todayStr() : pEndStr(k); const sd = new Set(d.tx.filter(t => !isFlow(t) && t.kind !== "refund").map(t => t.date)); return daysDiff(first > pStart(k) ? first : pStart(k), end) + 1 - sd.size; }));
   const doneMonths = months.filter(k => k < curKey());
   const peak = Math.max(+st.card.peak || 0, +st.card.balance || 0, cn.now);
   const list = [
@@ -4262,14 +4300,21 @@ function badgesCard() {
   </div>`;
 }
 
+/* Patterns look at the last 90 days, or since Masarif started if that's shorter,
+   and leave out one-off purchases (over 5× your typical purchase and at least EGP 5,000) so a car repair doesn't become "your Saturday habit" */
+const pattSince = () => { const a = addDays(todayStr(), -90), ts = trackStart(); return ts > a ? ts : a; };
+function oneOffCut(since) {
+  const v = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= since).map(t => +t.amount || 0).sort((a, b) => a - b);
+  return Math.max(5000, (v.length ? v[Math.floor(v.length / 2)] : 0) * 5);
+}
 /* ---------- patterns: typical day, price tracker, people ---------- */
 function typicalDayCard() {
-  const since = addDays(todayStr(), -90);
+  const since = pattSince(), cut = oneOffCut(since);
   const blocks = [["Morning", 6, 12], ["Afternoon", 12, 17], ["Evening", 17, 22], ["Night", 22, 30]], short = ["Morn", "Noon", "Eve", "Night"];
   const grid = Array.from({ length: 7 }, () => [0, 0, 0, 0]), catAt = {};
   let total = 0, withTime = 0;
   for (const t of S.txns) {
-    if (!isSpend(t) || t.kind === "refund" || t.date < since || groupOf(t) === "debt") continue;
+    if (!isSpend(t) || t.kind === "refund" || t.date < since || groupOf(t) === "debt" || (+t.amount || 0) > cut) continue;
     total += +t.amount || 0;
     if (!t.time) continue;
     let h = +t.time.slice(0, 2); if (h < 6) h += 24;
@@ -4285,7 +4330,7 @@ function typicalDayCard() {
   const bv = grid[best[0]][best[1]], topCat = Object.entries(catAt[best[0] + "_" + best[1]] || {}).sort((a, b) => b[1] - a[1])[0];
   const dayTot = grid.map(r => r.reduce((a, v) => a + v, 0)), bigDay = dayTot.indexOf(Math.max(...dayTot));
   return `<div class="card stack">
-    <div class="row"><h2>Your typical week</h2><span class="small muted">last 90 days</span></div>
+    <div class="row"><h2>Your typical week</h2><span class="small muted">${daysDiff(since, todayStr()) + 1 < 90 ? `last ${daysDiff(since, todayStr()) + 1} days` : "last 90 days"}</span></div>
     <div class="heat" role="img" aria-label="Spending by day and time">
       <span></span>${short.map(b => `<span class="hh">${b}</span>`).join("")}
       ${grid.map((r, i) => `<span class="hd">${days[i]}</span>${r.map((v, j) => `<span class="hc" style="--a:${max ? (v / max).toFixed(2) : 0}" title="${days[i]} ${blocks[j][0]}: ${money(v)}">${v >= max * 0.5 ? (v >= 1000 ? (v / 1000).toFixed(1).replace(/\.0$/, "") + "k" : fmt(v)) : ""}</span>`).join("")}`).join("")}
@@ -4345,8 +4390,9 @@ function peopleCard() {
 
 /* ---------- card statement check ---------- */
 function openStatementCheck() {
-  const st = settings(), due = st.card.dueDate;
-  const to = due ? addDays(due, -20) : todayStr();
+  const st = settings(), nd = cardDue();
+  /* the newest statement that has already closed (about 20 days before its due date) */
+  let to = nd ? addDays(nd, -20) : todayStr(); if (nd && to > todayStr()) to = addDays(monthShiftDay(nd, -1), -20);
   const from = addDays(to, -30);
   openSheet(`<div class="row"><h2>Check your card statement</h2><button class="x" type="button" id="xClose" aria-label="Close">×</button></div>
     <p class="small muted" style="margin:0">Copy the dates and the total purchases from your CIB credit card statement. Masarif compares them with what it recorded, so a missed or wrong charge stands out.</p>
@@ -4384,7 +4430,7 @@ function yearCard() {
     <div class="yr2-top"><div class="big-out num">${money(total)}</div><span class="small muted">about ${money(total / Math.max(1, Math.round(months)))} a month</span></div>
     <div class="yr2-stats">
       <div><span class="yr2-ic" aria-hidden="true">${CI('<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>')}</span><b class="num">${n}</b><em>purchases</em></div>
-      <div><span class="yr2-ic" aria-hidden="true">${CI('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>')}</span><b class="num">${days - spentDays}</b><em>no-spend days</em></div>
+      <div><span class="yr2-ic" aria-hidden="true">${CI('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>')}</span><b class="num">${days - spentDays}</b><em>no-spend day${days - spentDays === 1 ? "" : "s"}</em></div>
       <div><span class="yr2-ic" aria-hidden="true">${CI('<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19"/>')}</span><b class="num ${cardDown > 0 ? "goodtxt" : ""}">${f.done ? "Paid ✓" : cardDown > 0 ? "↓ " + fmt(cardDown) : "—"}</b><em>card paid down</em></div>
     </div>
     <div class="yr2-h">Top categories</div>
@@ -4397,7 +4443,7 @@ function yearCard() {
 /* ---------- Ask Masarif ---------- */
 function askCard() {
   return `<div class="card ask">
-    <form id="askForm" class="ask-in"><input type="search" id="askQ" aria-label="Ask about a shop or category" placeholder="Ask about a shop or category" autocomplete="off" enterkeyhint="search" value="${esc(S.askDraft ?? S.askQ ?? "")}"><button class="btn grad" type="submit">Ask</button></form>
+    <form id="askForm" class="ask-in"><input type="search" id="askQ" aria-label="Ask about a shop or category" placeholder="A shop or category…" autocomplete="off" enterkeyhint="search" value="${esc(S.askDraft ?? S.askQ ?? "")}"><button class="btn grad" type="submit">Ask</button></form>
     <div class="chips sm">${["Talabat", "Fuel", "Dining", "Amazon"].map(x => `<button type="button" class="chip-q" data-askq="${esc(x)}">${esc(x)}</button>`).join("")}</div>
     <div id="askRes"></div>
   </div>`;
@@ -4571,7 +4617,7 @@ function insTiles(key, d) {
   const sc = monthScore(key), over = limitStatus(d).over.length, cur = key === curKey();
   return `<div class="bento">
     ${tile({ k: cur ? "Spent so far" : "Spent", v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense").length, "purchase"), href: "#txns", attr: 'data-mspent' })}
-    ${tile({ k: "Left to spend", v: money(d.left), s: d.left < 0 ? "over your plan" : cur ? "until payday" : "at the end", tone: d.left < 0 ? "bad" : "" })}
+    ${tile({ k: d.left < 0 ? "Over your plan" : "Left to spend", v: money(Math.abs(d.left)), s: d.left < 0 ? "spent more than the plan allows" : cur ? "until payday" : "at the end", tone: d.left < 0 ? "bad" : "" })}
     ${tile({ k: "Month score", v: String(sc.score), s: esc(scoreWord(sc.score)) })}
     ${tile({ k: "Over a limit", v: over ? plural(over, "category", "categories").replace("categorys", "categories") : "None", s: over ? "see the list below" : "all within limits", tone: over ? "bad" : "" })}
   </div>`;
@@ -4835,7 +4881,11 @@ function forecastData() {
   const recur = new Set((S.recurring || []).map(r => r.id));
   const bc = {};
   /* everyday spending only: loan/card instalments, bills and repeating purchases are added on their own dates below */
-  let spent = 0; for (const t of S.txns) { if (t.deleted || !t.date || t.date < since || t.date >= today || isFlow(t) || !debitIds.has(t.cardId) || t.recurring || groupOf(t) === "debt" || billMatch(t, bc)) continue; spent += signed(t); }
+  const every = S.txns.filter(t => !(t.deleted || !t.date || t.date < since || t.date >= today || isFlow(t) || !debitIds.has(t.cardId) || t.recurring || groupOf(t) === "debt" || billMatch(t, bc)));
+  /* a one-off (a car repair, a big transfer) isn't your daily pace: leave out anything over 5× your typical purchase and at least EGP 5,000 */
+  const amts = every.filter(t => t.kind !== "refund").map(t => +t.amount || 0).sort((a, b) => a - b), med = amts.length ? amts[Math.floor(amts.length / 2)] : 0;
+  const oneOff = t => t.kind !== "refund" && (+t.amount || 0) > Math.max(5000, med * 5);
+  let spent = 0; for (const t of every) if (!oneOff(t)) spent += signed(t);
   const firstTx = S.txns.filter(t => !t.deleted && t.date && debitIds.has(t.cardId)).map(t => t.date).sort()[0];
   const spanDays = firstTx ? Math.max(7, Math.min(42, daysDiff(firstTx > since ? firstTx : since, today))) : 42;
   const perDay = Math.max(0, spent / spanDays);
@@ -4987,8 +5037,8 @@ function openRecurring(id, preset) {
 
 /* ---------- your rhythm: weekend vs weekday, first week effect ---------- */
 function rhythmCard() {
-  const since = addDays(todayStr(), -90), today = todayStr();
-  const tx = S.txns.filter(t => isSpend(t) && t.date >= since && groupOf(t) !== "debt");
+  const since = pattSince(), today = todayStr(), cut = oneOffCut(since);
+  const tx = S.txns.filter(t => isSpend(t) && t.date >= since && groupOf(t) !== "debt" && !(t.kind === "expense" && (+t.amount || 0) > cut));
   if (tx.length < 10) return `<div class="card stack"><h2>Your rhythm</h2><div class="small muted">After a few more weeks of purchases, this compares weekends with weekdays, and the first week after payday with the rest of the month.</div></div>`;
   const days = daysDiff(since, today) + 1;
   let wkend = 0, wkday = 0, nE = 0, nD = 0;
@@ -5003,13 +5053,13 @@ function rhythmCard() {
   const [e1, e2] = bar(aE, aD), [f1, f2] = bar(aF, aR);
   const diffE = aD ? Math.round((aE / aD - 1) * 100) : 0, diffF = aR ? Math.round((aF / aR - 1) * 100) : 0;
   return `<div class="card stack">
-    <div class="row"><h2>Your rhythm</h2><span class="small muted">a day, last 90 days</span></div>
+    <div class="row"><h2>Your rhythm</h2><span class="small muted">a day, ${daysDiff(since, today) + 1 < 90 ? `last ${daysDiff(since, today) + 1} days` : "last 90 days"}</span></div>
     <div class="rh"><span>Thu–Sat</span><span class="rh-bar"><i style="width:${e1.toFixed(0)}%;background:#F97316"></i></span><b class="num">${fmt(aE)}</b></div>
     <div class="rh"><span>Sun–Wed</span><span class="rh-bar"><i style="width:${e2.toFixed(0)}%"></i></span><b class="num">${fmt(aD)}</b></div>
     <div class="note">${Math.abs(diffE) < 10 ? "Your weekends and weekdays cost about the same." : diffE > 0 ? `Weekends cost <b>${diffE}% more</b> a day than weekdays. Planning one weekend outing in advance usually helps.` : `Weekdays cost ${-diffE}% more than weekends. Work days (lunches, coffee, fuel) are where to look.`}</div>
-    <div class="rh"><span>First week after payday</span><span class="rh-bar"><i style="width:${f1.toFixed(0)}%;background:#8B5CF6"></i></span><b class="num">${fmt(aF)}</b></div>
+    ${nF >= 5 && nR >= 5 ? `<div class="rh"><span>First week after payday</span><span class="rh-bar"><i style="width:${f1.toFixed(0)}%;background:#8B5CF6"></i></span><b class="num">${fmt(aF)}</b></div>
     <div class="rh"><span>Rest of the month</span><span class="rh-bar"><i style="width:${f2.toFixed(0)}%"></i></span><b class="num">${fmt(aR)}</b></div>
-    <div class="note">${Math.abs(diffF) < 15 ? "Your spending is steady through the month." : diffF > 0 ? `You spend <b>${diffF}% more</b> a day in the first week after payday. Moving savings out on payday (the payday routine) stops this.` : "You spend less right after payday than later in the month."}</div>
+    <div class="note">${Math.abs(diffF) < 15 ? "Your spending is steady through the month." : diffF > 0 ? `You spend <b>${diffF}% more</b> a day in the first week after payday. Moving savings out on payday (the payday routine) stops this.` : "You spend less right after payday than later in the month."}</div>` : `<div class="small muted">The first-week-after-payday comparison shows once Masarif has a payday week on record.</div>`}
   </div>`;
 }
 
@@ -5442,7 +5492,7 @@ function deliveryCard(key) {
   return `<div class="card stack">
     <div class="row"><h2>Delivery</h2><span class="small muted">this month</span></div>
     <div class="kpis"><div class="kpi"><span>Orders</span><b class="num">${d.n}</b></div><div class="kpi"><span>Spent</span><b class="num">${fmt(d.total)}</b></div><div class="kpi"><span>Average</span><b class="num">${fmt(d.avg)}</b></div></div>
-    <div class="small">${d.streak === null ? "" : d.streak >= 1 ? `🔥 <b>${plural(d.streak, "day")}</b> without delivery.` : "Ordered today."} Last month: ${plural(d.prevN, "order")}, ${money(d.prevTotal)}.</div>
+    <div class="small">${d.streak === null ? "" : d.streak >= 1 ? `🔥 <b>${plural(d.streak, "day")}</b> without delivery.` : "Ordered today."} ${trackStart() <= pStart(shiftMonth(curKey(), -1)) ? `Last month: ${plural(d.prevN, "order")}, ${money(d.prevTotal)}.` : ""}</div>
     ${d.n >= 4 ? `<div class="note">Cooking 2 of these instead would save about ${money(d.avg * 2 * 0.6)} a month (home cooking costs roughly 40% of delivery).</div>` : ""}
   </div>`;
 }
@@ -5596,10 +5646,10 @@ function gapCard(home) {
 
 /* ---------- 11. time of day ---------- */
 function hourCard() {
-  const since = addDays(todayStr(), -90), hrs = Array(24).fill(0), combo = {};
+  const since = pattSince(), cut = oneOffCut(since), weeks = Math.max(1, (daysDiff(since, todayStr()) + 1) / 7), hrs = Array(24).fill(0), combo = {};
   let n = 0;
   for (const t of S.txns) {
-    if (!isSpend(t) || t.kind === "refund" || t.date < since || !t.time || groupOf(t) === "debt") continue;
+    if (!isSpend(t) || t.kind === "refund" || t.date < since || !t.time || groupOf(t) === "debt" || (+t.amount || 0) > cut) continue;
     const h = +t.time.slice(0, 2); if (!(h >= 0 && h < 24)) continue;
     hrs[h] += +t.amount || 0; n++;
     const k = ((toDate(t.date).getDay() + 1) % 7) + "_" + h; combo[k] = (combo[k] || 0) + (+t.amount || 0);
@@ -5609,10 +5659,10 @@ function hourCard() {
   const days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], tc = Object.entries(combo).sort((a, b) => b[1] - a[1])[0];
   const hl = h => `${(h % 12) || 12}${h < 12 ? "am" : "pm"}`;
   return `<div class="card stack">
-    <div class="row"><h2>Time of day</h2><span class="small muted">last 90 days</span></div>
-    <div class="hours" role="img" aria-label="Spending by hour">${order.map(h => `<span title="${hl(h)}: ${money(hrs[h])}" style="height:${Math.max(3, hrs[h] / max * 100).toFixed(0)}%" class="${h === top ? "top" : ""}"></span>`).join("")}</div>
+    <div class="row"><h2>Time of day</h2><span class="small muted">${daysDiff(since, todayStr()) + 1 < 90 ? `last ${daysDiff(since, todayStr()) + 1} days` : "last 90 days"}</span></div>
+    <div class="hours" role="img" aria-label="Spending by hour">${order.map(h => `<span title="${hl(h)}: ${money(hrs[h])}" style="height:${Math.max(3, hrs[h] / max * 100).toFixed(0)}%" class="${h === top ? "peak" : ""}"></span>`).join("")}</div>
     <div class="hours-l small muted"><span>6am</span><span>noon</span><span>6pm</span><span>midnight</span></div>
-    <div class="note">Your most expensive hour is <b>${hl(top)}–${hl((top + 1) % 24)}</b> (${money(hrs[top] / 13)} a week on average)${tc ? `, and the peak of the week is <b>${days[+tc[0].split("_")[0]]} at ${hl(+tc[0].split("_")[1])}</b>` : ""}.</div>
+    <div class="note">Your most expensive hour is <b>${hl(top)}–${hl((top + 1) % 24)}</b> (${money(hrs[top] / weeks)} a week on average)${tc ? `, and the peak of the week is <b>${days[+tc[0].split("_")[0]]} at ${hl(+tc[0].split("_")[1])}</b>` : ""}.</div>
   </div>`;
 }
 
@@ -5740,7 +5790,7 @@ function priceHikeCard() {
 
 /* ---------- 17. spending personality ---------- */
 function personality() {
-  const since = addDays(todayStr(), -60), tx = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= since && groupOf(t) !== "debt");
+  const a60 = addDays(todayStr(), -60), since = trackStart() > a60 ? trackStart() : a60, cut = oneOffCut(since), tx = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= since && groupOf(t) !== "debt" && (+t.amount || 0) <= cut);
   if (tx.length < 15) return null;
   const sum = l => l.reduce((a, t) => a + (+t.amount || 0), 0), total = sum(tx) || 1;
   const days = daysDiff(since, todayStr()) + 1;
@@ -5765,7 +5815,7 @@ function personality() {
 }
 function personalityCard() {
   const p = personality(); if (!p) return "";
-  return `<div class="card stack persona"><div class="row"><h2>Your spending style</h2><span class="small muted">last 60 days</span></div>
+  return `<div class="card stack persona"><div class="row"><h2>Your spending style</h2><span class="small muted">${(() => { const n = daysDiff(trackStart(), todayStr()) + 1; return n < 60 ? `last ${n} days` : "last 60 days"; })()}</span></div>
     <div class="pe"><span class="pe-ic" aria-hidden="true">${p.e}</span><div><b>${esc(p.n)}</b><span>${esc(p.d)}</span></div></div>
     <div class="note">💡 ${esc(p.tip)}</div></div>`;
 }
@@ -5842,6 +5892,8 @@ main.addEventListener("click", async e => {
   if (el("#treatEdit")) { openTreatEdit(); return; }
   if (el("#quoteNext")) { newQuote(); S.prevView = "home"; el("#quoteNext").outerHTML = quoteCard(); return; }
   if ((b = el("[data-salary]"))) { dismiss("sal_" + b.dataset.salary); openPayday(); return; }
+  if ((b = el("[data-recvm]"))) { markOwedFrom(b.dataset.recvm, b.dataset.tx); return; }
+  if ((b = el("[data-owmskip]"))) { dismiss("owm_" + b.dataset.owmskip); render(true); return; }
   if ((b = el("[data-exdone]"))) { const t = S.txns.find(x => x.id === b.dataset.exdone); if (!t) return; const c = splitCfg(), hasCard = cardNow().now > 0, save = Math.round(+t.amount * (hasCard ? c.save : c.save + c.card) / 100); const g = S.goals.find(x => x.id === ($("#exPot") || {}).value); try { if (g && save) await db.collection("goals").doc(g.id).update({ saved: (+g.saved || 0) + save }); await db.collection("transactions").doc(t.id).update({ splitDone: { card: c.card, save: c.save, fun: c.fun } }); toast(g ? `${money(save)} added to ${g.name} ✓` : "Done ✓"); } catch {} return; }
   if ((b = el("[data-exskip]"))) { try { await db.collection("transactions").doc(b.dataset.exskip).update({ splitDone: "skip" }); } catch {} return; }
   if (el("#exPct")) { openSplitEdit(); return; }
@@ -5860,7 +5912,7 @@ main.addEventListener("click", async e => {
 /* ---------- Home: only the 2 most important nudges, the rest one tap away ---------- */
 let showAllNudges = false;
 function homeNudges(d) {
-  const list = [stmtBanner(), salaryBanner() || paydayBanner(), homeAlerts(d), stmtDueCard(), extraCard(), treatCard(), leftoverCard(), gapCard(true), carHome(), subAuditHome(), deliveryHome(), worthPrompt(), moodHome(), earlyHome(), rebalanceHome(), weakDayHome(), needCheckHome(), seasonalHome(), roundGoalHome(), yearHome(), smartCard(true)].filter(x => x && x.trim());
+  const list = [stmtBanner(), salaryBanner() || paydayBanner(), homeAlerts(d), owedHome(), stmtDueCard(), extraCard(), treatCard(), leftoverCard(), gapCard(true), carHome(), subAuditHome(), deliveryHome(), worthPrompt(), moodHome(), earlyHome(), rebalanceHome(), weakDayHome(), needCheckHome(), seasonalHome(), roundGoalHome(), yearHome(), smartCard(true)].filter(x => x && x.trim());
   if (list.length <= 2) return list.join("");
   const rest = list.slice(2);
   return list.slice(0, 2).join("") + (showAllNudges ? rest.join("") + `<button type="button" class="nudge-more" data-nudges="less">Show less</button>`
@@ -5872,11 +5924,11 @@ main.addEventListener("click", e => { const b = e.target.closest("[data-nudges]"
 function cardMini() {
   const st = settings(), c = st.card || {}, cc = creditCard(); if (!cc || !(+c.balance > 0) && !c.asOf) return "";
   const cn = cardNow(); if (!(cn.now > 0)) return "";
-  const lim = +cc.limit || 0, used = lim ? Math.min(100, cn.now / lim * 100) : 0, due = c.dueDate ? dayLabel(c.dueDate) : "", cf = cardFreeInfo();
+  const lim = +cc.limit || 0, used = lim ? Math.min(100, cn.now / lim * 100) : 0, due = c.dueDate ? dayLabel(cardDue()) : "", cf = cardFreeInfo();
   return `<a class="card cmini" href="#plan" aria-label="Credit card details">
     <span class="cm-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg></span>
     <span class="cm-mid"><span class="cm-t">Credit card${cc.last4 ? " ••" + esc(cc.last4) : ""}</span>
-      <span class="cm-s">${c.dueDate ? `Due ${esc(toDate(c.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}` : "Owed now"}${cf && cf.end ? ` · free by ${esc(toDate(cf.end).toLocaleDateString("en-GB", { month: "short", year: "numeric" }))}` : ""}</span>
+      <span class="cm-s">${c.dueDate ? `Due ${esc(toDate(cardDue()).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}` : "Owed now"}${cf && cf.end ? ` · free by ${esc(toDate(cf.end).toLocaleDateString("en-GB", { month: "short", year: "numeric" }))}` : ""}</span>
       ${lim ? `<span class="cm-bar" title="${used.toFixed(0)}% of your limit"><i style="width:${used.toFixed(1)}%"></i></span>` : ""}</span>
     <span class="cm-amt"><b class="num">${money(cn.now)}</b><span>${lim ? used.toFixed(0) + "% of limit" : "owed"}</span></span>
   </a>`;
@@ -6078,7 +6130,7 @@ function streaksCard() {
 
 /* ---------- 5. spending DNA ---------- */
 function dnaCard() {
-  const since = addDays(todayStr(), -90), tx = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= since && groupOf(t) !== "debt"); if (tx.length < 15) return "";
+  const since = pattSince(), cut = oneOffCut(since), tx = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= since && groupOf(t) !== "debt" && (+t.amount || 0) <= cut); if (tx.length < 15) return "";
   const sum = l => l.reduce((a, t) => a + (+t.amount || 0), 0), total = sum(tx);
   const shops = {}; for (const t of tx) { const k = shopName(t) || "Other"; shops[k] = (shops[k] || 0) + (+t.amount || 0); }
   const top = Object.entries(shops).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -6087,7 +6139,7 @@ function dnaCard() {
   const want = sum(tx.filter(t => groupOf(t) === "want")) / (total || 1), imp = impulseShare(since);
   const prev = S.txns.filter(t => isSpend(t) && t.kind === "expense" && t.date >= addDays(since, -90) && t.date < since && groupOf(t) !== "debt"), chg = prev.length >= 15 && firstTxDate() <= addDays(since, -80) ? pct(total - sum(prev), sum(prev)) : null;
   const hl = h => `${(h % 12) || 12}${h < 12 ? "am" : "pm"}`, th = hr.indexOf(Math.max(...hr));
-  return `<div class="card stack dna"><div class="row"><h2>Your spending DNA</h2><span class="small muted">last 90 days</span></div>
+  return `<div class="card stack dna"><div class="row"><h2>Your spending DNA</h2><span class="small muted">${daysDiff(since, todayStr()) + 1 < 90 ? `last ${daysDiff(since, todayStr()) + 1} days` : "last 90 days"}</span></div>
     <div class="dna-grid">
       <div><span>Top shops</span><b>${top.map(x => esc(x[0])).join(", ")}</b></div>
       <div><span>Busiest day</span><b>${WD[wd.indexOf(Math.max(...wd))]}</b></div>
@@ -6336,13 +6388,14 @@ const dm = ds => toDate(ds).toLocaleDateString("en-GB", { day: "numeric", month:
 function storyCard(key) {
   const today = todayStr(), end = pEndStr(key), done = today > end, day = elapsedDays(key); if (!done && day < 20) return "";
   const lim = +settings().weekLimit || 0, weeks = []; for (let ws = wkStart(pStart(key)); ws <= (done ? end : today); ws = addDays(ws, 7)) { const a = ws < pStart(key) ? pStart(key) : ws, b = wkEnd(ws) > end ? end : wkEnd(ws); weeks.push({ ws, a, b, v: weekSpend(a, b) }); }
-  const full = weeks.filter(w => daysDiff(w.a, w.b) >= 3 && (done || w.b < today)); if (full.length < 2) return "";
+  const ts = trackStart(), from = ts > pStart(key) ? ts : pStart(key);
+  const full = weeks.filter(w => daysDiff(w.a, w.b) >= 3 && (done || w.b < today) && w.a >= ts); if (full.length < 2) return "";
   const best = full.slice().sort((x, y) => x.v - y.v)[0], worst = full.slice().sort((x, y) => y.v - x.v)[0];
   const big = S.txns.filter(t => isSpend(t) && t.kind === "expense" && inP(t.date, key) && groupOf(t) !== "debt").sort((a, b) => b.amount - a.amount)[0];
-  const d = periodData(key), ns = daysBetween(pStart(key), done ? end : today).filter(x => !S.txns.some(t => isSpend(t) && t.kind === "expense" && t.date === x)).length;
+  const d = periodData(key), ns = daysBetween(from, done ? end : today).filter(x => !S.txns.some(t => isSpend(t) && t.kind === "expense" && t.date === x)).length;
   const first10 = spendBetween(pStart(key), addDays(pStart(key), 9)) / (d.spend || 1);
   const lines = [
-    first10 > 0.45 ? `🚀 A strong start: ${pct(first10, 1)}% of the month went in the first 10 days.` : `🌱 A calm start: ${pct(first10, 1)}% in the first 10 days.`,
+    from > pStart(key) ? "" : first10 > 0.45 ? `🚀 A strong start: ${pct(first10, 1)}% of the month went in the first 10 days.` : `🌱 A calm start: ${pct(first10, 1)}% in the first 10 days.`,
     `📈 The busiest week was the week of ${dm(worst.a)}: ${money(worst.v)}${lim ? (worst.v > lim ? `, over the ${money(lim)} limit` : "") : ""}.`,
     big ? `💥 Biggest purchase: ${esc(shopName(big))}, ${money(big.amount)} on ${dm(big.date)}.` : "",
     `🏅 Best week: the week of ${dm(best.a)}, only ${money(best.v)}.`,
