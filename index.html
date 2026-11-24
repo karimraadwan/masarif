@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-7wuebwZc+FPDQWjXA3Wuya2sbmuAgKr8gCATjJEdhQE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-kIiQTG00XiYQLUW2qMCaxGVReAXRnSvlFZ9JEYGZdOk='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1864,7 +1864,7 @@ function weekData(ws) {
       if (groupOfCat(p.categoryId) === "debt") continue;
       const k = catById(p.categoryId) ? p.categoryId : "_none";
       byCat[k] = (byCat[k] || 0) + p.v;  /* a category's own weekly limit still sees its spending */
-      const c0 = catById(p.categoryId); if (c0 && c0.noWeek) { outside += p.v; continue; }
+      const c0 = catById(p.categoryId); if ((c0 && c0.noWeek) || t.noWeek) { outside += p.v; continue; }
       total += p.v; counted = true;
     }
     if (counted) n++;
@@ -2855,7 +2855,7 @@ function homeHero() {
       <div class="hero-track" aria-hidden="true"><i style="width:${gone.toFixed(0)}%"></i><b style="left:${gone.toFixed(0)}%"></b></div>
       <div class="hero-ends" aria-hidden="true"><span>${esc(toDate(pStart(key)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span><span>${esc(payday)}</span></div>
       <div class="hero-foot"><span class="upd">${stale >= 7 ? `<b class="stale">Balance updated ${stale} days ago. Please update.</b>` : `<i aria-hidden="true"></i>${esc(snapLabel(accountNow().asOf, accountNow().asOfTime) + (accountNow().fromText ? " from your bank text" : ""))}`}</span><button type="button" class="hero-btn sm" id="updBal" data-bal aria-label="Update bank balance">✎ Edit</button></div>
-      ${h.level === "bad" && !emergencyOn() ? `<button type="button" class="hero-em" data-emerg="on"><span>Money tight? Try emergency mode</span><span aria-hidden="true">›</span></button>` : ""}
+      ${h.level === "bad" && !emergencyOn() && (h.free < 0 || (h.al && h.perDay < h.al.base * 0.5)) ? `<button type="button" class="hero-em" data-emerg="on"><span>Money tight? Try emergency mode</span><span aria-hidden="true">›</span></button>` : ""}
     </div>`;
 }
 function homeTiles(d) {
@@ -3565,6 +3565,7 @@ function openTx(id, preset) {
       <div class="grid2" id="fuelBox" hidden>
         <label class="field"><span>Litres (optional)</span><input type="text" inputmode="decimal" id="tLit" value="${v.litres ? esc(v.litres) : ""}" placeholder="e.g. 35"></label>
         <label class="field"><span>Odometer km (optional)</span><input type="text" inputmode="numeric" id="tOdo" value="${v.odo ? esc(v.odo) : ""}" placeholder="e.g. 84,250"></label></div>
+      <label class="check" id="noWkBox"><input type="checkbox" id="tNoWk" ${v.noWeek ? "checked" : ""}><span>Not counted in this week's limit (a one-off like a bill or paying someone back; still counts for the month)</span></label>
       <label class="check" id="rememberBox" ${v.merchant ? "" : "hidden"}><input type="checkbox" id="tRem"><span>Always put <b id="remName">${esc(v.merchant)}</b> in this category</span></label>
       <div class="field" id="tPayWrap"><span>Paid with</span><div class="paychips">${payChips}</div></div>
       <div class="dt-row">
@@ -3654,6 +3655,7 @@ function openTx(id, preset) {
     if (!$("#fuelBox").hidden) { data.litres = numIn($("#tLit").value) || ""; data.odo = numIn($("#tOdo").value) || ""; }
     if (data.kind === "expense") { data.worth = worth; data.plan = plan; data.social = social; } else data.worth = "";
     data.reviewed = true;
+    data.noWeek = !!($("#tNoWk") && $("#tNoWk").checked && data.kind === "expense");
     if (!t && preset && preset.treat) data.treat = true;
     if (!t && typeof TX_LOC !== "undefined" && TX_LOC) data.loc = TX_LOC;
     /* a new entry for today with no time gets "now", so it sorts after this morning's bank texts */
@@ -4059,7 +4061,7 @@ function healthHero() {
       </div>
       <div class="hero-track" aria-hidden="true"><i style="width:${Math.min(100, Math.max(3, (1 - h.days / Math.max(1, daysDiff(pStart(key), pNext(key)))) * 100)).toFixed(0)}%"></i><b style="left:${Math.min(100, Math.max(3, (1 - h.days / Math.max(1, daysDiff(pStart(key), pNext(key)))) * 100)).toFixed(0)}%"></b><span class="ht-a">${esc(toDate(pStart(key)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span><span class="ht-b">💰 ${esc(payday)}</span></div>
       <div class="hero-foot"><span>${balanceStale() >= 7 ? `<b class="stale">Updated ${balanceStale()} days ago. Please update.</b>` : esc(snapLabel(accountNow().asOf, accountNow().asOfTime) + (accountNow().fromText ? " from your bank text" : ""))} · payday ${esc(payday)}, in ${plural(h.days, "day")}</span><button type="button" class="hero-btn sm" data-bal aria-label="Edit bank balance">✎ Edit</button></div>
-      ${h.level === "bad" && !emergencyOn() ? `<button type="button" class="hero-em" data-emerg="on"><span>Money tight? Try emergency mode</span><span aria-hidden="true">›</span></button>` : ""}
+      ${h.level === "bad" && !emergencyOn() && (h.free < 0 || (h.al && h.perDay < h.al.base * 0.5)) ? `<button type="button" class="hero-em" data-emerg="on"><span>Money tight? Try emergency mode</span><span aria-hidden="true">›</span></button>` : ""}
     </div>`;
 }
 
@@ -5363,7 +5365,7 @@ function spendBetween(a, b, wk) {
   for (const t of S.txns) {
     if (t.deleted || !t.date || t.date < a || t.date > b || isFlow(t) || t.treat) continue;
     if (typeof seasonOf === "function" && seasonOf(t)) continue;
-    for (const p of catParts(t)) if (groupOfCat(p.categoryId) !== "debt" && !(wk && (catById(p.categoryId) || {}).noWeek)) sum += p.v;
+    for (const p of catParts(t)) if (groupOfCat(p.categoryId) !== "debt" && !(wk && ((catById(p.categoryId) || {}).noWeek || t.noWeek))) sum += p.v;
   }
   return sum;
 }
