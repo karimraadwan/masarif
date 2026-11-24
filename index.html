@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-p8suABD3ltL6siZafaSvndk9tJ9zbUD82QQSFP1BlDg='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-7wuebwZc+FPDQWjXA3Wuya2sbmuAgKr8gCATjJEdhQE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1509,7 +1509,7 @@ const creditCard = () => cards().find(c => c.type === "credit") || null;
 const cardColor = c => c ? (safeCol(c.color) || TYPE_COLOR[c.type] || "#64748B") : NONE_COLOR;
 const cardLabel = c => c ? c.name + (c.last4 ? " ••" + c.last4 : "") : "Card not set";
 const INCOME_RE = /إلى حسابك|الى حسابك|لحسابك|تم اضافة|تم إضافة|تمت اضافة|تمت إضافة|اضافة مبلغ|إضافة مبلغ|to your account|credited to your account|transfer received|received a transfer/i;
-const REFUND_RE = /refund|reversal|reversed|cashback|تم رد|رد مبلغ|استرداد|ارجاع|إرجاع|مرتجع/i;
+const REFUND_RE = /refund|reversal|reversed|cashback|تم اضافة المعاملة|تم إضافة المعاملة|تم رد|رد مبلغ|استرداد|ارجاع|إرجاع|مرتجع/i;
 /* texts from other banks/accounts that never touch your CIB money (e.g. the ALEXBANK salary account you move money from by hand) */
 const IGNORE_DEFAULT = ["ALEXBANK", "19033"];
 const ignoreList = () => (Array.isArray(settings().ignoreTexts) ? settings().ignoreTexts : IGNORE_DEFAULT).map(x => String(x).trim()).filter(Boolean);
@@ -1538,11 +1538,27 @@ function detectCard(text) {
 
 /* ---------- periods (month starting on a chosen day) ---------- */
 const startDay = () => Math.min(28, Math.max(1, parseInt(settings().startDay, 10) || 1));
-const pStart = key => key + "-" + pad(startDay());
+const baseStart = key => key + "-" + pad(startDay());
+/* when the salary lands up to 3 days before your start day, the new budget month starts that day, so payday money and bills aren't counted in the old month */
+let _early = { arr: null, sig: "", map: {}, at: 0 };
+function earlyStarts() {
+  const txs = (typeof S !== "undefined" && S.txns) || [], sal = (S.settings && +S.settings.salary) || 0;
+  const sig = txs.length + "|" + sal + "|" + startDay();
+  if (_early.arr === txs && sig === _early.sig && Date.now() - _early.at < 2000) return _early.map;
+  const map = {};
+  _early = { arr: txs, sig, map, at: Date.now() }; /* set first so isSalary → … can't loop */
+  for (const t of txs) {
+    if (t.deleted || t.kind !== "income" || !t.date || !(+t.amount >= sal * 0.1) || !isSalary(t)) continue;
+    const ym = t.date.slice(0, 7), k = +t.date.slice(8, 10) >= startDay() ? ym : shiftMonth(ym, -1), next = shiftMonth(k, 1), d = daysDiff(t.date, baseStart(next));
+    if (d >= 1 && d <= 3 && (!map[next] || t.date < map[next])) map[next] = t.date;
+  }
+  return map;
+}
+const pStart = key => earlyStarts()[key] || baseStart(key);
 const pNext = key => pStart(shiftMonth(key, 1));
 const pEndStr = key => { const d = toDate(pNext(key)); d.setDate(d.getDate() - 1); return toStr(d); };
 const inP = (date, key) => !!date && date >= pStart(key) && date < pNext(key);
-const pKeyOf = date => { const ym = date.slice(0, 7); return +date.slice(8, 10) >= startDay() ? ym : shiftMonth(ym, -1); };
+const pKeyOf = date => { const ym = date.slice(0, 7), k = +date.slice(8, 10) >= startDay() ? ym : shiftMonth(ym, -1), nk = shiftMonth(k, 1), e = earlyStarts()[nk]; return e && date >= e ? nk : k; };
 const curKey = () => pKeyOf(todayStr());
 function pLabel(key, long) {
   if (startDay() === 1) return monthLabel(key);
@@ -1613,7 +1629,7 @@ function parseShortcutFile(text) {
       if (!amount) continue;
       const kind = kindOf(sms);
       rows.push({ id: "s_" + hash(line), date: parseDate(dateIn(sms), "dmy") || parseDate(parts[0], order) || todayStr(), time: parseTime(sms) || parseTime(parts[0]),
-        amount, merchant: shopFor(sms, kind, kind === "expense" || kind === "refund" ? parts[2] : ""), raw: line, source: "shortcut", kind, cardId });
+        timeGuess: !parseTime(sms), amount, merchant: shopFor(sms, kind, kind === "expense" || kind === "refund" ? parts[2] : ""), raw: line, source: "shortcut", kind, cardId });
       continue;
     }
     const amount = parseAmount(parts[1]);
@@ -1788,10 +1804,28 @@ function afterSnap(t, d, tm) {
   return t.date === d && !!tm && !!ht && ht > tm;
 }
 /* Bank account now = balance you copied from the CIB app − debit purchases and card payments since + refunds and money in since */
+/* Some CIB texts ("debited … On 24 NOV 2026") carry no time, so we use the time they arrived, which can be after a newer balance text that already includes them.
+   Check with the balance before: if that text's amount explains the gap between the two balance texts, it happened before the newer one. */
+function inAnchor(an, debitIds) {
+  const guess = S.txns.filter(t => t.timeGuess && !t.deleted && t.date === an.t.date && tKey(t) > tKey(an.t) && (t.kind === "payment" || (debitIds.has(t.cardId) && t.kind !== "income")));
+  if (!guess.length) return new Set();
+  let prev = null;
+  for (const t of S.txns) { if (t.deleted || !t.date || !debitIds.has(t.cardId) || tKey(t) >= tKey(an.t)) continue; const v = balanceFromText(t.raw); if (v == null || !isFinite(v)) continue; if (!prev || tKey(t) > tKey(prev.t)) prev = { t, v }; }
+  if (!prev) return new Set();
+  let exp = prev.v;
+  for (const t of S.txns) {
+    if (t.deleted || !t.date || t.timeGuess || tKey(t) <= tKey(prev.t) || tKey(t) > tKey(an.t)) continue;
+    const v = +t.amount || 0;
+    if (t.kind === "income") exp += v; else if (t.kind === "payment") exp -= v; else if (debitIds.has(t.cardId)) exp += t.kind === "refund" ? v : -v;
+  }
+  let gap = exp - an.v; const out = new Set();
+  for (const t of guess.sort((x, y) => (+y.amount || 0) - (+x.amount || 0))) { const v = +t.amount || 0; if (gap - v > -Math.max(50, v * 0.01)) { out.add(t.id); gap -= v; } }
+  return out;
+}
 function accountNow() {
   const a = settings().account, debitIds = new Set(cards().filter(c => c.type !== "credit").map(c => c.id));
-  const an = textAnchor(debitIds, balanceFromText, a.asOf, a.asOfTime);
-  const after = t => an ? tKey(t) > tKey(an.t) : afterSnap(t, a.asOf, a.asOfTime);
+  const an = textAnchor(debitIds, balanceFromText, a.asOf, a.asOfTime), inside = an ? inAnchor(an, debitIds) : new Set();
+  const after = t => an ? tKey(t) > tKey(an.t) && !inside.has(t.id) : afterSnap(t, a.asOf, a.asOfTime);
   let out = 0, inn = 0;
   for (const t of S.txns) {
     if (t.deleted || !t.date || t.date > todayStr() || !after(t)) continue;
@@ -2120,6 +2154,19 @@ async function processInbox() {
     t.amount = r.amount; t.fx = r.fx;
     await db.collection("transactions").doc(t.id).update({ amount: r.amount, fx: r.fx, note: t.note || `${fx.cur} ${fx.amt.toFixed(2)}` });
   }
+  /* texts saved by an older version of the app, read again with today's rules:
+     a reversal ("تم اضافة المعاملة") is a refund, a "transfer to another account" of your planned card payment is the card payment,
+     and a text with no time of its own is marked so the bank balance check can place it */
+  { const cc0 = creditCard(), pay0 = +settings().card.payment || 0;
+    for (const t of S.txns) {
+      if (t.deleted || t.source !== "sync" || !t.raw) continue;
+      const body = String(t.raw).split("|").slice(3).join("|"), up = {};
+      if (t.kind === "income" && /تم اضافة المعاملة|تم إضافة المعاملة/.test(body)) up.kind = "refund";
+      if ((t.kind || "expense") === "expense" && cc0 && pay0 > 0 && Math.abs((+t.amount || 0) - pay0) <= 1 && /transfer to\s+another account|تحويل (?:إلى|الى) حساب آخر/i.test(body)) Object.assign(up, { kind: "payment", merchant: "Credit card payment", categoryId: "debt", cardId: cc0.id });
+      if (!t.timeGuess && body && !parseTime(body)) up.timeGuess = true;
+      if (Object.keys(up).length) { Object.assign(t, up); await db.collection("transactions").doc(t.id).update(up); }
+    }
+  }
   /* refunds saved from a "request received" text, once the real refund text is in, would count twice */
   for (const t of S.txns) {
     if (t.deleted || t.source !== "sync" || t.kind !== "refund" || !PENDING_RE.test(t.raw || "")) continue;
@@ -2127,7 +2174,10 @@ async function processInbox() {
     if (real) { t.deleted = true; await db.collection("transactions").doc(t.id).update({ deleted: true }); }
   }
   const done = [];
+  const cardPay = +settings().card.payment || 0;
   for (const r of rows) {
+    /* CIB's "debited … transfer to another account" for exactly your planned card payment is the card payment */
+    if ((r.kind || "expense") === "expense" && cc && cardPay > 0 && Math.abs(r.amount - cardPay) <= 1 && /transfer to\s+another account|تحويل (?:إلى|الى) حساب آخر/i.test(r.raw || "")) { r.kind = "payment"; r.merchant = "Credit card payment"; }
     const cardId = r.kind === "payment" ? (cc ? cc.id : null) : (r.cardId || defCard);
     r.cardId = cardId; fxFix(r, done); done.push(r);
     /* the same purchase or card payment already added by hand (within 2 days, same amount): link the bank text to it instead of counting it twice */
@@ -2142,7 +2192,7 @@ async function processInbox() {
     }
     await db.collection("transactions").doc(r.id).set({ date: r.date, time: r.time || "", amount: r.amount, kind: r.kind || "expense",
       merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: r.fx ? `${r.fx.cur} ${r.fx.amt.toFixed(2)}` : "", ...(r.fx ? { fx: r.fx } : {}), categoryId: cat,
-      cardId, source: "sync", raw: r.raw, createdAt: Date.now() });
+      cardId, source: "sync", raw: r.raw, ...(r.timeGuess ? { timeGuess: true } : {}), ...(r.kind === "payment" ? { categoryId: "debt" } : {}), createdAt: Date.now() });
   }
   S.sync.added = rows.length;
 }
@@ -2628,15 +2678,22 @@ function creditHomeCard() {
 }
 /* Fixed payments that have a day set, placed on their date inside this month */
 /* a bill counts as paid when a debit/transfer of the same amount (±1 EGP) shows up from 5 days before to 7 days after its date, inside the month */
-function billPaidByText(amt, ds, ps, pn) {
+/* a bill can arrive a little different (fees, rounding: Valu 2,114 for a 2,084 installment): within 5% counts when the shop name matches the bill's name */
+function billNameHit(t, name) {
+  const w = x => String(x || "").toLowerCase().split(/[^a-z\u0600-\u06ff]+/).filter(v => v.length >= 3);
+  const nw = w(name), tw = w(t.merchant);
+  return nw.some(a => tw.some(b => a.startsWith(b) || b.startsWith(a)));
+}
+const billAmtOk = (t, amt, name) => { const v = +t.amount || 0; return Math.abs(v - amt) <= 1 || (!!name && Math.abs(v - amt) <= amt * 0.05 && billNameHit(t, name)); };
+function billPaidByText(amt, ds, ps, pn, name) {
   if (!(amt > 0)) return false;
   const lo = addDays(ds, -5), hi = addDays(ds, 7), credit = new Set(cards().filter(c => c.type === "credit").map(c => c.id));
-  return S.txns.some(t => !t.deleted && t.date && t.date >= lo && t.date <= hi && t.date >= ps && t.date < pn && (t.kind === "expense" || t.kind === "payment") && !credit.has(t.cardId) && Math.abs((+t.amount || 0) - amt) <= 1);
+  return S.txns.some(t => !t.deleted && t.date && t.date >= lo && t.date <= hi && t.date >= ps && t.date < pn && (t.kind === "expense" || t.kind === "payment") && !credit.has(t.cardId) && billAmtOk(t, amt, name));
 }
 function billMatch(t, cache) {
   if (!t || t.kind !== "expense") return false;
   const k = pKeyOf(t.date), c = cache || {}; if (!c[k]) c[k] = billsFor(k);
-  return c[k].some(b => b.auto && Math.abs(b.amount - (+t.amount || 0)) <= 1 && t.date >= addDays(b.date, -5) && t.date <= addDays(b.date, 7));
+  return c[k].some(b => b.auto && billAmtOk(t, b.amount, b.name) && t.date >= addDays(b.date, -5) && t.date <= addDays(b.date, 7));
 }
 function billsFor(key) {
   const ps = pStart(key), pn = pNext(key), done = (S.checks[key] || {}).bills || {};
@@ -2647,7 +2704,7 @@ function billsFor(key) {
     for (let i = 0; i < 32; i++) {
       const ds = toStr(d); if (ds >= pn) break;
       const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-      if (d.getDate() === Math.min(day, last)) { const amt = +f.amount || 0, auto = done[f.name] === undefined && billPaidByText(amt, ds, ps, pn); out.push({ id: f.name, name: f.name, amount: amt, date: ds, paid: done[f.name] === true || auto, auto }); break; }
+      if (d.getDate() === Math.min(day, last)) { const amt = +f.amount || 0, auto = done[f.name] === undefined && billPaidByText(amt, ds, ps, pn, f.name); out.push({ id: f.name, name: f.name, amount: amt, date: ds, paid: done[f.name] === true || auto, auto }); break; }
       d.setDate(d.getDate() + 1);
     }
   });
@@ -2820,7 +2877,7 @@ function homeTiles(d) {
   }
   const rc = reviewCount();
   if (rc) out.push(tile({ k: "To review", ic: tlIc("review"), c: "var(--warn-ink)", v: plural(rc, "text"), s: "Tap to sort them", tone: "warn", badge: rc, attr: "data-review" }));
-  if (out.length < 4) out.push(tile({ k: "Spent this month", ic: tlIc("month"), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense").length, "purchase"), href: "#txns", attr: 'data-mspent' }));
+  if (out.length < 4) out.push(tile({ k: "Spent this month", ic: tlIc("month"), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && groupOf(t) !== "debt").length, "purchase"), href: "#txns", attr: 'data-mspent' }));
   return `<div class="bento">${out.join("")}</div>`;
 }
 /* one suggestion at a time; the rest one tap away */
@@ -2973,7 +3030,7 @@ function spendTiles() {
   const ch = before ? (d.spend - before) / before * 100 : null;
   const prevName = toDate(pStart(prevK)).toLocaleDateString("en-GB", { month: "long" });
   return `<div class="bento sum2">
-    ${tile({ k: isCur ? "Spent this month" : "Spent in " + esc(pLabel(k)), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense").length, "purchase") + (d.byGroup.debt ? ` · plus ${money(d.byGroup.debt)} card & loan` : ""), attr: 'data-sum="m"' })}
+    ${tile({ k: isCur ? "Spent this month" : "Spent in " + esc(pLabel(k)), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && groupOf(t) !== "debt").length, "purchase") + (d.byGroup.debt ? ` · plus ${money(d.byGroup.debt)} card & loan` : ""), attr: 'data-sum="m"' })}
     ${tile({ k: isCur ? "vs last month" : "vs the month before", v: ch == null ? "–" : `${ch > 0 ? "▲" : "▼"} ${Math.abs(Math.round(ch))}% ${ch > 0 ? "more" : "less"}`, s: trackStart() > pStart(prevK) ? "Masarif started this month, so there's nothing to compare yet" : isCur ? `same ${plural(n, "day")} · ${money(before)}` : money(before), tone: ch != null && ch > 10 ? "bad" : "", attr: 'data-sum="c"' })}
   </div>`;
 }
@@ -4616,7 +4673,7 @@ function catLimitsCard(d) {
 function insTiles(key, d) {
   const sc = monthScore(key), over = limitStatus(d).over.length, cur = key === curKey();
   return `<div class="bento">
-    ${tile({ k: cur ? "Spent so far" : "Spent", v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense").length, "purchase"), href: "#txns", attr: 'data-mspent' })}
+    ${tile({ k: cur ? "Spent so far" : "Spent", v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && groupOf(t) !== "debt").length, "purchase"), href: "#txns", attr: 'data-mspent' })}
     ${tile({ k: d.left < 0 ? "Over your plan" : "Left to spend", v: money(Math.abs(d.left)), s: d.left < 0 ? "spent more than the plan allows" : cur ? "until payday" : "at the end", tone: d.left < 0 ? "bad" : "" })}
     ${tile({ k: "Month score", v: String(sc.score), s: esc(scoreWord(sc.score)) })}
     ${tile({ k: "Over a limit", v: over ? plural(over, "category", "categories").replace("categorys", "categories") : "None", s: over ? "see the list below" : "all within limits", tone: over ? "bad" : "" })}
@@ -5431,8 +5488,10 @@ function isSalary(t) {
   const sal = +settings().salary || 0, txt = (t.merchant || "") + " " + (t.raw || "");
   if (/salary|payroll|راتب|مرتب/i.test(txt) || (sal > 0 && +t.amount >= sal * 0.6)) return true;
   /* salary moved over in parts (e.g. two transfers from your salary account on the same day) */
-  if (!(sal > 0) || +t.amount < sal * 0.2 || !t.date) return false;
-  const parts = S.txns.filter(x => x !== t && x.id !== t.id && !x.deleted && x.kind === "income" && x.date && Math.abs(daysDiff(x.date, t.date)) <= 1 && +x.amount >= sal * 0.2);
+  if (!(sal > 0) || !t.date) return false;
+  const who = String(t.merchant || "").trim().toLowerCase(), same = x => !!who && String(x.merchant || "").trim().toLowerCase() === who;
+  const parts = S.txns.filter(x => x !== t && x.id !== t.id && !x.deleted && x.kind === "income" && x.date && Math.abs(daysDiff(x.date, t.date)) <= 1 && (+x.amount >= sal * 0.2 || same(x)));
+  if (+t.amount < sal * 0.2 && !parts.some(x => same(x) && +x.amount >= sal * 0.2)) return false;
   return parts.reduce((a, x) => a + (+x.amount || 0), +t.amount) >= sal * 0.6;
 }
 function salaryBanner() {
@@ -5440,7 +5499,8 @@ function salaryBanner() {
   if (!t || dismissed("sal_" + t.id)) return "";
   const ck = S.checks[pKeyOf(t.date)] || {}, ck2 = S.checks[curKey()] || {};
   if (ck.payday || ck2.payday) return "";
-  return `<button type="button" class="act payday" data-salary="${esc(t.id)}"><span class="act-ic" aria-hidden="true">💰</span><span><b>Salary in: ${money(t.amount)}</b><span>${(() => { const co = carryOver(); return co && co.move >= 100 ? `You kept ${money(co.move)} from last month: move it to savings first` : "Plan the month in 2 minutes before it starts disappearing"; })()}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
+  const total = S.txns.filter(x => isSalary(x) && Math.abs(daysDiff(x.date, t.date)) <= 1).reduce((a, x) => a + (+x.amount || 0), 0);
+  return `<button type="button" class="act payday" data-salary="${esc(t.id)}"><span class="act-ic" aria-hidden="true">💰</span><span><b>Salary in: ${money(total)}</b><span>${(() => { const co = carryOver(); return co && co.move >= 100 ? `You kept ${money(co.move)} from last month: move it to savings first` : "Plan the month in 2 minutes before it starts disappearing"; })()}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
 }
 
 /* ---------- 4. extra money splitter ---------- */
