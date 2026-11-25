@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-4OsvkmwJFIxgMLKfrHccq6XcSkCbn3buwDlI8XOP6B8='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-ycKY756yazWkhtJYlR8pwLobJcGTqKn2NNHsykgNdyo='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2887,7 +2887,7 @@ function homeHero() {
   return `<div class="hero h-${h.level} hero2">
       <div class="row"><div class="label">Safe to spend today</div><span class="hero-tag"><i></i>${word}</span></div>
       <div class="big num ${h.todaySafe < 1 && h.by === "bank" ? "word" : ""}">${h.todaySafe < 1 && h.by === "bank" ? "Essentials only" : `<small>EGP</small>${fmt(Math.max(0, h.todaySafe))}`}</div>
-      ${h.todaySafe < 0 ? `<div class="sub"><b>${h.al && h.al.spent >= -h.todaySafe ? "Over today's share by" : "Behind this week's pace by"} <span class="num">${money(-h.todaySafe)}</span>.</b> Each day under ${money(h.al ? h.al.base : 0)} wins some back.</div>` : ""}
+      ${h.todaySafe < 0 ? `<div class="sub"><b>${h.by === "bank" || (h.al && h.al.spent >= -h.todaySafe) ? "Over today's share by" : "Behind this week's pace by"} <span class="num">${money(-h.todaySafe)}</span>.</b> ${h.by === "bank" ? `You spent ${money(h.spentToday)} today against ${money(h.dayStart)} a day.` : `Each day under ${money(h.al ? h.al.base : 0)} wins some back.`}</div>` : h.spentToday > 0 ? `<div class="sub">${money(h.spentToday)} spent today.</div>` : ""}
       <div class="sub"><b class="num">${money(h.an.now)}</b> in your bank · payday ${esc(payday)}, in ${plural(h.days, "day")}${h.by === "week" && h.todaySafe >= 0 ? `<br>Set by your weekly limit (${money(h.al.base)} a day). Your bank alone could cover ${money(h.perDay)} a day.` : ""}${h.level !== "good" && h.why && !(h.todaySafe < 0 && /today's share/.test(h.why)) ? `<br>${esc(h.why)}` : ""}</div>
       <div class="hero-track" aria-hidden="true"><i style="width:${gone.toFixed(0)}%"></i><b style="left:${gone.toFixed(0)}%"></b></div>
       <div class="hero-ends" aria-hidden="true"><span>${esc(toDate(pStart(key)).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span><span>${esc(payday)}</span></div>
@@ -4074,10 +4074,16 @@ function healthOf() {
   /* today's amount is the smaller of: what the bank can carry per day until payday, and what's left of today's share of the weekly limit */
   const base = allowAmt(); let al = null;
   if (base) { const before = dayN > 1 ? weekSpend(ws, addDays(today, -1)) : 0, spent = weekSpend(today, today); al = { base, spent, left: base * dayN - before - spent }; }
-  const todaySafe = al ? Math.min(perDay, al.left) : perDay;
-  const by = al && al.left < perDay ? "week" : "bank";
+  /* the bank's share for today = what you could spend per day as the day started, minus what you've already spent today.
+     (A card payment isn't spending: it lowers the balance for the rest of the month instead of using up today.) */
+  const debitIds = new Set(cards().filter(c => c.type !== "credit").map(c => c.id));
+  let bankToday = 0; for (const t of S.txns) if (!t.deleted && t.date === today && debitIds.has(t.cardId) && isSpend(t)) bankToday += signed(t);
+  const spentToday = weekSpend(today, today), dayStart = Math.max(0, free + bankToday) / days;
+  const bankLeft = an.set ? dayStart - spentToday : perDay;
+  const todaySafe = al ? Math.min(bankLeft, al.left) : bankLeft;
+  const by = al && al.left < bankLeft ? "week" : "bank";
   if (todaySafe < 0 && level === "good") { level = "warn"; why = "You've used today's share of your weekly limit."; }
-  return { level, why, an, toPay, days, free, perDay, todaySafe, by, al };
+  return { level, why, an, toPay, days, free, perDay, todaySafe, by, al, dayStart, spentToday };
 }
 function healthHero() {
   const st = settings(), h = healthOf(), key = curKey();
@@ -6728,7 +6734,7 @@ function speedGauge() {
 /* ---------- 29. round number goals ---------- */
 function roundGoalHome() {
   const cn = cardNow(); const out = [];
-  if (cn.now > 0) { const step = cn.now > 50000 ? 10000 : 5000, below = Math.floor(cn.now / step) * step, gap = cn.now - below; if (below > 0 && gap > 0 && gap <= step * 0.2) out.push({ k: "card_" + below, t: `${money(gap)} more and the card goes under ${fmt(below)} 🎯` }); }
+  if (cn.now > 0) { const step = cn.now > 50000 ? 10000 : 5000, below = Math.floor(cn.now / step) * step, gap = cn.now - below; if (below > 0 && gap > 0 && gap <= step * 0.2) out.push({ k: "card_" + below, t: (() => { const lp = S.txns.filter(t => !t.deleted && t.kind === "payment" && daysDiff(t.date, todayStr()) <= 3).sort((x, y) => tKey(y).localeCompare(tKey(x)))[0]; return `${lp ? `Your ${money(lp.amount)} card payment is in: you now owe ${money(cn.now)}. ` : `You owe ${money(cn.now)} on the card. `}Paying ${money(gap)} more would take it under ${fmt(below)} 🎯`; })() }); }
   for (const g of S.goals) { const s = +g.saved || 0, step = 10000, next = (Math.floor(s / step) + 1) * step, gap = next - s; if (s > 0 && gap <= 2000 && next <= (+g.target || Infinity)) out.push({ k: "pot_" + g.id + next, t: `${money(gap)} more and ${g.name} reaches ${fmt(next)} 🎯` }); }
   const x = out.find(o => !dismissed("rg_" + o.k)); if (!x) return "";
   return `<div class="card mini-alert good"><span>🎯</span><span><b>${esc(x.t)}</b></span><button type="button" class="link-btn" data-xk="rg_${esc(x.k)}">OK</button></div>`;
