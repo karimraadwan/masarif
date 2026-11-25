@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-yP3gpaen5RFusLaHCu6XjQykKcwuELw1hNNO1NGmKgg='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-4OsvkmwJFIxgMLKfrHccq6XcSkCbn3buwDlI8XOP6B8='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2193,8 +2193,15 @@ async function processInbox() {
       if (t.kind === "income" && /تم اضافة المعاملة|تم إضافة المعاملة/.test(body)) up.kind = "refund";
       if ((t.kind || "expense") === "expense" && cc0 && pay0 > 0 && Math.abs((+t.amount || 0) - pay0) <= 1 && /transfer to\s+another account|تحويل (?:إلى|الى) حساب آخر/i.test(body)) Object.assign(up, { kind: "payment", merchant: "Credit card payment", categoryId: "debt", cardId: cc0.id });
       if (!t.timeGuess && body && !parseTime(body)) up.timeGuess = true;
+      if (/^another account$/i.test(t.merchant || "") && !up.merchant) up.merchant = "Bank transfer";
       if (Object.keys(up).length) { Object.assign(t, up); await db.collection("transactions").doc(t.id).update(up); }
     }
+  }
+  /* a card payment you ticked by hand (payday routine) and the bank's text for the same payment: keep the bank's one */
+  for (const t of S.txns) {
+    if (t.deleted || t.kind !== "payment" || t.source !== "sync") continue;
+    const dup = S.txns.find(x => x !== t && !x.deleted && x.kind === "payment" && x.source === "manual" && Math.abs((+x.amount || 0) - (+t.amount || 0)) <= 1 && Math.abs(daysDiff(x.date, t.date)) <= 2);
+    if (dup) { dup.deleted = true; await db.collection("transactions").doc(dup.id).update({ deleted: true, note: (dup.note ? dup.note + " · " : "") + "same payment as the bank text" }); }
   }
   /* refunds saved from a "request received" text, once the real refund text is in, would count twice */
   for (const t of S.txns) {
@@ -2206,6 +2213,7 @@ async function processInbox() {
   const cardPay = +settings().card.payment || 0;
   for (const r of rows) {
     /* CIB's "debited … transfer to another account" for exactly your planned card payment is the card payment */
+    if (/^another account$/i.test(r.merchant || "")) r.merchant = "Bank transfer";
     if ((r.kind || "expense") === "expense" && cc && cardPay > 0 && Math.abs(r.amount - cardPay) <= 1 && /transfer to\s+another account|تحويل (?:إلى|الى) حساب آخر/i.test(r.raw || "")) { r.kind = "payment"; r.merchant = "Credit card payment"; }
     const cardId = r.kind === "payment" ? (cc ? cc.id : null) : (r.cardId || defCard);
     r.cardId = cardId; fxFix(r, done); done.push(r);
@@ -4279,7 +4287,9 @@ function openPayday() {
         ${bills.length ? bills.map(b => `<label class="check"><input type="checkbox" data-pbill="${esc(b.id)}" ${b.paid ? "checked" : ""}><span>${esc(b.name)} · ${money(b.amount)}</span></label>`).join("") : `<span class="small muted">No bills with a day set. Add days in Settings → Fixed monthly payments.</span>`}</div></div>
       <div class="pd-step"><span class="pd-n">3</span><div class="stack">
         <b>Pay the credit card</b><span class="small muted">Your plan: ${money(st.card.payment)}. Pay it in the CIB app. Masarif records it from CIB's text; tick this only if no text comes.</span>
-        <label class="check"><input type="checkbox" id="pdPay"><span>I paid <input type="text" inputmode="decimal" class="inline-num money-in" id="pdPayAmt" value="${fmtIn(st.card.payment || 0)}"> to the card today</span></label></div></div>
+        ${(() => { const paid = S.txns.find(t => !t.deleted && t.kind === "payment" && t.date >= pStart(key) && t.date <= todayStr());
+          return paid ? `<div class="note ok">Already recorded: ${money(paid.amount)} paid to the card on ${esc(dayLabel(paid.date))}${paid.source === "sync" ? " (from your bank text)" : ""}.</div>`
+            : `<label class="check"><input type="checkbox" id="pdPay"><span>I paid <input type="text" inputmode="decimal" class="inline-num money-in" id="pdPayAmt" value="${fmtIn(st.card.payment || 0)}"> to the card today</span></label>`; })()}</div></div>
       <div class="pd-step"><span class="pd-n">4</span><div class="stack">
         <b>Pay yourself</b>${co && co.move >= 100 ? `<span class="small">You kept <b>${money(co.amt)}</b> from last month (your balance just before ${co.salary ? "the salary came in" : "the new month started"}). Move it to savings now, so this month runs on the new salary only.</span>` : co ? `<span class="small muted">Nothing was left over from last month this time. Move something to savings first, before spending starts.</span>` : `<span class="small muted">Move something to savings first, before spending starts.</span>`}
         ${pots.length ? `<div class="grid2"><label class="field"><span>Amount</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="pdSave" placeholder="0" value="${co && co.move >= 100 ? fmtIn(co.move) : ""}"><span>EGP</span></div></label>
@@ -4305,7 +4315,7 @@ function openPayday() {
       const billsDone = Object.assign({}, (S.checks[key] || {}).bills || {});
       sheet.querySelectorAll("[data-pbill]").forEach(c => { billsDone[c.dataset.pbill] = c.checked; });
       await saveChecks(key, { bills: billsDone, payday: true });
-      if ($("#pdPay").checked && numIn($("#pdPayAmt").value) > 0) {
+      if ($("#pdPay") && $("#pdPay").checked && numIn($("#pdPayAmt").value) > 0) {
         await db.collection("transactions").doc("x_" + uid()).set({ date: todayStr(), time: nowHM(), amount: numIn($("#pdPayAmt").value), kind: "payment", merchant: "Credit card payment", note: "Payday routine", categoryId: null, cardId: (creditCard() || {}).id || null, source: "manual", raw: "", createdAt: Date.now() });
       }
       const sv = $("#pdSave") ? numIn($("#pdSave").value) : 0;
