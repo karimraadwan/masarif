@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-kIiQTG00XiYQLUW2qMCaxGVReAXRnSvlFZ9JEYGZdOk='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-Py69ffNXXRMFNdcVXlvj5vYwGHhcWU8t5aa487jOVIA='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -4866,7 +4866,7 @@ function openNick(t) {
 /* ---------- self-learning categories ---------- */
 async function learnFrom(t, newCat) {
   if (!t || !newCat || t.source === "manual" || !t.merchant || t.categoryId === newCat) return;
-  const key = nickKey(t.merchant); if (!key || key.replace(/\s/g, "").length < 3 || /^[a-z]?\d/.test(key)) return;   /* "b" or a reference code would match everything */
+  const key = nickKey(t.merchant); if (!key || key.replace(/\s/g, "").length < 3 || /^[a-z]?\d/.test(key) || /^(instapay|transfer|instapay transfer|transfer from|another account|money received|credit card payment|apple pay)$/.test(key.trim())) return;   /* "b", a reference code, or a generic word like "InstaPay transfer" would match everything */
   const learned = Object.assign({}, settings().learned || {}), cur = learned[key];
   const n = cur && cur.cat === newCat ? (cur.n || 1) + 1 : 1;
   learned[key] = { cat: newCat, n };
@@ -6066,7 +6066,7 @@ function acctHeader(v) {
 const dailySpend = (from, to) => { const m = {}; for (const t of S.txns) { if (!isSpend(t) || t.date < from || t.date > to) continue; let v = 0; for (const p of catParts(t)) if (groupOfCat(p.categoryId) !== "debt") v += p.v; m[t.date] = (m[t.date] || 0) + v; } return m; };
 const daysBetween = (a, b) => { const out = []; for (let d = a; d <= b; d = addDays(d, 1)) out.push(d); return out; };
 const firstTxDate = () => S.txns.filter(isSpend).map(t => t.date).sort()[0] || null;
-const fullMonths = (n = 3) => { const out = []; for (let k = shiftMonth(curKey(), -1), i = 0; i < 12 && out.length < n; k = shiftMonth(k, -1), i++) { const d = periodData(k); if (d.tx.length >= 10) out.push({ k, d }); } return out; };
+const fullMonths = (n = 3) => { const out = []; for (let k = shiftMonth(curKey(), -1), i = 0; i < 12 && out.length < n; k = shiftMonth(k, -1), i++) { if (pStart(k) < trackStart()) break; /* a month Masarif only saw part of is not a full month */ const d = periodData(k); if (d.tx.length >= 10) out.push({ k, d }); } return out; };
 const spendCats = () => S.cats.filter(c => (c.group || "need") !== "debt");
 const r100 = v => Math.round(v / 100) * 100;
 const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
@@ -6231,23 +6231,39 @@ function rebalanceHome() {
 }
 
 /* ---------- 7. next month's plan ---------- */
+/* Next month's limits need 3 full months, so one odd month (a car repair, a trip) doesn't set them */
+const PLAN_MONTHS = 3;
+function planProgress() {
+  const ts = trackStart(); let first = pKeyOf(ts); if (pStart(first) < ts) first = shiftMonth(first, 1);
+  const lastNeeded = shiftMonth(first, PLAN_MONTHS - 1), ready = pStart(shiftMonth(lastNeeded, 1)), cur = curKey();
+  const done = fullMonths(PLAN_MONTHS).length, inMonth = cur >= first ? Math.min(PLAN_MONTHS, done + 1) : 0;
+  return { first, ready, done, inMonth };
+}
 function nextPlan() {
-  const ms = fullMonths(3); if (!ms.length) return null;
+  const ms = fullMonths(PLAN_MONTHS); if (ms.length < PLAN_MONTHS) return null;
   const next = shiftMonth(curKey(), 1), sal = +settings().salary || 0, fx = activeFixed(next).reduce((a, f) => a + (+f.amount || 0), 0);
   const card = cardNow().now > 0 ? (+settings().card.payment || 0) : 0, pots = S.goals.reduce((a, g) => a + (+g.monthly || 0), 0);
   const yearly = (S.yearly || []).reduce((a, y) => { const due = y.due || y.next; if (!due) return a; const m = Math.max(1, Math.round(daysDiff(todayStr(), due) / 30.4)); return a + Math.max(0, (+y.amount || 0) - (+y.saved || 0)) / m; }, 0);
   const money4 = sal - fx - card - pots - yearly;
-  let rows = spendCats().map(c => { const a = avg(ms.map(m => m.d.byCat[c.id] || 0)), now = +c.budget || 0; let to = a ? r100(a * 1.05) : now; if ((c.group || "need") === "want" && now && to > now * 1.5) to = r100(now * 1.5); return { c, now, avg: a, to }; });
+  /* leave out one-off purchases (over 5× your typical purchase and at least EGP 5,000), they'd make a limit you don't need every month */
+  const since = pStart(ms[ms.length - 1].k), cut = oneOffCut(since); let oneOffs = [];
+  const catOf = m => { const by = {}; for (const t of m.d.tx) { if (t.kind === "expense" && (+t.amount || 0) > cut) { oneOffs.push(t); continue; } for (const p of catParts(t)) by[p.categoryId] = (by[p.categoryId] || 0) + p.v; } return by; };
+  const byM = ms.map(catOf);
+  let rows = spendCats().map(c => { const a = avg(byM.map(b => b[c.id] || 0)), now = +c.budget || 0; let to = a ? r100(a * 1.05) : now; if ((c.group || "need") === "want" && now && to > now * 1.5) to = r100(now * 1.5); return { c, now, avg: a, to }; });
   let total = rows.reduce((a, r) => a + r.to, 0);
   if (total > money4 && money4 > 0) { const wants = rows.filter(r => (r.c.group || "need") === "want"), wt = wants.reduce((a, r) => a + r.to, 0), cut = Math.min(wt * 0.5, total - money4); for (const r of wants) r.to = r100(r.to - cut * (r.to / (wt || 1))); total = rows.reduce((a, r) => a + r.to, 0); }
-  return { next, rows, total, money4, sal, fx, card, pots, yearly, months: ms.length, weekly: Math.floor(total / (periodLen(next) / 7) / 100) * 100 };
+  return { next, rows, total, money4, sal, fx, card, pots, yearly, months: ms.length, oneOffs, weekly: Math.floor(total / (periodLen(next) / 7) / 100) * 100 };
 }
 function nextPlanCard() {
   const p = nextPlan();
-  if (!p) return `<div class="card stack"><h2>Next month's plan</h2><div class="small muted">After your first full month, Masarif writes next month's limits for you here.</div></div>`;
+  if (!p) { const g = planProgress();
+    return `<div class="card stack"><div class="row"><h2>Next month's plan</h2><span class="small muted">${g.done} of ${PLAN_MONTHS} months</span></div>
+      <div class="small muted">Masarif learns from ${PLAN_MONTHS} full months before it suggests limits, so one unusual month doesn't decide them. ${g.inMonth ? `You're in month ${g.inMonth} of ${PLAN_MONTHS}.` : `Your first full month starts ${esc(dayLabel(pStart(g.first)))}.`} Your plan will be ready on <b>${esc(dayLabel(g.ready))}</b>.</div>
+      <div class="bar" style="--c:var(--accent)"><i style="width:${Math.round(g.done / PLAN_MONTHS * 100)}%"></i></div></div>`; }
   const changed = p.rows.filter(r => r.to !== r.now);
   return `<div class="card stack nplan"><div class="row"><h2>Next month's plan</h2><span class="small muted">${esc(pLabel(p.next))}</span></div>
     <div class="small muted">From your last ${plural(p.months, "month")}: salary ${fmt(p.sal)} − bills ${fmt(p.fx)} − card ${fmt(p.card)}${p.pots ? ` − savings ${fmt(p.pots)}` : ""}${p.yearly ? ` − yearly ${fmt(p.yearly)}` : ""} = <b>${money(p.money4)}</b> to live on.</div>
+    ${p.oneOffs.length ? `<div class="small muted">Left out ${plural(p.oneOffs.length, "one-off")} (${p.oneOffs.slice(0, 2).map(t => esc(shopName(t) || "purchase") + " " + money(t.amount)).join(", ")}) so they don't set a monthly limit.</div>` : ""}
     ${p.rows.filter(r => r.to || r.now).map(r => `<div class="np"><span><i class="sw" style="background:${catColor(r.c)}"></i>${esc(r.c.name)}</span><span class="num muted">${fmt(r.now)}</span><span class="np-arr" aria-hidden="true">→</span><b class="num ${r.to > r.now ? "badtxt" : r.to < r.now ? "goodtxt" : ""}">${fmt(r.to)}</b></div>`).join("")}
     <div class="np tot"><span>Total</span><span class="num muted">${fmt(p.rows.reduce((a, r) => a + r.now, 0))}</span><span class="np-arr">→</span><b class="num">${fmt(p.total)}</b></div>
     <div class="note ${p.total <= p.money4 ? "ok" : ""}">${p.total <= p.money4 ? `Fits, with ${money(p.money4 - p.total)} spare. Weekly limit: ${money(p.weekly)}.` : `Still ${money(p.total - p.money4)} over what's left. Wants were already trimmed; consider a smaller card payment for one month.`}</div>
