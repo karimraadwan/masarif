@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-ycKY756yazWkhtJYlR8pwLobJcGTqKn2NNHsykgNdyo='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-VyF90j0UIJ5tzFhQ+oKaG0hgBsax9SE2lnDmyI23GH4='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3019,16 +3019,48 @@ function rankList(rows, n = 4) {
 }
 const shopIcon = name => `<b class="rk-letter">${esc((String(name).trim()[0] || "?").toUpperCase())}</b>`;
 
+/* ---------- paid back: money friends send you for something you paid for everyone ----------
+   A payback is saved as a refund in the same category, linked by "repays", so the purchase only counts your share
+   and the transfers don't look like income. */
+const paidBack = t => S.txns.reduce((a, x) => a + (!x.deleted && x.repays === t.id ? +x.amount || 0 : 0), 0);
+function payBackCands(exp) {
+  return S.txns.filter(x => !x.deleted && (x.kind === "income" || x.repays === exp.id) && x.date && x.date >= exp.date && daysDiff(exp.date, x.date) <= 7
+    && tKey(x) >= tKey(exp) && (+x.amount || 0) < (+exp.amount || 0) && (x.repays === exp.id || (!x.repays && !isSalary(x))))
+    .sort((a, b) => tKey(a).localeCompare(tKey(b)));
+}
+async function linkPayback(exp, ids) {
+  const cat = exp.categoryId || (Array.isArray(exp.splits) && exp.splits[0] && exp.splits[0].categoryId) || null, want = new Set(ids);
+  for (const x of S.txns) {
+    if (x.deleted) continue;
+    if (want.has(x.id) && x.repays !== exp.id) await db.collection("transactions").doc(x.id).update({ kind: "refund", categoryId: cat, repays: exp.id, splitDone: "skip", reviewed: true });
+    else if (!want.has(x.id) && x.repays === exp.id) await db.collection("transactions").doc(x.id).update({ kind: "income", categoryId: null, repays: "" });
+  }
+}
+/* Home: several transfers in soon after a big purchase are probably people paying you back */
+function payBackHome() {
+  const since = addDays(todayStr(), -3);
+  for (const e of S.txns.filter(t => !t.deleted && t.kind === "expense" && t.date >= since && +t.amount >= 500).sort((a, b) => b.amount - a.amount)) {
+    if (dismissed("pb_" + e.id)) continue;
+    const c = payBackCands(e).filter(x => !x.repays && daysDiff(e.date, x.date) <= 2), tot = c.reduce((a, x) => a + (+x.amount || 0), 0);
+    if (c.length < 2 || tot > e.amount * 1.05) continue;
+    return `<div class="card stack extra"><div class="row"><h2>Did people pay you back for ${esc(shopName(e) || "this")}?</h2></div>
+      <div class="small muted">You paid ${money(e.amount)} on ${esc(dayLabel(e.date))}, then ${plural(c.length, "transfer")} came in (${money(tot)}). Link them and only your share, ${money(e.amount - tot)}, counts as spending.</div>
+      <div class="btns"><button type="button" class="btn grad" data-pblink="${esc(e.id)}" ${S.dbOk ? "" : "disabled"}>Yes, link all ${c.length}</button><button type="button" class="btn" data-pbpick="${esc(e.id)}">Choose</button><button type="button" class="btn" data-pbskip="${esc(e.id)}">No</button></div></div>`;
+  }
+  return "";
+}
 function txRow(t, bal) {
   const c = catById(t.categoryId);
   const name = shopName(t) || (c ? c.name : "Purchase");
   const pm = cardById(t.cardId), isPay = t.kind === "payment", isIn = t.kind === "income";
   const sp = Array.isArray(t.splits) && t.splits.length > 1;
   const meta = isPay ? ["Payment to credit card", t.time].filter(Boolean).join(" · ") : isIn ? ["Money in", t.time].filter(Boolean).join(" · ") : [sp ? (c ? c.name : "Split") + " + " + (t.splits.length - 1) + " more" : c ? c.name : "No category", t.time].filter(Boolean).join(" · ");
+  const pb = t.kind === "expense" ? paidBack(t) : 0, rp = t.repays ? S.txns.find(x => x.id === t.repays) : null;
+  const meta2 = pb > 0 ? `${meta} · ${money(pb)} paid back · your share ${money(t.amount - pb)}` : rp ? `Paid back for ${shopName(rp) || "a purchase"}${t.time ? " · " + t.time : ""}` : meta;
   const nm = (isPay ? (t.merchant || "Credit card payment") : isIn ? (shopName(t) || "Money received") : name) + (S.receipts && S.receipts[t.id] ? " 🧾" : "") + (t.worth === "no" ? " 👎" : "");
   return `<button type="button" class="tx" data-id="${esc(t.id)}" style="--c:${isPay ? "var(--debt)" : isIn ? "var(--good)" : catColor(c)}">
     <span class="ic" aria-hidden="true">${isPay ? CI('<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M12 13v4M10 15l2 2 2-2"/>') : isIn ? CI('<path d="M12 19V5M6 11l6-6 6 6"/>') : c ? catIcon(c) : esc((name.trim()[0] || "?").toUpperCase())}</span>
-    <span class="mid"><b>${esc(nm)}</b><span>${esc(meta)}${!isPay && !isIn && cards().length ? `<span class="pay-dot" style="--p:${cardColor(pm)}"><i></i>${esc(pm ? (pm.type === "cash" ? "Cash" : pm.last4 ? "••" + String(pm.last4).split(",")[0].trim() : pm.type === "credit" ? "Credit" : "Debit") : "No card")}</span>` : ""}</span></span>
+    <span class="mid"><b>${esc(nm)}</b><span>${esc(meta2)}${!isPay && !isIn && cards().length ? `<span class="pay-dot" style="--p:${cardColor(pm)}"><i></i>${esc(pm ? (pm.type === "cash" ? "Cash" : pm.last4 ? "••" + String(pm.last4).split(",")[0].trim() : pm.type === "credit" ? "Credit" : "Debit") : "No card")}</span>` : ""}</span></span>
     ${needsReview(t) ? `<span class="rv-tag">Review</span>` : ""}<span class="amt num ${t.kind === "refund" || isIn ? "refund" : isPay ? "paid" : ""}">${t.kind === "refund" || isIn ? "+" : isPay ? "−" : ""}${fmtX(t.amount)}${bal && bal[t.id] != null ? `<small class="bal-after">bal ${fmt(bal[t.id])}</small>` : ""}</span>
   </button>`;
 }
@@ -3602,6 +3634,10 @@ function openTx(id, preset) {
       <div class="grid2" id="fuelBox" hidden>
         <label class="field"><span>Litres (optional)</span><input type="text" inputmode="decimal" id="tLit" value="${v.litres ? esc(v.litres) : ""}" placeholder="e.g. 35"></label>
         <label class="field"><span>Odometer km (optional)</span><input type="text" inputmode="numeric" id="tOdo" value="${v.odo ? esc(v.odo) : ""}" placeholder="e.g. 84,250"></label></div>
+      ${(() => { if (t && t.repays) { const r = S.txns.find(x => x.id === t.repays); return `<div class="note ok">Someone paying you back for <b>${esc(r ? shopName(r) || "a purchase" : "a purchase")}</b>${r ? ` (${money(r.amount)}, ${esc(dayLabel(r.date))})` : ""}. <button type="button" class="link-btn" id="pbUnlink">Unlink</button></div>`; }
+        if (!t || t.kind !== "expense") return ""; const cs = payBackCands(t); if (!cs.length) return "";
+        return `<details class="tx-more" id="pbBox" ${cs.some(x => x.repays === t.id) ? "open" : ""}><summary><span>Others paid me back</span><span class="small muted">${paidBack(t) > 0 ? `${money(paidBack(t))} back · your share ${money(t.amount - paidBack(t))}` : "link money people sent you for this"}</span></summary>
+          <div class="stack" style="gap:6px;margin-top:8px">${cs.map(x => `<label class="check"><input type="checkbox" class="pbChk" value="${esc(x.id)}" ${x.repays === t.id ? "checked" : ""}><span>${money(x.amount)} · ${esc(shopName(x) || "Transfer")} · ${esc(dayLabel(x.date))}${x.time ? " " + esc(x.time) : ""}</span></label>`).join("")}</div></details>`; })()}
       <label class="check" id="noWkBox"><input type="checkbox" id="tNoWk" ${v.noWeek ? "checked" : ""}><span>Not counted in this week's limit (a one-off like a bill or paying someone back; still counts for the month)</span></label>
       <label class="check" id="rememberBox" ${v.merchant ? "" : "hidden"}><input type="checkbox" id="tRem"><span>Always put <b id="remName">${esc(v.merchant)}</b> in this category</span></label>
       <div class="field" id="tPayWrap"><span>Paid with</span><div class="paychips">${payChips}</div></div>
@@ -3702,7 +3738,8 @@ function openTx(id, preset) {
     $("#tMsg").textContent = "Saving…";
     try {
       let newId = null;
-      if (t) { await db.collection("transactions").doc(t.id).update(data); if (data.categoryId && data.categoryId !== t.categoryId && !data.splits) learnFrom(t, data.categoryId); }
+      if (t) { await db.collection("transactions").doc(t.id).update(data); if (data.categoryId && data.categoryId !== t.categoryId && !data.splits) learnFrom(t, data.categoryId);
+        if ($("#pbBox") && data.kind === "expense") await linkPayback(Object.assign({}, t, data), [...sheet.querySelectorAll(".pbChk:checked")].map(x => x.value)); }
       else { newId = "x_" + uid(); await db.collection("transactions").doc(newId).set(Object.assign(data, { source: "manual", raw: "", createdAt: Date.now() })); }
       if ($("#tRem") && $("#tRem").checked && data.categoryId && data.merchant) {
         const c = catById(data.categoryId), k = data.merchant.toLowerCase();
@@ -3714,6 +3751,7 @@ function openTx(id, preset) {
       else toast("Changes saved ✓");
     } catch (err) { $("#tMsg").textContent = "Couldn't save. Try again."; }
   };
+  if ($("#pbUnlink")) $("#pbUnlink").onclick = async () => { try { await db.collection("transactions").doc(t.id).update({ kind: "income", categoryId: null, repays: "" }); closeSheet(); toast("Unlinked"); } catch {} };
   if (t) armDelete($("#tDel"), async () => {
     try {
       const back = Object.assign({}, t); delete back.id;
@@ -6000,6 +6038,9 @@ main.addEventListener("click", async e => {
   if (el("#quoteNext")) { newQuote(); S.prevView = "home"; el("#quoteNext").outerHTML = quoteCard(); return; }
   if ((b = el("[data-salary]"))) { dismiss("sal_" + b.dataset.salary); openPayday(); return; }
   if ((b = el("[data-recvm]"))) { markOwedFrom(b.dataset.recvm, b.dataset.tx); return; }
+  if ((b = el("[data-pblink]"))) { const e = S.txns.find(x => x.id === b.dataset.pblink); if (e) { const ids = payBackCands(e).filter(x => !x.repays && daysDiff(e.date, x.date) <= 2).map(x => x.id).concat(payBackCands(e).filter(x => x.repays === e.id).map(x => x.id)); linkPayback(e, ids).then(() => { toast(`Linked: your share of ${shopName(e) || "it"} is ${money(e.amount - paidBack(e))}`); render(true); }).catch(() => {}); } return; }
+  if ((b = el("[data-pbpick]"))) { openTx(b.dataset.pbpick); setTimeout(() => { const d = $("#pbBox"); if (d) { d.open = true; d.scrollIntoView({ block: "center" }); } }, 60); return; }
+  if ((b = el("[data-pbskip]"))) { dismiss("pb_" + b.dataset.pbskip); render(true); return; }
   if ((b = el("[data-owmskip]"))) { dismiss("owm_" + b.dataset.owmskip); render(true); return; }
   if ((b = el("[data-exdone]"))) { const t = S.txns.find(x => x.id === b.dataset.exdone); if (!t) return; const c = splitCfg(), hasCard = cardNow().now > 0, save = Math.round(+t.amount * (hasCard ? c.save : c.save + c.card) / 100); const g = S.goals.find(x => x.id === ($("#exPot") || {}).value); try { if (g && save) await db.collection("goals").doc(g.id).update({ saved: (+g.saved || 0) + save }); await db.collection("transactions").doc(t.id).update({ splitDone: { card: c.card, save: c.save, fun: c.fun } }); toast(g ? `${money(save)} added to ${g.name} ✓` : "Done ✓"); } catch {} return; }
   if ((b = el("[data-exskip]"))) { try { await db.collection("transactions").doc(b.dataset.exskip).update({ splitDone: "skip" }); } catch {} return; }
@@ -6019,7 +6060,7 @@ main.addEventListener("click", async e => {
 /* ---------- Home: only the 2 most important nudges, the rest one tap away ---------- */
 let showAllNudges = false;
 function homeNudges(d) {
-  const list = [stmtBanner(), salaryBanner() || paydayBanner(), homeAlerts(d), owedHome(), stmtDueCard(), extraCard(), treatCard(), leftoverCard(), gapCard(true), carHome(), subAuditHome(), deliveryHome(), worthPrompt(), moodHome(), earlyHome(), rebalanceHome(), weakDayHome(), needCheckHome(), seasonalHome(), roundGoalHome(), yearHome(), smartCard(true)].filter(x => x && x.trim());
+  const list = [stmtBanner(), salaryBanner() || paydayBanner(), homeAlerts(d), payBackHome(), owedHome(), stmtDueCard(), extraCard(), treatCard(), leftoverCard(), gapCard(true), carHome(), subAuditHome(), deliveryHome(), worthPrompt(), moodHome(), earlyHome(), rebalanceHome(), weakDayHome(), needCheckHome(), seasonalHome(), roundGoalHome(), yearHome(), smartCard(true)].filter(x => x && x.trim());
   if (list.length <= 2) return list.join("");
   const rest = list.slice(2);
   return list.slice(0, 2).join("") + (showAllNudges ? rest.join("") + `<button type="button" class="nudge-more" data-nudges="less">Show less</button>`
