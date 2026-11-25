@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-Py69ffNXXRMFNdcVXlvj5vYwGHhcWU8t5aa487jOVIA='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-yP3gpaen5RFusLaHCu6XjQykKcwuELw1hNNO1NGmKgg='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1277,6 +1277,27 @@ html[data-theme=dark] .tl-badge{color:#171A21}
 
 /* respect "Reduce motion" everywhere, not only on a few elements */
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* this month vs last month */
+.mvm .cmp-box small{display:block;font-size:0.7059rem;color:var(--muted);margin-top:2px}
+.mvm .cmp-box .num{font:800 1.1765rem var(--f-display);color:var(--ink)}.mvm .cmp-box.was .num{color:var(--muted)}
+.mvm-hero{background:var(--soft);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.mvm-hero span{font-size:0.7059rem;color:var(--muted)}.mvm-hero b{font:800 1.4118rem var(--f-display)}
+.mvm-rows{display:flex;flex-direction:column;gap:12px}
+.mvm-row{display:flex;flex-direction:column;gap:6px;min-width:0}
+.mvm-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;font-size:0.8824rem}
+.mvm-top .nm{display:flex;align-items:center;gap:8px;min-width:0;font-weight:600}
+.mvm-top .nm span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mvm-top .delta{justify-self:end;min-width:3.4rem}
+.mvm-bars{display:grid;grid-template-columns:minmax(0,1fr) 4.2rem;gap:3px 10px;align-items:center;padding-left:36px;font-size:0.7647rem}.mvm-bars .bl{display:block;min-width:0}.mvm-bars .num{text-align:right}
+.mvm-bars i,.mvm-key i{display:block;height:6px;border-radius:999px}
+.mvm-bars i.now,.mvm-key i.now{background:var(--c,var(--accent))}
+.mvm-bars i.was,.mvm-key i.was{background:var(--line)}
+.mvm-key{display:flex;gap:14px;flex-wrap:wrap}.mvm-key span{display:inline-flex;align-items:center;gap:6px}.mvm-key i{width:14px}
+.mvm-key i.now{--c:var(--accent)}
+
+/* "▲ 12%" chips share the .up name with the upcoming-payments rows; keep the chip a chip */
+.delta.up{display:inline-flex;grid-template-columns:none;padding:3px 9px;border-top:0}
 </style>
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1938,27 +1959,35 @@ function deltaChip(now, before, invert) {
   return `<span class="delta ${ch > 0 ? "up" : "down"}">${ch > 0 ? "▲" : "▼"} ${Math.abs(Math.round(ch * 100))}%</span>`;
 }
 function compareCard(key, d) {
-  const pk = shiftMonth(key, -1), p = periodData(pk);
-  const isCur = key === curKey();
-  let prevSame = p.spend, sameNote = "";
-  if (isCur) {
-    const elapsed = daysDiff(pStart(key), todayStr()) + 1;
-    prevSame = p.tx.filter(t => groupOf(t) !== "debt" && daysDiff(pStart(pk), t.date) < elapsed).reduce((a, t) => a + signed(t), 0);
-    sameNote = `first ${elapsed} days`;
+  const pk = shiftMonth(key, -1), p = periodData(pk), isCur = key === curKey(), ts = trackStart();
+  const len = periodLen(key), elapsed = isCur ? Math.min(len, daysDiff(pStart(key), todayStr()) + 1) : len;
+  const inWin = t => !isCur || daysDiff(pStart(pk), t.date) < elapsed;
+  /* the same days of last month, by category, so both sides are measured the same way */
+  const prevBy = {}; let prevSame = 0;
+  for (const t of p.tx) { if (!inWin(t)) continue; for (const c of catParts(t)) { if (groupOfCat(c.categoryId) === "debt") continue; prevBy[c.categoryId] = (prevBy[c.categoryId] || 0) + c.v; prevSame += c.v; } }
+  const winEnd = isCur ? addDays(pStart(pk), elapsed - 1) : addDays(pStart(key), -1);
+  const head = `<div class="row"><h2>This month vs last month</h2><span class="small muted">${isCur ? `day ${elapsed} of ${len}` : esc(pLabel(key))}</span></div>`;
+  if (!p.tx.some(t => t.kind === "expense" && !t.deleted) || pStart(pk) < ts) {
+    const fair = pStart(shiftMonth(pKeyOf(ts) < key ? key : pKeyOf(ts), 1));
+    return `<div class="card stack mvm">${head}
+      <div class="mvm-hero"><span>This month so far</span><b class="num">${money(d.spend)}</b></div>
+      <div class="note">Masarif started on ${esc(dayLabel(ts))}, so ${isCur ? `last month's first ${plural(elapsed, "day")} aren't` : "last month isn't"} fully on record. A fair side-by-side starts on <b>${esc(dayLabel(fair))}</b>.</div></div>`;
   }
-  if (!p.tx.some(t => t.kind === "expense" && !t.deleted)) return soonCard("This month vs last month", "The same days of both months, side by side.", "Starts next month, once there's a full month to compare with.");
-  const rows = S.cats.map(c => ({ c, a: d.byCat[c.id] || 0, b: p.byCat[c.id] || 0 })).filter(r => (r.a || r.b) && (r.c.group || "need") !== "debt")
+  const diff = d.spend - prevSame, up = diff > 0.5, dn = diff < -0.5;
+  const rows = S.cats.filter(c => (c.group || "need") !== "debt").map(c => ({ c, a: d.byCat[c.id] || 0, b: prevBy[c.id] || 0 })).filter(r => r.a > 0.5 || r.b > 0.5)
     .sort((x, y) => Math.abs(y.a - y.b) - Math.abs(x.a - x.b)).slice(0, 6);
-  return `<div class="card stack">
-    <div class="row"><h2>This month vs last month</h2>${deltaChip(d.spend, prevSame)}</div>
+  const mx = Math.max(1, ...rows.map(r => Math.max(r.a, r.b)));
+  const chip = r => { if (r.b < 0.5) return `<span class="delta flat">new</span>`; if (r.a < 0.5) return `<span class="delta down">none yet</span>`; const ch = Math.round((r.a - r.b) / r.b * 100); return ch === 0 ? `<span class="delta flat">same</span>` : `<span class="delta ${ch > 0 ? "up" : "down"}">${ch > 0 ? "▲" : "▼"} ${Math.abs(ch)}%</span>`; };
+  return `<div class="card stack mvm">${head}
     <div class="cmp-top">
-      <div class="cmp-box"><div>${isCur ? "This month so far" : esc(pLabel(key))}</div><div class="num">${fmt(d.spend)}</div></div>
-      <div class="cmp-box"><div>${isCur ? "Last month, " + sameNote : esc(pLabel(pk))}</div><div class="num">${fmt(prevSame)}</div></div>
+      <div class="cmp-box"><div>${isCur ? "This month" : esc(pLabel(key))}</div><div class="num">${fmt(d.spend)}</div><small>${isCur ? `${esc(dm(pStart(key)))} – ${esc(dm(todayStr()))}` : ""}</small></div>
+      <div class="cmp-box was"><div>${isCur ? "Same days last month" : esc(pLabel(pk))}</div><div class="num">${fmt(prevSame)}</div><small>${isCur ? `${esc(dm(pStart(pk)))} – ${esc(dm(winEnd))}` : ""}</small></div>
     </div>
-    ${isCur ? `<div class="small muted">Last month in full: ${money(p.spend)}. ${d.spend <= prevSame ? `You're ${money(prevSame - d.spend)} below last month's pace.` : `You're ${money(d.spend - prevSame)} above last month's pace.`}</div>` : ""}
-    ${rows.length ? `<div class="cmp-rows">${rows.map(r => `<div class="cmp-row" style="--c:${catColor(r.c)}">
-      <span class="nm">${catIco(r.c, "sm")}<span>${esc(r.c.name)}</span></span>
-      <span class="num small muted">${fmt(r.b)} → <b style="color:var(--ink)">${fmt(r.a)}</b></span>${deltaChip(r.a, r.b)}</div>`).join("")}</div>`
+    <div class="note ${dn ? "ok" : up ? "warn" : ""}">${up ? `<b>${money(diff)} more</b> than the same days last month.` : dn ? `<b>${money(-diff)} less</b> than the same days last month.` : "The same as the same days last month."}${isCur ? ` Last month ended at ${money(p.spend)}.` : ""}</div>
+    ${rows.length ? `<div class="mvm-rows" role="list">${rows.map(r => `<div class="mvm-row" role="listitem" style="--c:${catColor(r.c)}" aria-label="${esc(r.c.name)}: ${money(r.a)} now, ${money(r.b)} last month">
+      <div class="mvm-top"><span class="nm">${catIco(r.c, "sm")}<span>${esc(r.c.name)}</span></span>${chip(r)}</div>
+      <div class="mvm-bars" aria-hidden="true"><span class="bl"><i class="now" style="width:${Math.max(r.a > 0 ? 2 : 0, r.a / mx * 100).toFixed(1)}%"></i></span><b class="num">${fmt(r.a)}</b><span class="bl"><i class="was" style="width:${Math.max(r.b > 0 ? 2 : 0, r.b / mx * 100).toFixed(1)}%"></i></span><span class="num muted">${fmt(r.b)}</span></div></div>`).join("")}</div>
+      <div class="mvm-key small muted" aria-hidden="true"><span><i class="now"></i>this month</span><span><i class="was"></i>same days last month</span></div>`
     : `<div class="small muted">Once you have purchases in both months, the biggest changes by category show here.</div>`}
   </div>`;
 }
