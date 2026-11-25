@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-VyF90j0UIJ5tzFhQ+oKaG0hgBsax9SE2lnDmyI23GH4='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-1qbYEHQjIvaklkoXOrhDJL2RAkGwD2yLTjVINs6Pkt0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1541,7 +1541,8 @@ const OTP_RE = /\b(otp|one[- ]time|verification|password|passcode)\b|رمز|كل
 const BANK_RE = /card|بطاقة|حساب|account|cib|19666|apple pay|تحويل/i;
 /* a refund into your account is a refund (it lowers that category), so it is checked before money in */
 const kindOf = m => PAY_RE.test(m) ? "payment" : REFUND_RE.test(m) ? "refund" : INCOME_RE.test(m) ? "income" : "expense";
-const isFlow = t => t.kind === "payment" || t.kind === "income";
+/* not spending and not income: card payments, money in, and borrowing from / repaying a friend (t.loan) — they still move your bank balance */
+const isFlow = t => t.kind === "payment" || t.kind === "income" || !!t.loan;
 const PAY_RE = /\b(payment received|thank you for your payment|payment of .{0,30} (?:has been )?received|card payment received)\b|تم سداد|سداد مبلغ|تم استلام سداد/i;
 /* the text names a card or account ending (#7777, ending with 7777, المنتهي بـ ****7777) and none of yours match: someone else's card */
 function notMyCard(text) {
@@ -1740,7 +1741,8 @@ function periodData(key) {
   let total = 0, payments = 0, income = 0;
   for (const t of tx) {
     if (t.kind === "payment") { payments += +t.amount || 0; continue; }
-    if (t.kind === "income") { income += +t.amount || 0; continue; }
+    if (t.kind === "income") { if (!t.loan) income += +t.amount || 0; continue; }
+    if (t.loan) continue;
     const v = signed(t);
     const ck = cardById(t.cardId) ? t.cardId : "_none";
     byCard[ck] = (byCard[ck] || 0) + v; cardCount[ck] = (cardCount[ck] || 0) + 1;
@@ -2914,7 +2916,7 @@ function homeTiles(d) {
   }
   const rc = reviewCount();
   if (rc) out.push(tile({ k: "To review", ic: tlIc("review"), c: "var(--warn-ink)", v: plural(rc, "text"), s: "Tap to sort them", tone: "warn", badge: rc, attr: "data-review" }));
-  if (out.length < 4) out.push(tile({ k: "Spent this month", ic: tlIc("month"), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && groupOf(t) !== "debt").length, "purchase"), href: "#txns", attr: 'data-mspent' }));
+  if (out.length < 4) out.push(tile({ k: "Spent this month", ic: tlIc("month"), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && !t.loan && groupOf(t) !== "debt").length, "purchase"), href: "#txns", attr: 'data-mspent' }));
   return `<div class="bento">${out.join("")}</div>`;
 }
 /* one suggestion at a time; the rest one tap away */
@@ -3056,7 +3058,8 @@ function txRow(t, bal) {
   const sp = Array.isArray(t.splits) && t.splits.length > 1;
   const meta = isPay ? ["Payment to credit card", t.time].filter(Boolean).join(" · ") : isIn ? ["Money in", t.time].filter(Boolean).join(" · ") : [sp ? (c ? c.name : "Split") + " + " + (t.splits.length - 1) + " more" : c ? c.name : "No category", t.time].filter(Boolean).join(" · ");
   const pb = t.kind === "expense" ? paidBack(t) : 0, rp = t.repays ? S.txns.find(x => x.id === t.repays) : null;
-  const meta2 = pb > 0 ? `${meta} · ${money(pb)} paid back · your share ${money(t.amount - pb)}` : rp ? `Paid back for ${shopName(rp) || "a purchase"}${t.time ? " · " + t.time : ""}` : meta;
+  const lo = t.loan ? (t.kind === "income" ? "Borrowed" : "Loan paid back") + (t.loanFor ? ` · for ${shopName(S.txns.find(x => x.id === t.loanFor) || {}) || "a purchase"}` : "") + " · not spending" : "";
+  const meta2 = lo ? [lo, t.time].filter(Boolean).join(" · ") : pb > 0 ? `${meta} · ${money(pb)} paid back · your share ${money(t.amount - pb)}` : rp ? `Paid back for ${shopName(rp) || "a purchase"}${t.time ? " · " + t.time : ""}` : meta;
   const nm = (isPay ? (t.merchant || "Credit card payment") : isIn ? (shopName(t) || "Money received") : name) + (S.receipts && S.receipts[t.id] ? " 🧾" : "") + (t.worth === "no" ? " 👎" : "");
   return `<button type="button" class="tx" data-id="${esc(t.id)}" style="--c:${isPay ? "var(--debt)" : isIn ? "var(--good)" : catColor(c)}">
     <span class="ic" aria-hidden="true">${isPay ? CI('<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M12 13v4M10 15l2 2 2-2"/>') : isIn ? CI('<path d="M12 19V5M6 11l6-6 6 6"/>') : c ? catIcon(c) : esc((name.trim()[0] || "?").toUpperCase())}</span>
@@ -3099,7 +3102,7 @@ function spendTiles() {
   const ch = before ? (d.spend - before) / before * 100 : null;
   const prevName = toDate(pStart(prevK)).toLocaleDateString("en-GB", { month: "long" });
   return `<div class="bento sum2">
-    ${tile({ k: isCur ? "Spent this month" : "Spent in " + esc(pLabel(k)), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && groupOf(t) !== "debt").length, "purchase") + (d.byGroup.debt ? ` · plus ${money(d.byGroup.debt)} card & loan` : ""), attr: 'data-sum="m"' })}
+    ${tile({ k: isCur ? "Spent this month" : "Spent in " + esc(pLabel(k)), v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && !t.loan && groupOf(t) !== "debt").length, "purchase") + (d.byGroup.debt ? ` · plus ${money(d.byGroup.debt)} card & loan` : ""), attr: 'data-sum="m"' })}
     ${tile({ k: isCur ? "vs last month" : "vs the month before", v: ch == null ? "–" : `${ch > 0 ? "▲" : "▼"} ${Math.abs(Math.round(ch))}% ${ch > 0 ? "more" : "less"}`, s: trackStart() > pStart(prevK) ? "Masarif started this month, so there's nothing to compare yet" : isCur ? `same ${plural(n, "day")} · ${money(before)}` : money(before), tone: ch != null && ch > 10 ? "bad" : "", attr: 'data-sum="c"' })}
   </div>`;
 }
@@ -3638,6 +3641,7 @@ function openTx(id, preset) {
         if (!t || t.kind !== "expense") return ""; const cs = payBackCands(t); if (!cs.length) return "";
         return `<details class="tx-more" id="pbBox" ${cs.some(x => x.repays === t.id) ? "open" : ""}><summary><span>Others paid me back</span><span class="small muted">${paidBack(t) > 0 ? `${money(paidBack(t))} back · your share ${money(t.amount - paidBack(t))}` : "link money people sent you for this"}</span></summary>
           <div class="stack" style="gap:6px;margin-top:8px">${cs.map(x => `<label class="check"><input type="checkbox" class="pbChk" value="${esc(x.id)}" ${x.repays === t.id ? "checked" : ""}><span>${money(x.amount)} · ${esc(shopName(x) || "Transfer")} · ${esc(dayLabel(x.date))}${x.time ? " " + esc(x.time) : ""}</span></label>`).join("")}</div></details>`; })()}
+      <label class="check" id="loanBox"><input type="checkbox" id="tLoan" ${v.loan ? "checked" : ""}><span>A loan: money I borrowed, or paid back to a friend (not spending, not income)</span></label>
       <label class="check" id="noWkBox"><input type="checkbox" id="tNoWk" ${v.noWeek ? "checked" : ""}><span>Not counted in this week's limit (a one-off like a bill or paying someone back; still counts for the month)</span></label>
       <label class="check" id="rememberBox" ${v.merchant ? "" : "hidden"}><input type="checkbox" id="tRem"><span>Always put <b id="remName">${esc(v.merchant)}</b> in this category</span></label>
       <div class="field" id="tPayWrap"><span>Paid with</span><div class="paychips">${payChips}</div></div>
@@ -3729,6 +3733,7 @@ function openTx(id, preset) {
     if (data.kind === "expense") { data.worth = worth; data.plan = plan; data.social = social; } else data.worth = "";
     data.reviewed = true;
     data.noWeek = !!($("#tNoWk") && $("#tNoWk").checked && data.kind === "expense");
+    data.loan = !!($("#tLoan") && $("#tLoan").checked && (data.kind === "expense" || data.kind === "income"));
     if (!t && preset && preset.treat) data.treat = true;
     if (!t && typeof TX_LOC !== "undefined" && TX_LOC) data.loc = TX_LOC;
     /* a new entry for today with no time gets "now", so it sorts after this morning's bank texts */
@@ -4758,7 +4763,7 @@ function catLimitsCard(d) {
 function insTiles(key, d) {
   const sc = monthScore(key), over = limitStatus(d).over.length, cur = key === curKey();
   return `<div class="bento">
-    ${tile({ k: cur ? "Spent so far" : "Spent", v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && groupOf(t) !== "debt").length, "purchase"), href: "#txns", attr: 'data-mspent' })}
+    ${tile({ k: cur ? "Spent so far" : "Spent", v: money(d.spend), s: plural(d.tx.filter(t => t.kind === "expense" && !t.loan && groupOf(t) !== "debt").length, "purchase"), href: "#txns", attr: 'data-mspent' })}
     ${tile({ k: d.left < 0 ? "Over your plan" : "Left to spend", v: money(Math.abs(d.left)), s: d.left < 0 ? "spent more than the plan allows" : cur ? "until payday" : "at the end", tone: d.left < 0 ? "bad" : "" })}
     ${tile({ k: "Month score", v: String(sc.score), s: esc(scoreWord(sc.score)) })}
     ${tile({ k: "Over a limit", v: over ? plural(over, "category", "categories").replace("categorys", "categories") : "None", s: over ? "see the list below" : "all within limits", tone: over ? "bad" : "" })}
