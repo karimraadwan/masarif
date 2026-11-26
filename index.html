@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-nRmMsiIkNvuHpMmX4DEWMJ3ChMe1E50x5jGtIcduKnk='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-BTAdvspMfW4ei+RQkSqZHrXRN+dWHiPDNHKc7CeLd6Q='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2196,6 +2196,7 @@ async function processInbox() {
       if ((t.kind || "expense") === "expense" && cc0 && pay0 > 0 && Math.abs((+t.amount || 0) - pay0) <= 1 && /transfer to\s+another account|تحويل (?:إلى|الى) حساب آخر/i.test(body)) Object.assign(up, { kind: "payment", merchant: "Credit card payment", categoryId: "debt", cardId: cc0.id });
       if (!t.timeGuess && body && !parseTime(body)) up.timeGuess = true;
       if (/^another account$/i.test(t.merchant || "") && !up.merchant) up.merchant = "Bank transfer";
+      { const ap = appleSubFor(t); if (ap && /apple\.com|itunes|apple bill/i.test(t.merchant || "") && !up.merchant) up.merchant = ap.name; }
       if (!(+t.litres > 0) && isFuelBuy(t) && daysDiff(t.date, todayStr()) <= 60 && autoLitres(+t.amount)) Object.assign(up, { litres: autoLitres(+t.amount), litresAuto: true });
       if (Object.keys(up).length) { Object.assign(t, up); await db.collection("transactions").doc(t.id).update(up); }
     }
@@ -2233,7 +2234,8 @@ async function processInbox() {
     await db.collection("transactions").doc(r.id).set({ date: r.date, time: r.time || "", amount: r.amount, kind: r.kind || "expense",
       merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: r.fx ? `${r.fx.cur} ${r.fx.amt.toFixed(2)}` : "", ...(r.fx ? { fx: r.fx } : {}), categoryId: cat,
       cardId, source: "sync", raw: r.raw, ...(r.timeGuess ? { timeGuess: true } : {}),
-      ...(isFuelBuy(r) && autoLitres(r.amount) ? { litres: autoLitres(r.amount), litresAuto: true } : {}), ...(r.kind === "payment" ? { categoryId: "debt" } : {}), createdAt: Date.now() });
+      ...(isFuelBuy(r) && autoLitres(r.amount) ? { litres: autoLitres(r.amount), litresAuto: true } : {}),
+      ...(appleSubFor(Object.assign({ kind: "expense" }, r)) ? { merchant: appleSubFor(Object.assign({ kind: "expense" }, r)).name, categoryId: (S.cats.find(c => c.id === "subs") || {}).id || null } : {}), ...(r.kind === "payment" ? { categoryId: "debt" } : {}), createdAt: Date.now() });
   }
   S.sync.added = rows.length;
 }
@@ -2367,12 +2369,24 @@ const normMerchant = s => String(s || "").toLowerCase().replace(/\.(com|net|org|
 /* friendly names for services, and one row per service (e.g. "ANTHROPIC" and "ANTHROPIC CLAU" are both Claude) */
 const SUB_NAMES = [[/anthropic|claude/i, "Claude"], [/openai|chatgpt/i, "ChatGPT"], [/disney/i, "Disney+"], [/netflix/i, "Netflix"], [/google ?(one|google|storage)/i, "Google One"], [/google ?cloud/i, "Google Cloud"], [/youtube/i, "YouTube Premium"], [/google ?play/i, "Google Play"], [/spotify/i, "Spotify"], [/icloud|apple\.com|itunes|apple ?music/i, "Apple"], [/shahid/i, "Shahid"], [/\bosn/i, "OSN+"], [/anghami/i, "Anghami"], [/watch ?it/i, "Watch It"], [/\btod\b|tod tv/i, "TOD"], [/prime video|amazon prime/i, "Prime Video"], [/canva/i, "Canva"], [/github/i, "GitHub"], [/notion/i, "Notion"], [/adobe/i, "Adobe"], [/microsoft|office 365|xbox/i, "Microsoft"], [/playstation|\bpsn\b/i, "PlayStation"], [/linkedin/i, "LinkedIn"], [/duolingo/i, "Duolingo"], [/midjourney/i, "Midjourney"], [/dropbox/i, "Dropbox"]];
 const subName = m => { const x = SUB_NAMES.find(([re]) => re.test(m || "")); return x ? x[1] : ""; };
+/* ---------- Apple subscriptions: every one arrives as "APPLE.COM BILL", so the price tells them apart ----------
+   Your list lives in Settings (name, price, renewal day), copied from iPhone Settings → Apple ID → Subscriptions. */
+const appleSubs = () => (Array.isArray(settings().appleSubs) ? settings().appleSubs : []).filter(a => a && a.name && +a.amount > 0);
+const isAppleBill = t => /apple\.com|itunes|apple bill/i.test(`${t.merchant || ""} ${t.raw || ""}`);
+function appleSubFor(t) {
+  if (!t || t.kind === "income" || !isAppleBill(t)) return null;
+  const v = +t.amount || 0, hits = appleSubs().filter(a => Math.abs(+a.amount - v) < 0.015);
+  if (hits.length < 2) return hits[0] || null;
+  /* two at the same price: the one whose renewal day is closest */
+  const d = +String(t.date || "").slice(8, 10) || 0; return hits.sort((a, b) => Math.abs((+a.day || 0) - d) - Math.abs((+b.day || 0) - d))[0];
+}
+const nextDay = day => { const t = todayStr(), y = +t.slice(0, 4), m = +t.slice(5, 7) - 1; for (let i = 0; i < 2; i++) { const last = new Date(y, m + i + 1, 0).getDate(), ds = toStr(new Date(y, m + i, Math.min(+day || 1, last))); if (ds >= t) return ds; } return t; };
 const prettyShop = m => String(m || "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 function findSubs() {
   const g = {};
   for (const t of S.txns) {
     if (t.deleted || t.kind !== "expense" || !t.merchant || /instapay|transfer|تحويل/i.test(t.merchant) || SUB_NOT.test(t.merchant)) continue;
-    const known = subName(t.merchant), k = known ? "svc:" + known : normMerchant(t.merchant); if (!k) continue;
+    const ap = appleSubFor(t), known = ap ? ap.name : subName(t.merchant), k = known ? "svc:" + known : normMerchant(t.merchant); if (!k) continue;
     (g[k] = g[k] || { known, list: [] }).list.push(t);
   }
   const out = [];
@@ -2387,9 +2401,11 @@ function findSubs() {
     const la = tot[tot.length - 1], pa = tot.length > 1 ? tot[tot.length - 2] : 0;
     const cats = {}; for (const t of list) if (t.categoryId) cats[t.categoryId] = (cats[t.categoryId] || 0) + 1;
     out.push({ key: "s" + hash(k.replace(/^svc:/, "").toLowerCase()), name: known || prettyShop(lastT.merchant), shop: lastT.merchant, med, months: months.length, n: list.length, last: lastT.date,
-      next: addDays(lastT.date, 30), yearly: med * 12, fx: lastT.fx || null, cat: catById(Object.entries(cats).sort((a, b) => b[1] - a[1]).map(x => x[0])[0]),
+      next: (() => { const ap = appleSubs().find(a => a.name === known); return ap && ap.day ? nextDay(ap.day) : addDays(lastT.date, 30); })(), yearly: med * 12, fx: lastT.fx || null, cat: catById(Object.entries(cats).sort((a, b) => b[1] - a[1]).map(x => x[0])[0]),
       up: pa && la > pa * 1.03 ? { from: pa, to: la } : null });
   }
+  const subsCat = S.cats.find(c => c.id === "subs") || null;
+  for (const a of appleSubs()) if (!out.some(x => x.name === a.name)) out.push({ key: "s" + hash(a.name.toLowerCase()), name: a.name, shop: "APPLE.COM BILL", med: +a.amount, months: 0, n: 0, last: "", next: a.day ? nextDay(a.day) : "", yearly: +a.amount * 12, fx: null, cat: subsCat, up: null, listed: true });
   return out.sort((a, b) => b.med - a.med);
 }
 /* keep a subscription row open across re-renders (tapping + or Keep redraws the card) */
@@ -2401,13 +2417,13 @@ function subsCard() {
   const monthly = active.reduce((a, x) => a + x.med, 0), saved = gone.reduce((a, x) => a + x.yearly, 0);
   const ico = x => x.cat ? catIco(x.cat, "sm") : `<span class="pt-ini" aria-hidden="true">${esc(x.name.charAt(0).toUpperCase())}</span>`;
   const row = x => { const u = usesFor(x.key), st = stOf(x); return `<details class="sb-item${x.up ? " sb-up" : ""}" data-sbk="${x.key}" ${SUB_OPEN.has(x.key) ? "open" : ""}>
-      <summary>${ico(x)}<span class="pt-mid"><b>${esc(x.name)}</b><span>${x.up ? `<span class="badtxt">Price up ${pct(x.up.to - x.up.from, x.up.from)}%</span> · ` : ""}${st === "keep" ? "Keeping ✓ · " : ""}next about ${esc(dm(x.next))}</span></span>
+      <summary>${ico(x)}<span class="pt-mid"><b>${esc(x.name)}</b><span>${x.up ? `<span class="badtxt">Price up ${pct(x.up.to - x.up.from, x.up.from)}%</span> · ` : ""}${st === "keep" ? "Keeping ✓ · " : ""}${x.next ? `next ${x.listed || appleSubs().some(a => a.name === x.name) ? "" : "about "}${esc(dm(x.next))}` : ""}</span></span>
         <span class="pt-end"><b class="num">${money(x.up ? x.up.to : x.med)}</b><span class="small muted">a month</span></span><span class="sb-chev" aria-hidden="true">›</span></summary>
       <div class="sb-more">
         <div class="sb-facts">
           <span><b class="num">${fmt(x.yearly)}</b>EGP a year</span>
           <span><b class="num">${x.months}</b>${x.months === 1 ? "month seen" : "months seen"}</span>
-          <span><b>${esc(dm(x.last))}</b>last charge</span>
+          <span><b>${x.last ? esc(dm(x.last)) : "not yet"}</b>last charge</span>
         </div>
         ${x.up ? `<div class="note warn small">Now ${money(x.up.to)} a month, was ${money(x.up.from)}.</div>` : ""}
         ${x.n > x.months ? `<div class="small muted">${plural(x.n, "charge")} from ${esc(x.shop)} and similar names, added together.</div>` : ""}${x.fx ? `<div class="small muted">Charged in ${esc(x.fx.cur)}, so the EGP price moves with the exchange rate.</div>` : ""}
@@ -3288,6 +3304,8 @@ function renderSetup() {
         <p class="small muted" style="margin:-4px 0 0">With day ${startDay()}, this month runs ${esc(pLabel(curKey(), true))}. Change it any time; all totals follow.</p>
         <label class="field"><span>Monthly salary</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="sSalary" value="${st.salary ? fmtIn(st.salary) : ""}" autocomplete="off"><span>EGP</span></div></label>
         <label class="field"><span>Weekly spending limit (Saturday to Friday)</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="sWeek" value="${st.weekLimit ? fmtIn(st.weekLimit) : ""}" placeholder="${suggestedWeekly() ? fmtIn(suggestedWeekly()) : ""}" autocomplete="off"><span>EGP</span></div></label>
+        <label class="field"><span>Apple subscriptions (one per line: name, price, renewal day)</span><textarea id="sApple" rows="4" placeholder="VSCO, 399.99, 21">${esc(appleSubs().map(a => `${a.name}, ${a.amount}, ${a.day || ""}`).join("\n"))}</textarea></label>
+        <p class="small muted" style="margin:-4px 0 0">Apple charges all say "APPLE.COM BILL", so Masarif names each one by its price. Copy them from iPhone Settings → your name → Subscriptions.</p>
         <label class="field"><span>Fuel price per litre</span><div class="affix"><input type="text" inputmode="decimal" id="sFuelP" value="${st.fuelPrice ? esc(st.fuelPrice) : ""}" placeholder="${fuelPriceSeen() ? esc(fuelPriceSeen()) : "e.g. 24"}" autocomplete="off"><span>EGP</span></div></label>
         <p class="small muted" style="margin:-4px 0 0">Each fill-up's litres = amount ÷ this price${fuelPriceSeen() && !st.fuelPrice ? ` (your last fill-up worked out at ${fuelPriceSeen()} a litre)` : ""}. Change it when prices go up or down; earlier fill-ups keep their litres.</p>
         <p class="small muted" style="margin:-4px 0 0">${suggestedWeekly() ? `About ${money(suggestedWeekly())} a week fits your plan: salary minus fixed payments and the card payment, spread over the month's weeks. ` : ""}Set limits for single categories, like fuel, in Categories.</p>
@@ -3485,6 +3503,7 @@ function renderSetup() {
       salary: numIn($("#sSalary").value),
       weekLimit: numIn($("#sWeek").value),
       fuelPrice: numIn($("#sFuelP").value) || 0,
+      appleSubs: $("#sApple").value.split(/\n+/).map(l => { const p = l.split(","); return { name: (p[0] || "").trim(), amount: numIn(p[1] || ""), day: Math.min(31, Math.max(0, Math.round(numIn(p[2] || "")))) || "" }; }).filter(a => a.name && a.amount > 0),
       fixed: fixed.filter(f => String(f.name).trim() && +f.amount).map(f => ({ name: String(f.name).trim(), amount: +f.amount, until: f.until || "", day: Math.min(31, Math.max(0, Math.round(+f.day || 0))) })),
       card: Object.assign({}, st.card, { balance: numIn($("#cBal").value), rate: numIn($("#cRate").value) / 100, payment: numIn($("#cPay").value), asOf: $("#cAsOf").value || "", asOfTime: ($("#cAsOf").value || "") === st.card.asOf && numIn($("#cBal").value) === +st.card.balance ? (st.card.asOfTime || "") : "" }),
       dateOrder: $("#sOrder").value
