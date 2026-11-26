@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-1qbYEHQjIvaklkoXOrhDJL2RAkGwD2yLTjVINs6Pkt0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-jq9ZOoaNEht51y9m2lKaCSyyj3BMMkTaDftCcwWyvHY='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2196,6 +2196,7 @@ async function processInbox() {
       if ((t.kind || "expense") === "expense" && cc0 && pay0 > 0 && Math.abs((+t.amount || 0) - pay0) <= 1 && /transfer to\s+another account|تحويل (?:إلى|الى) حساب آخر/i.test(body)) Object.assign(up, { kind: "payment", merchant: "Credit card payment", categoryId: "debt", cardId: cc0.id });
       if (!t.timeGuess && body && !parseTime(body)) up.timeGuess = true;
       if (/^another account$/i.test(t.merchant || "") && !up.merchant) up.merchant = "Bank transfer";
+      if (!(+t.litres > 0) && isFuelBuy(t) && daysDiff(t.date, todayStr()) <= 60 && autoLitres(+t.amount)) Object.assign(up, { litres: autoLitres(+t.amount), litresAuto: true });
       if (Object.keys(up).length) { Object.assign(t, up); await db.collection("transactions").doc(t.id).update(up); }
     }
   }
@@ -2231,7 +2232,8 @@ async function processInbox() {
     }
     await db.collection("transactions").doc(r.id).set({ date: r.date, time: r.time || "", amount: r.amount, kind: r.kind || "expense",
       merchant: r.merchant || (r.kind === "payment" ? "Credit card payment" : ""), note: r.fx ? `${r.fx.cur} ${r.fx.amt.toFixed(2)}` : "", ...(r.fx ? { fx: r.fx } : {}), categoryId: cat,
-      cardId, source: "sync", raw: r.raw, ...(r.timeGuess ? { timeGuess: true } : {}), ...(r.kind === "payment" ? { categoryId: "debt" } : {}), createdAt: Date.now() });
+      cardId, source: "sync", raw: r.raw, ...(r.timeGuess ? { timeGuess: true } : {}),
+      ...(isFuelBuy(r) && autoLitres(r.amount) ? { litres: autoLitres(r.amount), litresAuto: true } : {}), ...(r.kind === "payment" ? { categoryId: "debt" } : {}), createdAt: Date.now() });
   }
   S.sync.added = rows.length;
 }
@@ -2743,7 +2745,11 @@ function billsFor(key) {
     for (let i = 0; i < 32; i++) {
       const ds = toStr(d); if (ds >= pn) break;
       const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-      if (d.getDate() === Math.min(day, last)) { const amt = +f.amount || 0, auto = done[f.name] === undefined && billPaidByText(amt, ds, ps, pn, f.name); out.push({ id: f.name, name: f.name, amount: amt, date: ds, paid: done[f.name] === true || auto, auto }); break; }
+      if (d.getDate() === Math.min(day, last)) { const amt = +f.amount || 0, auto = done[f.name] === undefined && billPaidByText(amt, ds, ps, pn, f.name);
+        /* paid in parts: entries named like the bill (e.g. "Loan installment (part)") in Card & loan payments come off what's left */
+        const part = auto || done[f.name] === true ? 0 : S.txns.reduce((a, t) => a + (!t.deleted && t.date >= ps && t.date < pn && t.kind === "expense" && groupOf(t) === "debt" && billNameHit(t, f.name) && Math.abs((+t.amount || 0) - amt) > 1 ? +t.amount || 0 : 0), 0);
+        const left = Math.max(0, amt - part);
+        out.push({ id: f.name, name: f.name, amount: part > 0 ? left : amt, full: amt, part, date: ds, paid: done[f.name] === true || auto || (part > 0 && left <= 1), auto }); break; }
       d.setDate(d.getDate() + 1);
     }
   });
@@ -3282,6 +3288,8 @@ function renderSetup() {
         <p class="small muted" style="margin:-4px 0 0">With day ${startDay()}, this month runs ${esc(pLabel(curKey(), true))}. Change it any time; all totals follow.</p>
         <label class="field"><span>Monthly salary</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="sSalary" value="${st.salary ? fmtIn(st.salary) : ""}" autocomplete="off"><span>EGP</span></div></label>
         <label class="field"><span>Weekly spending limit (Saturday to Friday)</span><div class="affix"><input type="text" inputmode="decimal" class="money-in" id="sWeek" value="${st.weekLimit ? fmtIn(st.weekLimit) : ""}" placeholder="${suggestedWeekly() ? fmtIn(suggestedWeekly()) : ""}" autocomplete="off"><span>EGP</span></div></label>
+        <label class="field"><span>Fuel price per litre</span><div class="affix"><input type="text" inputmode="decimal" id="sFuelP" value="${st.fuelPrice ? esc(st.fuelPrice) : ""}" placeholder="${fuelPriceSeen() ? esc(fuelPriceSeen()) : "e.g. 24"}" autocomplete="off"><span>EGP</span></div></label>
+        <p class="small muted" style="margin:-4px 0 0">Each fill-up's litres = amount ÷ this price${fuelPriceSeen() && !st.fuelPrice ? ` (your last fill-up worked out at ${fuelPriceSeen()} a litre)` : ""}. Change it when prices go up or down; earlier fill-ups keep their litres.</p>
         <p class="small muted" style="margin:-4px 0 0">${suggestedWeekly() ? `About ${money(suggestedWeekly())} a week fits your plan: salary minus fixed payments and the card payment, spread over the month's weeks. ` : ""}Set limits for single categories, like fuel, in Categories.</p>
       </div>
 
@@ -3476,6 +3484,7 @@ function renderSetup() {
       defaultCardId: $("#sDefCard").value,
       salary: numIn($("#sSalary").value),
       weekLimit: numIn($("#sWeek").value),
+      fuelPrice: numIn($("#sFuelP").value) || 0,
       fixed: fixed.filter(f => String(f.name).trim() && +f.amount).map(f => ({ name: String(f.name).trim(), amount: +f.amount, until: f.until || "", day: Math.min(31, Math.max(0, Math.round(+f.day || 0))) })),
       card: Object.assign({}, st.card, { balance: numIn($("#cBal").value), rate: numIn($("#cRate").value) / 100, payment: numIn($("#cPay").value), asOf: $("#cAsOf").value || "", asOfTime: ($("#cAsOf").value || "") === st.card.asOf && numIn($("#cBal").value) === +st.card.balance ? (st.card.asOfTime || "") : "" }),
       dateOrder: $("#sOrder").value
@@ -3635,7 +3644,7 @@ function openTx(id, preset) {
       <div class="field" id="tCatWrap"><span class="row" style="width:100%"><span>Category</span><button type="button" class="link-btn" id="splitTog">Split</button></span><div class="chips" id="tCats">${catChips}</div>
         <div class="split-box" id="splitBox" hidden><div id="splitRows" class="stack" style="gap:8px"></div><div class="row"><button type="button" class="link-btn" id="splitAdd">+ Add a part</button><span class="small num" id="splitLeft"></span></div></div></div>
       <div class="grid2" id="fuelBox" hidden>
-        <label class="field"><span>Litres (optional)</span><input type="text" inputmode="decimal" id="tLit" value="${v.litres ? esc(v.litres) : ""}" placeholder="e.g. 35"></label>
+        <label class="field"><span>Litres (optional)</span><input type="text" inputmode="decimal" id="tLit" value="${v.litres ? esc(v.litres) : ""}" placeholder="${fuelPrice() ? "auto: amount ÷ " + esc(fuelPrice()) : "e.g. 35"}"></label>
         <label class="field"><span>Odometer km (optional)</span><input type="text" inputmode="numeric" id="tOdo" value="${v.odo ? esc(v.odo) : ""}" placeholder="e.g. 84,250"></label></div>
       ${(() => { if (t && t.repays) { const r = S.txns.find(x => x.id === t.repays); return `<div class="note ok">Someone paying you back for <b>${esc(r ? shopName(r) || "a purchase" : "a purchase")}</b>${r ? ` (${money(r.amount)}, ${esc(dayLabel(r.date))})` : ""}. <button type="button" class="link-btn" id="pbUnlink">Unlink</button></div>`; }
         if (!t || t.kind !== "expense") return ""; const cs = payBackCands(t); if (!cs.length) return "";
@@ -3729,7 +3738,12 @@ function openTx(id, preset) {
       if (Math.abs(used - amount) > 0.01) { $("#tMsg").textContent = `The parts add up to ${money(used)}, but the purchase is ${money(amount)}.`; return; }
       data.splits = parts.map(x => ({ categoryId: x.categoryId, amount: +x.amount })); data.categoryId = parts[0].categoryId;
     } else if (t && t.splits) data.splits = [];
-    if (!$("#fuelBox").hidden) { data.litres = numIn($("#tLit").value) || ""; data.odo = numIn($("#tOdo").value) || ""; }
+    if (!$("#fuelBox").hidden) { const typed = numIn($("#tLit").value);
+      data.litres = typed || (isFuelBuy(Object.assign({}, t || {}, data)) || !t ? autoLitres(data.amount) : 0) || "";
+      data.litresAuto = !typed && !!data.litres && !(t && +t.litres > 0 && !t.litresAuto && Math.abs(+t.litres - data.litres) < 0.01);
+      /* untouched auto litres follow the amount if you change it */
+      if (t && t.litresAuto && Math.abs(typed - (+t.litres || 0)) < 0.01 && autoLitres(data.amount)) { data.litres = autoLitres(data.amount); data.litresAuto = true; }
+      data.odo = numIn($("#tOdo").value) || ""; }
     if (data.kind === "expense") { data.worth = worth; data.plan = plan; data.social = social; } else data.worth = "";
     data.reviewed = true;
     data.noWeek = !!($("#tNoWk") && $("#tNoWk").checked && data.kind === "expense");
@@ -4012,6 +4026,16 @@ const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 const catOpts = (sel, none) => `<option value="">${none || "No category"}</option>` + S.cats.map(c => `<option value="${esc(c.id)}" ${c.id === sel ? "selected" : ""}>${esc(c.name)}</option>`).join("");
 const payOpts = sel => payMethods().map(c => `<option value="${esc(c.id)}" ${c.id === sel ? "selected" : ""}>${esc(c.type === "cash" ? "Cash" : c.name + (c.last4 ? " ••" + c.last4 : ""))}</option>`).join("");
+/* ---------- litres from the amount: a fill-up at a station, divided by your price per litre ---------- */
+const FUEL_STATION_RE = /chill ?out|wataniya|watanya|\btotal\b|totalenergies|\bmobil\b|emarat misr|\bshell\b|misr petrol|cooppetrol|co-?op petrol|petrol|gas station|بنزين|وطنية|موبيل|توتال|شل اوت|تشيل اوت/i;
+const isFuelBuy = t => !!t && t.kind === "expense" && FUEL_STATION_RE.test(`${t.merchant || ""} ${t.raw || ""}`) && !/car ?wash|غسيل|parking|جراج/i.test(t.merchant || "");
+/* your typed price, or the last fill-up where you entered litres yourself */
+function fuelPriceSeen() {
+  const f = S.txns.filter(t => !t.deleted && +t.litres > 0 && !t.litresAuto && +t.amount > 0).sort((a, b) => tKey(b).localeCompare(tKey(a)))[0];
+  return f ? Math.round(+f.amount / +f.litres * 100) / 100 : 0;
+}
+const fuelPrice = () => +settings().fuelPrice || fuelPriceSeen();
+const autoLitres = amt => { const p = fuelPrice(); return p > 0 && amt > 0 ? Math.round(amt / p * 100) / 100 : 0; };
 const fuelCat = () => S.cats.find(c => c.id === "fuel") || S.cats.find(c => /fuel|petrol|بنزين|وقود/i.test(c.name || ""));
 const isSpend = t => !t.deleted && t.date && !isFlow(t);
 const spendTx = () => S.txns.filter(isSpend);
