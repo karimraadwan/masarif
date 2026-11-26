@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-jq9ZOoaNEht51y9m2lKaCSyyj3BMMkTaDftCcwWyvHY='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'sha256-Ur+9PresLu8/7bOneBfLoEIECjoNrK+4NAH2iZHPHPI=' 'sha256-nRmMsiIkNvuHpMmX4DEWMJ3ChMe1E50x5jGtIcduKnk='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3652,7 +3652,7 @@ function openTx(id, preset) {
           <div class="stack" style="gap:6px;margin-top:8px">${cs.map(x => `<label class="check"><input type="checkbox" class="pbChk" value="${esc(x.id)}" ${x.repays === t.id ? "checked" : ""}><span>${money(x.amount)} · ${esc(shopName(x) || "Transfer")} · ${esc(dayLabel(x.date))}${x.time ? " " + esc(x.time) : ""}</span></label>`).join("")}</div></details>`; })()}
       <label class="check" id="loanBox"><input type="checkbox" id="tLoan" ${v.loan ? "checked" : ""}><span>A loan: money I borrowed, or paid back to a friend (not spending, not income)</span></label>
       <label class="check" id="noWkBox"><input type="checkbox" id="tNoWk" ${v.noWeek ? "checked" : ""}><span>Not counted in this week's limit (a one-off like a bill or paying someone back; still counts for the month)</span></label>
-      <label class="check" id="rememberBox" ${v.merchant ? "" : "hidden"}><input type="checkbox" id="tRem"><span>Always put <b id="remName">${esc(v.merchant)}</b> in this category</span></label>
+      <label class="check" id="rememberBox" ${v.merchant ? "" : "hidden"}><input type="checkbox" id="tRem" ${v.merchant && catById(v.categoryId) && kw(catById(v.categoryId)).includes(String(v.merchant).trim().toLowerCase()) ? "checked" : ""}><span>Always put <b id="remName">${esc(v.merchant)}</b> in this category</span></label>
       <div class="field" id="tPayWrap"><span>Paid with</span><div class="paychips">${payChips}</div></div>
       <div class="dt-row">
         <label class="field"><span>Date</span><input type="date" id="tDate" value="${esc(v.date)}" required></label>
@@ -3691,9 +3691,12 @@ function openTx(id, preset) {
   /* tidy the number when you leave the box, but leave a mistake (like -50) as typed so Save can explain it */
   amt.addEventListener("blur", () => { if (!amt.value.trim()) return; const ai = amtIn(amt.value); if (!ai.err) amt.value = fmtIn(ai.v); });
   amt.addEventListener("input", () => drawHrs()); setTimeout(() => drawHrs(), 0);
+  /* the tick shows whether this shop is already saved as a keyword of the chosen category */
+  const syncRem = () => { const c = catById(catVal()), m = $("#tMer").value.trim().toLowerCase(); if ($("#tRem")) $("#tRem").checked = !!(c && m && kw(c).includes(m)); };
+  sheet.querySelectorAll("input[name=tcat]").forEach(r => r.addEventListener("change", syncRem));
   $("#tMer").oninput = e => {
     const val = e.target.value.trim();
-    $("#rememberBox").hidden = !val || kindNow() === "payment" || kindNow() === "income"; $("#remName").textContent = val;
+    $("#rememberBox").hidden = !val || kindNow() === "payment" || kindNow() === "income"; $("#remName").textContent = val; syncRem();
     if (!catTouched) { const id = autoCat(val) || ""; const r = sheet.querySelector(`input[name=tcat][value="${CSS.escape(id)}"]`); if (r) r.checked = true;
       sheet.querySelectorAll("#tCats .chip").forEach(l => l.classList.toggle("sug", !!id && l.querySelector("input").value === id)); }
   };
@@ -3760,9 +3763,11 @@ function openTx(id, preset) {
       if (t) { await db.collection("transactions").doc(t.id).update(data); if (data.categoryId && data.categoryId !== t.categoryId && !data.splits) learnFrom(t, data.categoryId);
         if ($("#pbBox") && data.kind === "expense") await linkPayback(Object.assign({}, t, data), [...sheet.querySelectorAll(".pbChk:checked")].map(x => x.value)); }
       else { newId = "x_" + uid(); await db.collection("transactions").doc(newId).set(Object.assign(data, { source: "manual", raw: "", createdAt: Date.now() })); }
-      if ($("#tRem") && $("#tRem").checked && data.categoryId && data.merchant) {
+      if ($("#tRem") && data.merchant && !$("#rememberBox").hidden) {
         const c = catById(data.categoryId), k = data.merchant.toLowerCase();
-        if (c && !kw(c).includes(k)) await db.collection("categories").doc(c.id).update({ keywords: kw(c).concat(k).join(", ") });
+        if ($("#tRem").checked && c && !kw(c).includes(k)) await db.collection("categories").doc(c.id).update({ keywords: kw(c).concat(k).join(", ") });
+        /* unticked: stop sending this shop to that category */
+        if (!$("#tRem").checked) for (const cc of S.cats) if (kw(cc).includes(k)) await db.collection("categories").doc(cc.id).update({ keywords: kw(cc).filter(x => x !== k).join(", ") });
       }
       closeSheet();
       if (newId && photo) uploadPhoto(newId, photo, data);
